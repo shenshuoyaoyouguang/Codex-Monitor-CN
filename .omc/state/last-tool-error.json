@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"powershell -NoProfile -Command \\\"clang --version\\\"\",\"description\":\"Test clang in fresh PowerShell\"}",
+  "error": "Exit code 1\nclang : �޷�����clang����ʶ��Ϊ cmdlet���������ű��ļ�������г�������ơ��������Ƶ�ƴд���������·������ȷ��·����ȷ��Ȼ\r\n������һ�Ρ�\r\n����λ�� ��:1 �ַ�: 1\r\n+ clang --version\r\n+ ~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (clang:String) [], CommandNotFoundException\r\n    + FullyQualifiedErrorId : CommandNotFoundException",
+  "timestamp": "2026-02-13T12:12:10.159Z",
+  "retry_count": 1
+}

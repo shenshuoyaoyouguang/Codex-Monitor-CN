@@ -1,0 +1,558 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1770952313812,
+  "projectRoot": "D:\\2026.2.6\\CodexMonitor-main",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "react",
+        "version": "19.1.0",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "19.1.0",
+        "category": "frontend"
+      },
+      {
+        "name": "vite",
+        "version": "7.0.4",
+        "category": "build"
+      },
+      {
+        "name": "vitest",
+        "version": "3.2.4",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": "npm test",
+    "lintCommand": "npm run lint",
+    "devCommand": "npm run dev",
+    "scripts": {
+      "sync:material-icons": "node scripts/sync-material-icons.mjs",
+      "postinstall": "npm run sync:material-icons",
+      "predev": "npm run sync:material-icons",
+      "dev": "vite",
+      "prebuild": "npm run sync:material-icons",
+      "build": "tsc && vite build",
+      "build:appimage": "NO_STRIP=1 tauri build --bundles appimage",
+      "doctor": "sh scripts/doctor.sh",
+      "doctor:strict": "sh scripts/doctor.sh --strict",
+      "doctor:win": "node scripts/doctor.mjs",
+      "lint": "eslint . --ext .ts,.tsx",
+      "lint:ds": "eslint . --ext .ts,.tsx",
+      "codemod:modal-shell": "node scripts/codemods/modal-shell-codemod.mjs",
+      "codemod:panel-shell": "node scripts/codemods/panel-shell-codemod.mjs",
+      "codemod:toast-shell": "node scripts/codemods/toast-shell-codemod.mjs",
+      "codemod:ds:dry": "npm run codemod:modal-shell -- --dry-run && npm run codemod:panel-shell -- --dry-run && npm run codemod:toast-shell -- --dry-run",
+      "codemod:ds": "npm run codemod:modal-shell && npm run codemod:panel-shell && npm run codemod:toast-shell",
+      "test": "vitest run",
+      "test:watch": "vitest",
+      "typecheck": "tsc --noEmit",
+      "preview": "vite preview",
+      "tauri": "tauri",
+      "pretauri:dev": "npm run sync:material-icons",
+      "tauri:dev": "npm run doctor:strict && tauri dev",
+      "pretauri:build": "npm run sync:material-icons",
+      "tauri:build": "npm run doctor:strict && tauri build",
+      "pretauri:dev:win": "npm run sync:material-icons",
+      "tauri:dev:win": "npm run doctor:win && tauri dev --config src-tauri/tauri.windows.conf.json",
+      "pretauri:build:win": "npm run sync:material-icons",
+      "tauri:build:win": "npm run doctor:win && tauri build --config src-tauri/tauri.windows.conf.json"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": "feature-based"
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs",
+      "public",
+      "scripts",
+      "src"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "dist": {
+      "path": "dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 4,
+      "lastAccessed": 1770952313755,
+      "keyFiles": [
+        "app-icon.png",
+        "index.html",
+        "tauri.svg",
+        "vite.svg"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 7,
+      "lastAccessed": 1770952313755,
+      "keyFiles": [
+        "app-server-events.md",
+        "changelog.html",
+        "CNAME",
+        "codebase-map.md",
+        "index.html"
+      ]
+    },
+    "memory": {
+      "path": "memory",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1770952313771,
+      "keyFiles": [
+        "i18n-plan.md"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 3,
+      "lastAccessed": 1770952313771,
+      "keyFiles": [
+        "app-icon.png",
+        "tauri.svg",
+        "vite.svg"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 7,
+      "lastAccessed": 1770952313772,
+      "keyFiles": [
+        "build_run_ios.sh",
+        "build_run_ios_device.sh",
+        "doctor.mjs",
+        "doctor.sh",
+        "macos-fix-openssl.sh"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 6,
+      "lastAccessed": 1770952313772,
+      "keyFiles": [
+        "App.tsx",
+        "lucide-icons.d.ts",
+        "main.test.tsx",
+        "main.tsx",
+        "types.ts"
+      ]
+    },
+    "src-tauri": {
+      "path": "src-tauri",
+      "purpose": null,
+      "fileCount": 10,
+      "lastAccessed": 1770952313772,
+      "keyFiles": [
+        "build.rs",
+        "Cargo.lock",
+        "Cargo.toml",
+        "Entitlements.plist",
+        "Info.plist"
+      ]
+    },
+    "dist\\assets": {
+      "path": "dist\\assets",
+      "purpose": "Static assets",
+      "fileCount": 318,
+      "lastAccessed": 1770952313773,
+      "keyFiles": [
+        "abap-BdImnpbu.js",
+        "AboutView-C8h43cjc.js",
+        "actionscript-3-CoDkCxhg.js"
+      ]
+    },
+    "docs\\assets": {
+      "path": "docs\\assets",
+      "purpose": "Static assets",
+      "fileCount": 9,
+      "lastAccessed": 1770952313773,
+      "keyFiles": [
+        "app-icon.png",
+        "feature1.png",
+        "feature2.png"
+      ]
+    },
+    "public\\assets": {
+      "path": "public\\assets",
+      "purpose": "Static assets",
+      "fileCount": 0,
+      "lastAccessed": 1770952313774,
+      "keyFiles": []
+    },
+    "src\\assets": {
+      "path": "src\\assets",
+      "purpose": "Static assets",
+      "fileCount": 2,
+      "lastAccessed": 1770952313774,
+      "keyFiles": [
+        "error-notification.mp3",
+        "success-notification.mp3"
+      ]
+    },
+    "src\\services": {
+      "path": "src\\services",
+      "purpose": "Business logic services",
+      "fileCount": 8,
+      "lastAccessed": 1770952313774,
+      "keyFiles": [
+        "dragDrop.ts",
+        "events.test.ts",
+        "events.ts"
+      ]
+    },
+    "src-tauri\\src": {
+      "path": "src-tauri\\src",
+      "purpose": "Source code",
+      "fileCount": 18,
+      "lastAccessed": 1770952313774,
+      "keyFiles": [
+        "daemon_binary.rs",
+        "event_sink.rs",
+        "git_utils.rs"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src\\i18n\\locales\\zh\\translation.json",
+      "accessCount": 156,
+      "lastAccessed": 1770983643498,
+      "type": "file"
+    },
+    {
+      "path": "src\\i18n\\locales\\en\\translation.json",
+      "accessCount": 124,
+      "lastAccessed": 1770983931745,
+      "type": "file"
+    },
+    {
+      "path": "src\\App.tsx",
+      "accessCount": 70,
+      "lastAccessed": 1770981271563,
+      "type": "directory"
+    },
+    {
+      "path": "src",
+      "accessCount": 33,
+      "lastAccessed": 1770983686224,
+      "type": "directory"
+    },
+    {
+      "path": "src/i18n/locales/en/translation.json",
+      "accessCount": 14,
+      "lastAccessed": 1770969150422,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\git\\components\\GitDiffViewer.tsx",
+      "accessCount": 13,
+      "lastAccessed": 1770963667510,
+      "type": "file"
+    },
+    {
+      "path": "src/features/git/components/GitDiffViewer.tsx",
+      "accessCount": 12,
+      "lastAccessed": 1770963647041,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\components\\SettingsView.tsx",
+      "accessCount": 12,
+      "lastAccessed": 1770981953585,
+      "type": "directory"
+    },
+    {
+      "path": "src/i18n/locales/zh/translation.json",
+      "accessCount": 11,
+      "lastAccessed": 1770969123728,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\components\\sections\\SettingsCodexSection.tsx",
+      "accessCount": 10,
+      "lastAccessed": 1770963263204,
+      "type": "file"
+    },
+    {
+      "path": "src\\features\\workspaces\\hooks\\useWorkspaces.ts",
+      "accessCount": 10,
+      "lastAccessed": 1770964747904,
+      "type": "file"
+    },
+    {
+      "path": "src/features",
+      "accessCount": 10,
+      "lastAccessed": 1770981996878,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\workspaces\\components\\WorkspaceHome.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1770963482815,
+      "type": "file"
+    },
+    {
+      "path": "src/features/workspaces/components/WorkspaceHome.tsx",
+      "accessCount": 8,
+      "lastAccessed": 1770963461383,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings",
+      "accessCount": 8,
+      "lastAccessed": 1770981385206,
+      "type": "directory"
+    },
+    {
+      "path": "src/features/settings/components/sections/SettingsCodexSection.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1770963153811,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features",
+      "accessCount": 6,
+      "lastAccessed": 1770977833877,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\app\\hooks\\useWorkspaceController.ts",
+      "accessCount": 5,
+      "lastAccessed": 1770965283976,
+      "type": "directory"
+    },
+    {
+      "path": "src/features/workspaces/hooks/useWorkspaces.ts",
+      "accessCount": 4,
+      "lastAccessed": 1770962978458,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\app\\bootstrap\\useAppBootstrapOrchestration.ts",
+      "accessCount": 4,
+      "lastAccessed": 1770965186324,
+      "type": "directory"
+    },
+    {
+      "path": "src/features/app/components",
+      "accessCount": 4,
+      "lastAccessed": 1770969050641,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\components",
+      "accessCount": 3,
+      "lastAccessed": 1770962981564,
+      "type": "directory"
+    },
+    {
+      "path": "src/features/settings/components/settingsViewHelpers.ts",
+      "accessCount": 3,
+      "lastAccessed": 1770963292916,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\components\\settingsViewHelpers.ts",
+      "accessCount": 3,
+      "lastAccessed": 1770963455089,
+      "type": "file"
+    },
+    {
+      "path": "src\\features\\settings\\hooks\\useSettingsViewOrchestration.ts",
+      "accessCount": 3,
+      "lastAccessed": 1770963523030,
+      "type": "file"
+    },
+    {
+      "path": "src\\features\\settings\\hooks\\useSettingsCodexSection.ts",
+      "accessCount": 3,
+      "lastAccessed": 1770963804684,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\hooks",
+      "accessCount": 3,
+      "lastAccessed": 1770964192240,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\hooks\\useSettingsServerSection.ts",
+      "accessCount": 2,
+      "lastAccessed": 1770963504573,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\app\\hooks\\useAppSettingsController.ts",
+      "accessCount": 2,
+      "lastAccessed": 1770963569156,
+      "type": "directory"
+    },
+    {
+      "path": "src/features/notifications/components/ErrorToasts.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1770963761475,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\app\\bootstrap",
+      "accessCount": 2,
+      "lastAccessed": 1770964986283,
+      "type": "directory"
+    },
+    {
+      "path": "src/features/settings",
+      "accessCount": 2,
+      "lastAccessed": 1770965444241,
+      "type": "directory"
+    },
+    {
+      "path": "src\\i18n\\config.ts",
+      "accessCount": 2,
+      "lastAccessed": 1770976852892,
+      "type": "file"
+    },
+    {
+      "path": "src\\features\\app",
+      "accessCount": 2,
+      "lastAccessed": 1770981385151,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\components\\SettingsNav.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1770981450496,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\76578\\.claude\\projects\\D--2026-2-6-CodexMonitor-main\\ae576688-8516-4324-956d-1885d9daddf0\\tool-results\\call_function_drn5jxs34yv5_1.txt",
+      "accessCount": 1,
+      "lastAccessed": 1770952579682,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\76578\\.claude\\projects\\D--2026-2-6-CodexMonitor-main\\e7fa6f39-9159-4c7d-9982-ca768f2501d3\\tool-results\\call_function_r5m9mw8n08t9_1.txt",
+      "accessCount": 1,
+      "lastAccessed": 1770953091761,
+      "type": "file"
+    },
+    {
+      "path": "src/features/git",
+      "accessCount": 1,
+      "lastAccessed": 1770962646158,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\git\\utils\\branchValidation.ts",
+      "accessCount": 1,
+      "lastAccessed": 1770962824076,
+      "type": "file"
+    },
+    {
+      "path": "src/features/workspaces",
+      "accessCount": 1,
+      "lastAccessed": 1770962880464,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\components\\settingsViewConstants.ts",
+      "accessCount": 1,
+      "lastAccessed": 1770962929204,
+      "type": "file"
+    },
+    {
+      "path": "src\\features\\workspaces",
+      "accessCount": 1,
+      "lastAccessed": 1770963161455,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\layout\\hooks\\useUiScaleShortcuts.ts",
+      "accessCount": 1,
+      "lastAccessed": 1770963576828,
+      "type": "file"
+    },
+    {
+      "path": "src\\features\\settings\\components\\sections\\SettingsDisplaySection.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1770963589834,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\hooks\\useSettingsProjectsSection.ts",
+      "accessCount": 1,
+      "lastAccessed": 1770963638140,
+      "type": "directory"
+    },
+    {
+      "path": "src/features/settings/hooks/useSettingsServerSection.ts",
+      "accessCount": 1,
+      "lastAccessed": 1770963735994,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\hooks\\useSettingsFeaturesSection.ts",
+      "accessCount": 1,
+      "lastAccessed": 1770963815119,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\settings\\hooks\\useGlobalAgentsMd.ts",
+      "accessCount": 1,
+      "lastAccessed": 1770964204404,
+      "type": "directory"
+    },
+    {
+      "path": "src\\features\\app\\bootstrap\\useAppBootstrap.ts",
+      "accessCount": 1,
+      "lastAccessed": 1770965201227,
+      "type": "directory"
+    },
+    {
+      "path": "src/features/app",
+      "accessCount": 1,
+      "lastAccessed": 1770965405566,
+      "type": "directory"
+    }
+  ],
+  "userDirectives": []
+}
