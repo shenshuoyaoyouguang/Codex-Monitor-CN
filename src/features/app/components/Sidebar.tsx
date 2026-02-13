@@ -34,8 +34,7 @@ import { useThreadRows } from "../hooks/useThreadRows";
 import { useDismissibleMenu } from "../hooks/useDismissibleMenu";
 import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { getUsageLabels } from "../utils/usageLabels";
-import { formatRelativeTimeShort } from "../../../i18n/utils";
-import { useTranslation } from "react-i18next";
+import { formatRelativeTimeShort } from "../../../utils/time";
 
 const COLLAPSED_GROUPS_STORAGE_KEY = "codexmonitor.collapsedGroups";
 const UNGROUPED_COLLAPSE_ID = "__ungrouped__";
@@ -163,7 +162,6 @@ export const Sidebar = memo(function Sidebar({
   onWorkspaceDragLeave,
   onWorkspaceDrop,
 }: SidebarProps) {
-  const { t } = useTranslation();
   const [expandedWorkspaces, setExpandedWorkspaces] = useState(
     new Set<string>(),
   );
@@ -262,9 +260,9 @@ export const Sidebar = memo(function Sidebar({
   const accountButtonLabel = accountEmail
     ? accountEmail
     : accountInfo?.type === "apikey"
-      ? "API Key"
-      : t('sidebar.login');
-  const accountActionLabel = accountEmail ? t('sidebar.switch_account') : t('sidebar.login');
+      ? "API key"
+      : "Sign in to Codex";
+  const accountActionLabel = accountEmail ? "Switch account" : "Sign in";
   const showAccountSwitcher = Boolean(activeWorkspaceId);
   const accountSwitchDisabled = accountSwitching || !activeWorkspaceId;
   const accountCancelDisabled = !accountSwitching || !activeWorkspaceId;
@@ -449,8 +447,8 @@ export const Sidebar = memo(function Sidebar({
             className="sidebar-search-input"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder={t('sidebar.search_workspaces')}
-            aria-label={t('sidebar.search_workspaces')}
+            placeholder="Search projects"
+            aria-label="Search projects"
             data-tauri-drag-region="false"
             autoFocus
           />
@@ -460,7 +458,7 @@ export const Sidebar = memo(function Sidebar({
             type="button"
             className="sidebar-search-clear"
             onClick={() => setSearchQuery("")}
-            aria-label={t('sidebar.clear_search')}
+            aria-label="Clear search"
             data-tauri-drag-region="false"
           >
             <X size={12} aria-hidden />
@@ -475,10 +473,10 @@ export const Sidebar = memo(function Sidebar({
       >
         <div
           className={`workspace-drop-overlay-text${
-            workspaceDropText === t('workspace.adding_workspace') ? " is-busy" : ""
+            workspaceDropText === "Adding Project..." ? " is-busy" : ""
           }`}
         >
-          {workspaceDropText === t('workspace.drag_drop_here') && (
+          {workspaceDropText === "Drop Project Here" && (
             <FolderOpen className="workspace-drop-overlay-icon" aria-hidden />
           )}
           {workspaceDropText}
@@ -495,7 +493,7 @@ export const Sidebar = memo(function Sidebar({
           {pinnedThreadRows.length > 0 && (
             <div className="pinned-section">
               <div className="workspace-group-header">
-                <div className="workspace-group-label">{t('sidebar.pinned')}</div>
+                <div className="workspace-group-label">Pinned</div>
               </div>
               <PinnedThreadList
                 rows={pinnedThreadRows}
@@ -596,7 +594,7 @@ export const Sidebar = memo(function Sidebar({
                               }}
                               icon={<Plus aria-hidden />}
                             >
-                              {t('workspace.new_agent')}
+                              New agent
                             </PopoverMenuItem>
                             <PopoverMenuItem
                               className="workspace-add-option"
@@ -607,7 +605,7 @@ export const Sidebar = memo(function Sidebar({
                               }}
                               icon={<GitBranch aria-hidden />}
                             >
-                              {t('workspace.new_worktree_agent')}
+                              New worktree agent
                             </PopoverMenuItem>
                             <PopoverMenuItem
                               className="workspace-add-option"
@@ -618,7 +616,7 @@ export const Sidebar = memo(function Sidebar({
                               }}
                               icon={<Copy aria-hidden />}
                             >
-                              {t('workspace.new_clone_agent')}
+                              New clone agent
                             </PopoverMenuItem>
                           </PopoverSurface>,
                           document.body,
@@ -639,7 +637,7 @@ export const Sidebar = memo(function Sidebar({
                           }}
                         >
                           <span className={`thread-status ${draftStatusClass}`} aria-hidden />
-                          <span className="thread-name">{t('workspace.new_agent')}</span>
+                          <span className="thread-name">New Agent</span>
                         </div>
                       )}
                       {worktrees.length > 0 && (
@@ -700,8 +698,8 @@ export const Sidebar = memo(function Sidebar({
           {!filteredGroupedWorkspaces.length && (
             <div className="empty">
               {isSearchActive
-                ? t('sidebar.no_matching_workspaces')
-                : t('sidebar.no_workspaces')}
+                ? "No projects match your search."
+                : "Add a workspace to start."}
             </div>
           )}
         </div>

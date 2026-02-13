@@ -1,6 +1,5 @@
 import Layers from "lucide-react/dist/esm/icons/layers";
 import type { MouseEvent } from "react";
-import { useTranslation } from "react-i18next";
 
 import type { ThreadSummary, WorkspaceInfo } from "../../../types";
 import { ThreadList } from "./ThreadList";
@@ -80,7 +79,6 @@ export function WorktreeSection({
   onToggleExpanded,
   onLoadOlderThreads,
 }: WorktreeSectionProps) {
-  const { t } = useTranslation();
   if (!worktrees.length) {
     return null;
   }
@@ -89,7 +87,7 @@ export function WorktreeSection({
     <div className="worktree-section">
       <div className="worktree-header">
         <Layers className="worktree-header-icon" aria-hidden />
-        {t("worktree.title")}
+        Worktrees
       </div>
       <div className="worktree-list">
         {worktrees.map((worktree) => {

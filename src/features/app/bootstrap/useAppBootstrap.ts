@@ -4,8 +4,6 @@ import { useAppSettingsController } from "@app/hooks/useAppSettingsController";
 import { useCodeCssVars } from "@app/hooks/useCodeCssVars";
 import { useDictationController } from "@app/hooks/useDictationController";
 import { useLiquidGlassEffect } from "@app/hooks/useLiquidGlassEffect";
-import i18next from "@/i18n/config";
-import { useEffect, useRef } from "react";
 
 export function useAppBootstrap() {
   const appSettingsState = useAppSettingsController();
@@ -21,15 +19,6 @@ export function useAppBootstrap() {
     reduceTransparency: shouldReduceTransparency,
     onDebug: debugState.addDebugEntry,
   });
-
-  // 同步语言设置到 i18n
-  const languageInitialized = useRef(false);
-  useEffect(() => {
-    if (!languageInitialized.current && appSettingsState.appSettings.language) {
-      languageInitialized.current = true;
-      i18next.changeLanguage(appSettingsState.appSettings.language);
-    }
-  }, [appSettingsState.appSettings.language]);
 
   return {
     ...appSettingsState,

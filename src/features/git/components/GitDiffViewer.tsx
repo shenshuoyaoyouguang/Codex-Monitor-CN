@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FileDiff, WorkerPoolContextProvider } from "@pierre/diffs/react";
@@ -15,7 +14,7 @@ import type {
   PullRequestReviewIntent,
   PullRequestSelectionRange,
 } from "../../../types";
-import { formatRelativeTime } from "../../../i18n/utils/date";
+import { formatRelativeTime } from "../../../utils/time";
 import { parseDiff, type ParsedDiffLine } from "../../../utils/diff";
 import {
   DIFF_VIEWER_HIGHLIGHTER_OPTIONS,
@@ -29,6 +28,7 @@ import { usePullRequestLineSelection } from "../hooks/usePullRequestLineSelectio
 
 type GitDiffViewerItem = {
   path: string;
+  displayPath?: string;
   status: string;
   diff: string;
   oldLines?: string[];
@@ -76,6 +76,44 @@ function normalizePatchName(name: string) {
   return name.replace(/^(?:a|b)\//, "");
 }
 
+function parseRawDiffLines(diff: string): ParsedDiffLine[] {
+  return diff
+    .split("\n")
+    .filter((line) => line.trim().length > 0)
+    .map((line) => {
+      if (line.startsWith("+") && !line.startsWith("+++")) {
+        return {
+          type: "add",
+          oldLine: null,
+          newLine: null,
+          text: line.slice(1),
+        } satisfies ParsedDiffLine;
+      }
+      if (line.startsWith("-") && !line.startsWith("---")) {
+        return {
+          type: "del",
+          oldLine: null,
+          newLine: null,
+          text: line.slice(1),
+        } satisfies ParsedDiffLine;
+      }
+      if (line.startsWith(" ")) {
+        return {
+          type: "context",
+          oldLine: null,
+          newLine: null,
+          text: line.slice(1),
+        } satisfies ParsedDiffLine;
+      }
+      return {
+        type: "meta",
+        oldLine: null,
+        newLine: null,
+        text: line,
+      } satisfies ParsedDiffLine;
+    });
+}
+
 type DiffCardProps = {
   entry: GitDiffViewerItem;
   isSelected: boolean;
@@ -120,8 +158,11 @@ const DiffCard = memo(function DiffCard({
   pullRequestReviewLaunching = false,
   pullRequestReviewThreadId = null,
 }: DiffCardProps) {
-  const { t } = useTranslation();
-  const { name: fileName, dir } = useMemo(() => splitPath(entry.path), [entry.path]);
+  const displayPath = entry.displayPath ?? entry.path;
+  const { name: fileName, dir } = useMemo(
+    () => splitPath(displayPath),
+    [displayPath],
+  );
   const displayDir = dir ? `${dir}/` : "";
   const diffOptions = useMemo(
     () => ({
@@ -143,7 +184,7 @@ const DiffCard = memo(function DiffCard({
     if (!parsed) {
       return null;
     }
-    const normalizedName = normalizePatchName(parsed.name || entry.path);
+    const normalizedName = normalizePatchName(parsed.name || displayPath);
     const normalizedPrevName = parsed.prevName
       ? normalizePatchName(parsed.prevName)
       : undefined;
@@ -154,19 +195,25 @@ const DiffCard = memo(function DiffCard({
       oldLines: entry.oldLines,
       newLines: entry.newLines,
     } satisfies FileDiffMetadata;
-  }, [entry.diff, entry.newLines, entry.oldLines, entry.path]);
+  }, [displayPath, entry.diff, entry.newLines, entry.oldLines]);
 
   const placeholder = useMemo(() => {
     if (isLoading) {
-      return t("git.loading_diff");
+      return "Loading diff...";
     }
     if (ignoreWhitespaceChanges && !entry.diff.trim()) {
-      return t("git.no_non_whitespace_changes");
+      return "No non-whitespace changes.";
     }
     return "Diff unavailable.";
-  }, [entry.diff, ignoreWhitespaceChanges, isLoading, t]);
+  }, [entry.diff, ignoreWhitespaceChanges, isLoading]);
 
-  const parsedLines = useMemo(() => parseDiff(entry.diff), [entry.diff]);
+  const parsedLines = useMemo(() => {
+    const parsed = parseDiff(entry.diff);
+    if (parsed.length > 0) {
+      return parsed;
+    }
+    return parseRawDiffLines(entry.diff);
+  }, [entry.diff]);
   const hasSelectableLines = useMemo(
     () =>
       parsedLines.some(
@@ -185,7 +232,7 @@ const DiffCard = memo(function DiffCard({
         <span className="diff-viewer-status" data-status={entry.status}>
           {entry.status}
         </span>
-        <span className="diff-viewer-path" title={entry.path}>
+        <span className="diff-viewer-path" title={displayPath}>
           <span className="diff-viewer-name">{fileName}</span>
           {displayDir && <span className="diff-viewer-dir">{displayDir}</span>}
         </span>
@@ -198,7 +245,7 @@ const DiffCard = memo(function DiffCard({
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
-              onRequestRevert?.(entry.path);
+              onRequestRevert?.(displayPath);
             }}
           >
             <RotateCcw size={14} aria-hidden />
@@ -264,6 +311,14 @@ const DiffCard = memo(function DiffCard({
             fileDiff={fileDiff}
             options={diffOptions}
             style={{ width: "100%", maxWidth: "100%", minWidth: 0 }}
+          />
+        </div>
+      ) : entry.diff.trim().length > 0 && parsedLines.length > 0 ? (
+        <div className="diff-viewer-output diff-viewer-output-flat">
+          <DiffBlock
+            diff={entry.diff}
+            parsedLines={parsedLines}
+            showLineNumbers={false}
           />
         </div>
       ) : (
@@ -592,7 +647,8 @@ export function GitDiffViewer({
     if (!stickyEntry) {
       return null;
     }
-    const { name, dir } = splitPath(stickyEntry.path);
+    const stickyPath = stickyEntry.displayPath ?? stickyEntry.path;
+    const { name, dir } = splitPath(stickyPath);
     return { fileName: name, displayDir: dir ? `${dir}/` : "" };
   }, [stickyEntry]);
 
@@ -824,7 +880,10 @@ export function GitDiffViewer({
               >
                 {stickyEntry.status}
               </span>
-              <span className="diff-viewer-path" title={stickyEntry.path}>
+              <span
+                className="diff-viewer-path"
+                title={stickyEntry.displayPath ?? stickyEntry.path}
+              >
                 <span className="diff-viewer-name">
                   {stickyPathDisplay?.fileName ?? stickyEntry.path}
                 </span>
@@ -841,7 +900,9 @@ export function GitDiffViewer({
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    void handleRequestRevert(stickyEntry.path);
+                    void handleRequestRevert(
+                      stickyEntry.displayPath ?? stickyEntry.path,
+                    );
                   }}
                 >
                   <RotateCcw size={14} aria-hidden />

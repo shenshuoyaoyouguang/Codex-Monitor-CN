@@ -11,10 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
-<<<<<<< HEAD
 .testflight.local.env
-=======
->>>>>>> upstream/main
 
 # Editor directories and files
 .vscode/*
@@ -31,10 +28,6 @@ CodexMonitor.zip
 .codex-worktrees/
 .codexmonitor/
 public/assets/material-icons/
-<<<<<<< HEAD
 
 # Nix
 result
-nul
-=======
->>>>>>> upstream/main

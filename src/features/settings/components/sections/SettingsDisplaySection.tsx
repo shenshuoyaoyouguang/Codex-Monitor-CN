@@ -7,9 +7,6 @@ import {
   DEFAULT_CODE_FONT_FAMILY,
   DEFAULT_UI_FONT_FAMILY,
 } from "@utils/fonts";
-import { supportedLocales } from "@/i18n/config";
-import i18next from "@/i18n/config";
-import { useTranslation } from "react-i18next";
 
 type SettingsDisplaySectionProps = {
   appSettings: AppSettings;
@@ -58,21 +55,19 @@ export function SettingsDisplaySection({
   onTestNotificationSound,
   onTestSystemNotification,
 }: SettingsDisplaySectionProps) {
-  const { t } = useTranslation();
-
   return (
     <section className="settings-section">
-      <div className="settings-section-title">{t('settings.display_sound.title')}</div>
+      <div className="settings-section-title">Display &amp; Sound</div>
       <div className="settings-section-subtitle">
-        {t('settings.display_sound.subtitle')}
+        Tune visuals and audio alerts to your preferences.
       </div>
-      <div className="settings-subsection-title">{t('settings.display_sound.display')}</div>
+      <div className="settings-subsection-title">Display</div>
       <div className="settings-subsection-subtitle">
-        {t('settings.display_sound.display_subtitle')}
+        Adjust how the window renders backgrounds and effects.
       </div>
       <div className="settings-field">
         <label className="settings-field-label" htmlFor="theme-select">
-          {t('settings.display_sound.theme')}
+          Theme
         </label>
         <select
           id="theme-select"
@@ -85,41 +80,17 @@ export function SettingsDisplaySection({
             })
           }
         >
-          <option value="system">{t('settings.display_sound.theme_system')}</option>
-          <option value="light">{t('settings.display_sound.theme_light')}</option>
-          <option value="dark">{t('settings.display_sound.theme_dark')}</option>
-          <option value="dim">{t('settings.display_sound.theme_dim')}</option>
-        </select>
-      </div>
-      <div className="settings-field">
-        <label className="settings-field-label" htmlFor="language-select">
-          {t('settings.display_sound.language')}
-        </label>
-        <select
-          id="language-select"
-          className="settings-select"
-          value={appSettings.language}
-          onChange={async (event) => {
-            const newLang = event.target.value as "en" | "zh";
-            await onUpdateAppSettings({
-              ...appSettings,
-              language: newLang,
-            });
-            await i18next.changeLanguage(newLang);
-          }}
-        >
-          {supportedLocales.map((locale) => (
-            <option key={locale.value} value={locale.value}>
-              {locale.label}
-            </option>
-          ))}
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="dim">Dim</option>
         </select>
       </div>
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.display_sound.show_remaining_limits')}</div>
+          <div className="settings-toggle-title">Show remaining Codex limits</div>
           <div className="settings-toggle-subtitle">
-            {t('settings.display_sound.show_remaining_limits_subtitle')}
+            Display what is left instead of what is used.
           </div>
         </div>
         <button
@@ -138,9 +109,9 @@ export function SettingsDisplaySection({
       </div>
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.display_sound.show_file_path_in_messages')}</div>
+          <div className="settings-toggle-title">Show file path in messages</div>
           <div className="settings-toggle-subtitle">
-            {t('settings.display_sound.show_file_path_in_messages_subtitle')}
+            Display the parent path next to file links in messages.
           </div>
         </div>
         <button
@@ -159,9 +130,9 @@ export function SettingsDisplaySection({
       </div>
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.display_sound.split_chat_diff')}</div>
+          <div className="settings-toggle-title">Split chat and diff center panes</div>
           <div className="settings-toggle-subtitle">
-            {t('settings.display_sound.split_chat_diff_subtitle')}
+            Show chat and diff side by side instead of swapping between them.
           </div>
         </div>
         <button
@@ -180,9 +151,9 @@ export function SettingsDisplaySection({
       </div>
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.display_sound.auto_generate_thread_titles')}</div>
+          <div className="settings-toggle-title">Auto-generate new thread titles</div>
           <div className="settings-toggle-subtitle">
-            {t('settings.display_sound.auto_generate_thread_titles_subtitle')}
+            Generate a short title from your first message (uses extra tokens).
           </div>
         </div>
         <button
@@ -202,8 +173,8 @@ export function SettingsDisplaySection({
       </div>
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.display_sound.reduce_transparency')}</div>
-          <div className="settings-toggle-subtitle">{t('settings.display_sound.reduce_transparency_subtitle')}</div>
+          <div className="settings-toggle-title">Reduce transparency</div>
+          <div className="settings-toggle-subtitle">Use solid surfaces instead of glass.</div>
         </div>
         <button
           type="button"
@@ -216,7 +187,7 @@ export function SettingsDisplaySection({
       </div>
       <div className="settings-toggle-row settings-scale-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.display_sound.interface_scale')}</div>
+          <div className="settings-toggle-title">Interface scale</div>
           <div className="settings-toggle-subtitle" title={scaleShortcutTitle}>
             {scaleShortcutText}
           </div>
@@ -247,13 +218,13 @@ export function SettingsDisplaySection({
               void onResetScale();
             }}
           >
-            {t('settings.reset')}
+            Reset
           </button>
         </div>
       </div>
       <div className="settings-field">
         <label className="settings-field-label" htmlFor="ui-font-family">
-          {t('settings.display_sound.ui_font_family')}
+          UI font family
         </label>
         <div className="settings-field-row">
           <input
@@ -283,16 +254,16 @@ export function SettingsDisplaySection({
               });
             }}
           >
-            {t('settings.reset')}
+            Reset
           </button>
         </div>
         <div className="settings-help">
-          {t('settings.display_sound.ui_font_family_help')}
+          Applies to all UI text. Leave empty to use the default system font stack.
         </div>
       </div>
       <div className="settings-field">
         <label className="settings-field-label" htmlFor="code-font-family">
-          {t('settings.display_sound.code_font_family')}
+          Code font family
         </label>
         <div className="settings-field-row">
           <input
@@ -322,14 +293,14 @@ export function SettingsDisplaySection({
               });
             }}
           >
-            {t('settings.reset')}
+            Reset
           </button>
         </div>
-        <div className="settings-help">{t('settings.display_sound.code_font_family_help')}</div>
+        <div className="settings-help">Applies to git diffs and other mono-spaced readouts.</div>
       </div>
       <div className="settings-field">
         <label className="settings-field-label" htmlFor="code-font-size">
-          {t('settings.display_sound.code_font_size')}
+          Code font size
         </label>
         <div className="settings-field-row">
           <input
@@ -355,18 +326,18 @@ export function SettingsDisplaySection({
               void onCommitCodeFontSize(CODE_FONT_SIZE_DEFAULT);
             }}
           >
-            {t('settings.reset')}
+            Reset
           </button>
         </div>
-        <div className="settings-help">{t('settings.display_sound.code_font_size_help')}</div>
+        <div className="settings-help">Adjusts code and diff text size.</div>
       </div>
-      <div className="settings-subsection-title">{t('settings.display_sound.sound')}</div>
-      <div className="settings-subsection-subtitle">{t('settings.display_sound.sound_subtitle')}</div>
+      <div className="settings-subsection-title">Sounds</div>
+      <div className="settings-subsection-subtitle">Control notification audio alerts.</div>
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.display_sound.notification_sounds')}</div>
+          <div className="settings-toggle-title">Notification sounds</div>
           <div className="settings-toggle-subtitle">
-            {t('settings.display_sound.notification_sounds_subtitle')}
+            Play a sound when a long-running agent finishes while the window is unfocused.
           </div>
         </div>
         <button
@@ -385,9 +356,10 @@ export function SettingsDisplaySection({
       </div>
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.display_sound.system_notifications')}</div>
+          <div className="settings-toggle-title">System notifications</div>
           <div className="settings-toggle-subtitle">
-            {t('settings.display_sound.system_notifications_subtitle')}
+            Show a system notification when a long-running agent finishes while the window is
+            unfocused.
           </div>
         </div>
         <button
@@ -410,14 +382,14 @@ export function SettingsDisplaySection({
           className="ghost settings-button-compact"
           onClick={onTestNotificationSound}
         >
-          {t('settings.display_sound.test_sound')}
+          Test sound
         </button>
         <button
           type="button"
           className="ghost settings-button-compact"
           onClick={onTestSystemNotification}
         >
-          {t('settings.display_sound.test_notification')}
+          Test notification
         </button>
       </div>
     </section>

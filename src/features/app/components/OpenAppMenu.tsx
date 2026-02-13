@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import ChevronDown from "lucide-react/dist/esm/icons/chevron-down";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import * as Sentry from "@sentry/react";
@@ -40,7 +39,6 @@ export function OpenAppMenu({
   onSelectOpenAppId,
   iconById = {},
 }: OpenAppMenuProps) {
-  const { t } = useTranslation();
   const [openMenuOpen, setOpenMenuOpen] = useState(false);
   const openMenuRef = useRef<HTMLDivElement | null>(null);
   const availableTargets =
@@ -73,7 +71,7 @@ export function OpenAppMenu({
       DEFAULT_OPEN_APP_TARGETS.find((target) => target.id === DEFAULT_OPEN_APP_ID)
         ?.label ??
       DEFAULT_OPEN_APP_TARGETS[0]?.label ??
-      t("app.open"),
+      "Open",
     icon: getKnownOpenAppIcon(DEFAULT_OPEN_APP_ID) ?? GENERIC_APP_ICON,
     target:
       DEFAULT_OPEN_APP_TARGETS.find((target) => target.id === DEFAULT_OPEN_APP_ID) ??
@@ -106,7 +104,7 @@ export function OpenAppMenu({
       },
     });
     pushErrorToast({
-      title: t("app.cannot_open_workspace"),
+      title: "Couldn’t open workspace",
       message,
     });
     console.warn("Failed to open workspace in target app", {
@@ -185,10 +183,10 @@ export function OpenAppMenu({
 
   const selectedCanOpen = canOpenTarget(selectedOpenTarget);
   const openLabel = selectedCanOpen
-    ? t("app.open") + " " + selectedOpenTarget.label
+    ? `Open in ${selectedOpenTarget.label}`
     : selectedOpenTarget.target.kind === "command"
-      ? t("app.configure_command_in_settings")
-      : t("app.configure_app_name_in_settings");
+      ? "Set command in Settings"
+      : "Set app name in Settings";
 
   return (
     <div className="open-app-menu" ref={openMenuRef}>
@@ -199,7 +197,7 @@ export function OpenAppMenu({
           onClick={handleOpen}
           disabled={!selectedCanOpen}
           data-tauri-drag-region="false"
-          aria-label={t("app.open") + " " + selectedOpenTarget.label}
+          aria-label={`Open in ${selectedOpenTarget.label}`}
           title={openLabel}
         >
           <span className="open-app-label">
@@ -219,8 +217,8 @@ export function OpenAppMenu({
           data-tauri-drag-region="false"
           aria-haspopup="menu"
           aria-expanded={openMenuOpen}
-          aria-label={t("app.select_editor")}
-          title={t("app.select_editor")}
+          aria-label="Select editor"
+          title="Select editor"
         >
           <ChevronDown size={14} aria-hidden />
         </button>

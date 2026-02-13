@@ -1,7 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { WorkspaceInfo } from "@/types";
 import { pushErrorToast } from "@services/toasts";
-import { useTranslation } from "react-i18next";
 
 type SettingsEnvironmentsSectionProps = {
   mainWorkspaces: WorkspaceInfo[];
@@ -28,21 +27,19 @@ export function SettingsEnvironmentsSection({
   onSetEnvironmentDraftScript,
   onSaveEnvironmentSetup,
 }: SettingsEnvironmentsSectionProps) {
-  const { t } = useTranslation();
-
   return (
     <section className="settings-section">
-      <div className="settings-section-title">{t('settings.sections.environment')}</div>
+      <div className="settings-section-title">Environments</div>
       <div className="settings-section-subtitle">
-        {t('settings.environment.configure')}
+        Configure per-project setup scripts that run after worktree creation.
       </div>
       {mainWorkspaces.length === 0 ? (
-        <div className="settings-empty">{t('settings.environment.no_projects_yet')}</div>
+        <div className="settings-empty">No projects yet.</div>
       ) : (
         <>
           <div className="settings-field">
             <label className="settings-field-label" htmlFor="settings-environment-project">
-              {t('settings.environment.project')}
+              Project
             </label>
             <select
               id="settings-environment-project"
@@ -63,9 +60,9 @@ export function SettingsEnvironmentsSection({
           </div>
 
           <div className="settings-field">
-            <div className="settings-field-label">{t('settings.environment.script')}</div>
+            <div className="settings-field-label">Setup script</div>
             <div className="settings-help">
-              {t('settings.environment.script_description')}
+              Runs once in a dedicated terminal after each new worktree is created.
             </div>
             {environmentError ? (
               <div className="settings-agents-error">{environmentError}</div>
@@ -86,22 +83,24 @@ export function SettingsEnvironmentsSection({
                   const clipboard = typeof navigator === "undefined" ? null : navigator.clipboard;
                   if (!clipboard?.writeText) {
                     pushErrorToast({
-                      title: t('settings.environment.copy_failed'),
-                      message: t('settings.environment.clipboard_unavailable'),
+                      title: "Copy failed",
+                      message:
+                        "Clipboard access is unavailable in this environment. Copy the script manually instead.",
                     });
                     return;
                   }
 
                   void clipboard.writeText(environmentDraftScript).catch(() => {
                     pushErrorToast({
-                      title: t('settings.environment.copy_failed'),
-                      message: t('settings.environment.clipboard_write_failed'),
+                      title: "Copy failed",
+                      message:
+                        "Could not write to the clipboard. Copy the script manually instead.",
                     });
                   });
                 }}
                 disabled={environmentSaving || environmentDraftScript.length === 0}
               >
-                {t('common.copy')}
+                Copy
               </button>
               <button
                 type="button"
@@ -109,7 +108,7 @@ export function SettingsEnvironmentsSection({
                 onClick={() => onSetEnvironmentDraftScript(environmentSavedScript ?? "")}
                 disabled={environmentSaving || !environmentDirty}
               >
-                {t('settings.environment.reset')}
+                Reset
               </button>
               <button
                 type="button"
@@ -119,7 +118,7 @@ export function SettingsEnvironmentsSection({
                 }}
                 disabled={environmentSaving || !environmentDirty}
               >
-                {environmentSaving ? t('common.saving') : t('common.save')}
+                {environmentSaving ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

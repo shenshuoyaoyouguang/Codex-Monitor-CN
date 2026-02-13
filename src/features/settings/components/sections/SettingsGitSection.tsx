@@ -1,5 +1,4 @@
 import type { AppSettings } from "@/types";
-import { useTranslation } from "react-i18next";
 
 type SettingsGitSectionProps = {
   appSettings: AppSettings;
@@ -22,18 +21,16 @@ export function SettingsGitSection({
   onSaveCommitMessagePrompt,
   onResetCommitMessagePrompt,
 }: SettingsGitSectionProps) {
-  const { t } = useTranslation();
-
   return (
     <section className="settings-section">
-      <div className="settings-section-title">{t('settings.features.git_diff')}</div>
+      <div className="settings-section-title">Git</div>
       <div className="settings-section-subtitle">
-        {t('settings.features.git_diff_description')}
+        Manage how diffs are loaded in the Git sidebar.
       </div>
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.features.preload_git_diff')}</div>
-          <div className="settings-toggle-subtitle">{t('settings.features.preload_git_diff_description')}</div>
+          <div className="settings-toggle-title">Preload git diffs</div>
+          <div className="settings-toggle-subtitle">Make viewing git diff faster.</div>
         </div>
         <button
           type="button"
@@ -51,9 +48,9 @@ export function SettingsGitSection({
       </div>
       <div className="settings-toggle-row">
         <div>
-          <div className="settings-toggle-title">{t('settings.features.ignore_whitespace')}</div>
+          <div className="settings-toggle-title">Ignore whitespace changes</div>
           <div className="settings-toggle-subtitle">
-            {t('settings.features.ignore_whitespace_description')}
+            Hides whitespace-only changes in local and commit diffs.
           </div>
         </div>
         <button
@@ -71,9 +68,10 @@ export function SettingsGitSection({
         </button>
       </div>
       <div className="settings-field">
-        <div className="settings-field-label">{t('git_diff.commit_message_prompt')}</div>
+        <div className="settings-field-label">Commit message prompt</div>
         <div className="settings-help">
-          {t('git_diff.commit_message_prompt_help', { code: '<code>{diff}</code>' })}
+          Used when generating commit messages. Include <code>{"{diff}"}</code> to insert the
+          git diff.
         </div>
         <textarea
           className="settings-agents-textarea"
@@ -91,7 +89,7 @@ export function SettingsGitSection({
             }}
             disabled={commitMessagePromptSaving || !commitMessagePromptDirty}
           >
-            {t('settings.features.reset')}
+            Reset
           </button>
           <button
             type="button"
@@ -101,7 +99,7 @@ export function SettingsGitSection({
             }}
             disabled={commitMessagePromptSaving || !commitMessagePromptDirty}
           >
-            {commitMessagePromptSaving ? t('common.saving') : t('common.save')}
+            {commitMessagePromptSaving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>

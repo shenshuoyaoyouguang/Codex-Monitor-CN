@@ -6,7 +6,6 @@ import type {
   RefObject,
   SyntheticEvent,
 } from "react";
-import { useTranslation } from "react-i18next";
 import type { AutocompleteItem } from "../hooks/useComposerAutocomplete";
 import ImagePlus from "lucide-react/dist/esm/icons/image-plus";
 import ChevronDown from "lucide-react/dist/esm/icons/chevron-down";
@@ -37,7 +36,7 @@ import { getFileTypeIconUrl } from "../../../utils/fileTypeIcons";
 type ComposerInputProps = {
   text: string;
   disabled: boolean;
-  sendLabel?: string;
+  sendLabel: string;
   canStop: boolean;
   canSend: boolean;
   isProcessing: boolean;
@@ -92,23 +91,6 @@ type ComposerInputProps = {
 };
 
 const isFileSuggestion = (item: AutocompleteItem) => item.group === "Files";
-
-const suggestionGroupLabel = (group?: AutocompleteItem["group"], t?: (key: string) => string) => {
-  switch (group) {
-    case "Files":
-      return t ? t("autocomplete.files") : "Files";
-    case "Skills":
-      return t ? t("autocomplete.skills") : "Skills";
-    case "Apps":
-      return t ? t("autocomplete.apps") : "Apps";
-    case "Slash":
-      return t ? t("autocomplete.slash_commands") : "Slash Commands";
-    case "Prompts":
-      return t ? t("autocomplete.prompts") : "Prompts";
-    default:
-      return group ?? "";
-  }
-};
 
 const suggestionIcon = (item: AutocompleteItem) => {
   if (isFileSuggestion(item)) {
@@ -207,8 +189,6 @@ export function ComposerInput({
   onReviewPromptUpdateCustomInstructions,
   onReviewPromptConfirmCustom,
 }: ComposerInputProps) {
-  const { t } = useTranslation();
-
   const suggestionListRef = useRef<HTMLDivElement | null>(null);
   const suggestionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const mobileActionsRef = useRef<HTMLDivElement | null>(null);
@@ -358,19 +338,19 @@ export function ComposerInput({
   const micDisabled =
     disabled || dictationState === "processing" || !dictationEnabled || !onToggleDictation;
   const micAriaLabel = allowOpenDictationSettings
-    ? t("dictation.open_settings")
+    ? "Open dictation settings"
     : dictationState === "processing"
-      ? t("dictation.processing")
+      ? "Dictation processing"
       : isDictating
-        ? t("dictation.stop")
-        : t("dictation.start");
+        ? "Stop dictation"
+        : "Start dictation";
   const micTitle = allowOpenDictationSettings
-    ? t("dictation.disabled_open_settings")
+    ? "Dictation disabled. Open settings"
     : dictationState === "processing"
-      ? t("dictation.processing_input")
+      ? "Processing dictation"
       : isDictating
-        ? t("dictation.stop")
-        : t("dictation.start");
+        ? "Stop dictation"
+        : "Start dictation";
   const handleMicClick = useCallback(() => {
     if (allowOpenDictationSettings) {
       onOpenDictationSettings?.();
@@ -453,8 +433,8 @@ export function ComposerInput({
             className="composer-attach"
             onClick={onAddAttachment}
             disabled={disabled || !onAddAttachment}
-            aria-label={t("composer_input.add_image")}
-            title={t("composer_input.add_image")}
+            aria-label="Add image"
+            title="Add image"
           >
             <ImagePlus size={14} aria-hidden />
           </button>
@@ -518,8 +498,8 @@ export function ComposerInput({
             ref={textareaRef}
             placeholder={
               disabled
-                ? t("composer_input.review_in_progress")
-                : t("composer_input.prompt_placeholder")
+                ? "Review in progress. Chat will re-enable when it completes."
+                : "Ask Codex to do something..."
             }
             value={text}
             onChange={handleTextareaChange}
@@ -548,7 +528,7 @@ export function ComposerInput({
               className="ghost composer-dictation-error-dismiss"
               onClick={onDismissDictationError}
             >
-              {t("common.close")}
+              Dismiss
             </button>
           </div>
         )}
@@ -561,7 +541,7 @@ export function ComposerInput({
                 className="ghost composer-dictation-error-dismiss"
                 onClick={onDismissDictationHint}
               >
-                {t("common.close")}
+                Dismiss
               </button>
             )}
           </div>
@@ -621,9 +601,7 @@ export function ComposerInput({
                 return (
                   <div key={item.id}>
                     {showGroup && (
-                      <div className="composer-suggestion-section">
-                        {suggestionGroupLabel(item.group)}
-                      </div>
+                      <div className="composer-suggestion-section">{item.group}</div>
                     )}
                     <button
                       type="button"
@@ -698,8 +676,8 @@ export function ComposerInput({
           }`}
           onClick={onToggleExpand}
           disabled={disabled}
-          aria-label={isExpanded ? t("composer_input.collapse") : t("composer_input.expand")}
-          title={isExpanded ? t("composer_input.collapse") : t("composer_input.expand")}
+          aria-label={isExpanded ? "Collapse input" : "Expand input"}
+          title={isExpanded ? "Collapse input" : "Expand input"}
         >
           {isExpanded ? <ChevronDown aria-hidden /> : <ChevronUp aria-hidden />}
         </button>
@@ -727,7 +705,7 @@ export function ComposerInput({
         }`}
         onClick={handleActionClick}
         disabled={disabled || isDictationBusy || (!canStop && !canSend)}
-        aria-label={canStop ? t("composer.interrupt") : (sendLabel ?? t("composer.send"))}
+        aria-label={canStop ? "Stop" : sendLabel}
       >
         {canStop ? (
           <>

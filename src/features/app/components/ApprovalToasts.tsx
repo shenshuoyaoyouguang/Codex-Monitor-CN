@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import type { ApprovalRequest, WorkspaceInfo } from "../../../types";
 import { getApprovalCommandInfo } from "../../../utils/approvalRules";
 import {
@@ -25,7 +24,6 @@ export function ApprovalToasts({
   onDecision,
   onRemember,
 }: ApprovalToastsProps) {
-  const { t } = useTranslation();
   const workspaceLabels = useMemo(
     () => new Map(workspaces.map((workspace) => [workspace.id, workspace.name])),
     [workspaces],
@@ -77,7 +75,7 @@ export function ApprovalToasts({
 
   const renderParamValue = (value: unknown) => {
     if (value === null || value === undefined) {
-      return { text: t("common.none"), isCode: false };
+      return { text: "None", isCode: false };
     }
     if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
       return { text: String(value), isCode: false };
@@ -105,7 +103,7 @@ export function ApprovalToasts({
             role="alert"
           >
             <ToastHeader className="approval-toast-header">
-              <ToastTitle className="approval-toast-title">{t('approval_toast.requires_approval')}</ToastTitle>
+              <ToastTitle className="approval-toast-title">Approval needed</ToastTitle>
               {workspaceName ? (
                 <div className="approval-toast-workspace">{workspaceName}</div>
               ) : null}
@@ -134,7 +132,7 @@ export function ApprovalToasts({
                 })
               ) : (
                 <div className="approval-toast-detail approval-toast-detail-empty">
-                  {t('approval_toast.no_details')}
+                  No extra details.
                 </div>
               )}
             </div>
@@ -143,22 +141,22 @@ export function ApprovalToasts({
                 className="secondary"
                 onClick={() => onDecision(request, "decline")}
               >
-                {t('approval_toast.decline')}
+                Decline
               </button>
               {commandInfo && onRemember ? (
                 <button
                   className="ghost approval-toast-remember"
                   onClick={() => onRemember(request, commandInfo.tokens)}
-                  title={t('approval_toast.allow_commands_starting', { preview: commandInfo.preview })}
+                  title={`Allow commands that start with ${commandInfo.preview}`}
                 >
-                  {t('approval_toast.always_allow')}
+                  Always allow
                 </button>
               ) : null}
               <button
                 className="primary"
                 onClick={() => onDecision(request, "accept")}
               >
-                {t('approval_toast.approve_enter')}
+                Approve (Enter)
               </button>
             </ToastActions>
           </ToastCard>

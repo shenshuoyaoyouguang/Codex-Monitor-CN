@@ -1,5 +1,4 @@
 import { memo } from "react";
-import { useTranslation } from "react-i18next";
 import AlignLeft from "lucide-react/dist/esm/icons/align-left";
 import Columns2 from "lucide-react/dist/esm/icons/columns-2";
 import type { SidebarToggleProps } from "../../layout/components/SidebarToggleControls";
@@ -22,11 +21,10 @@ export const MainHeaderActions = memo(function MainHeaderActions({
   rightPanelCollapsed,
   sidebarToggleProps,
 }: MainHeaderActionsProps) {
-  const { t } = useTranslation();
   return (
     <>
       {centerMode === "diff" && (
-        <div className="diff-view-toggle" role="group" aria-label={t("diff_view.diff_view")}>
+        <div className="diff-view-toggle" role="group" aria-label="Diff view">
           <button
             type="button"
             className={`diff-view-toggle-button${
@@ -34,7 +32,7 @@ export const MainHeaderActions = memo(function MainHeaderActions({
             }`}
             onClick={() => onSelectDiffViewStyle("split")}
             aria-pressed={gitDiffViewStyle === "split"}
-            title={t("diff_view.split_diff")}
+            title="Dual-panel diff"
             data-tauri-drag-region="false"
           >
             <Columns2 size={14} aria-hidden />
@@ -46,7 +44,7 @@ export const MainHeaderActions = memo(function MainHeaderActions({
             }`}
             onClick={() => onSelectDiffViewStyle("unified")}
             aria-pressed={gitDiffViewStyle === "unified"}
-            title={t("diff_view.single_diff")}
+            title="Single-column diff"
             data-tauri-drag-region="false"
           >
             <AlignLeft size={14} aria-hidden />

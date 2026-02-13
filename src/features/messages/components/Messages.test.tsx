@@ -449,7 +449,7 @@ describe("Messages", () => {
     );
 
     const workingText = container.querySelector(".working-text");
-    expect(workingText?.textContent ?? "").toContain("Thinking…");
+    expect(workingText?.textContent ?? "").toContain("Working");
     expect(workingText?.textContent ?? "").not.toContain("Old reasoning title");
   });
 
@@ -750,7 +750,7 @@ describe("Messages", () => {
     });
   });
 
-  it.skip("re-pins to bottom on thread switch even when previous thread was scrolled up", () => {
+  it("re-pins to bottom on thread switch even when previous thread was scrolled up", () => {
     const items: ConversationItem[] = [
       {
         id: "msg-shared",
@@ -805,7 +805,7 @@ describe("Messages", () => {
     expect(scrollNode.scrollTop).toBe(900);
   });
 
-  it.skip("shows a plan-ready follow-up prompt after a completed plan tool item", () => {
+  it("shows a plan-ready follow-up prompt after a completed plan tool item", () => {
     const onPlanAccept = vi.fn();
     const onPlanSubmitChanges = vi.fn();
     const items: ConversationItem[] = [
@@ -839,7 +839,7 @@ describe("Messages", () => {
     ).toBeTruthy();
   });
 
-  it.skip("hides the plan-ready follow-up once the user has replied after the plan", () => {
+  it("hides the plan-ready follow-up once the user has replied after the plan", () => {
     const onPlanAccept = vi.fn();
     const onPlanSubmitChanges = vi.fn();
     const items: ConversationItem[] = [
@@ -876,7 +876,7 @@ describe("Messages", () => {
     expect(screen.queryByText("Plan ready")).toBeNull();
   });
 
-  it.skip("hides the plan-ready follow-up when the plan tool item is still running", () => {
+  it("hides the plan-ready follow-up when the plan tool item is still running", () => {
     const onPlanAccept = vi.fn();
     const onPlanSubmitChanges = vi.fn();
     const items: ConversationItem[] = [
@@ -907,7 +907,7 @@ describe("Messages", () => {
     expect(screen.queryByText("Plan ready")).toBeNull();
   });
 
-  it.skip("shows the plan-ready follow-up once the turn stops thinking even if the plan status stays in_progress", () => {
+  it("shows the plan-ready follow-up once the turn stops thinking even if the plan status stays in_progress", () => {
     const onPlanAccept = vi.fn();
     const onPlanSubmitChanges = vi.fn();
     const items: ConversationItem[] = [
@@ -938,7 +938,7 @@ describe("Messages", () => {
     expect(screen.getByText("Plan ready")).toBeTruthy();
   });
 
-  it.skip("calls the plan follow-up callbacks", () => {
+  it("calls the plan follow-up callbacks", () => {
     const onPlanAccept = vi.fn();
     const onPlanSubmitChanges = vi.fn();
     const items: ConversationItem[] = [
@@ -980,7 +980,7 @@ describe("Messages", () => {
     expect(screen.queryByText("Plan ready")).toBeNull();
   });
 
-  it.skip("dismisses the plan-ready follow-up when the plan is accepted", () => {
+  it("dismisses the plan-ready follow-up when the plan is accepted", () => {
     const onPlanAccept = vi.fn();
     const onPlanSubmitChanges = vi.fn();
     const items: ConversationItem[] = [
@@ -1015,7 +1015,7 @@ describe("Messages", () => {
     expect(screen.queryByText("Plan ready")).toBeNull();
   });
 
-  it.skip("does not render plan-ready tagged internal user messages", () => {
+  it("does not render plan-ready tagged internal user messages", () => {
     const onPlanAccept = vi.fn();
     const onPlanSubmitChanges = vi.fn();
     const items: ConversationItem[] = [
@@ -1053,7 +1053,7 @@ describe("Messages", () => {
     expect(screen.queryByText("Plan ready")).toBeNull();
   });
 
-  it.skip("hides the plan follow-up when an input-requested bubble is active", () => {
+  it("hides the plan follow-up when an input-requested bubble is active", () => {
     const onPlanAccept = vi.fn();
     const onPlanSubmitChanges = vi.fn();
     const items: ConversationItem[] = [

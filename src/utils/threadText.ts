@@ -1,12 +1,12 @@
 import type { ConversationItem } from "../types";
 
 function formatMessage(item: Extract<ConversationItem, { kind: "message" }>) {
-  const roleLabel = item.role === "user" ? "用户" : "助手";
+  const roleLabel = item.role === "user" ? "User" : "Assistant";
   return `${roleLabel}: ${item.text}`;
 }
 
 function formatReasoning(item: Extract<ConversationItem, { kind: "reasoning" }>) {
-  const parts = ["推理:"];
+  const parts = ["Reasoning:"];
   if (item.summary) {
     parts.push(item.summary);
   }
@@ -17,19 +17,19 @@ function formatReasoning(item: Extract<ConversationItem, { kind: "reasoning" }>)
 }
 
 function formatTool(item: Extract<ConversationItem, { kind: "tool" }>) {
-  const parts = [`工具: ${item.title}`];
+  const parts = [`Tool: ${item.title}`];
   if (item.detail) {
     parts.push(item.detail);
   }
   if (item.status) {
-    parts.push(`状态: ${item.status}`);
+    parts.push(`Status: ${item.status}`);
   }
   if (item.output) {
     parts.push(item.output);
   }
   if (item.changes && item.changes.length > 0) {
     parts.push(
-      "变更:\n" +
+      "Changes:\n" +
         item.changes
           .map((change) => `- ${change.path}${change.kind ? ` (${change.kind})` : ""}`)
           .join("\n"),
@@ -39,31 +39,19 @@ function formatTool(item: Extract<ConversationItem, { kind: "tool" }>) {
 }
 
 function formatDiff(item: Extract<ConversationItem, { kind: "diff" }>) {
-  const header = `差异: ${item.title}`;
-  const status = item.status ? `状态: ${item.status}` : null;
+  const header = `Diff: ${item.title}`;
+  const status = item.status ? `Status: ${item.status}` : null;
   return [header, status, item.diff].filter(Boolean).join("\n");
 }
 
 function formatReview(item: Extract<ConversationItem, { kind: "review" }>) {
-  const stateLabel = item.state === "started" ? "已开始" : "已完成";
-  return `评审（${stateLabel}）: ${item.text}`;
+  return `Review (${item.state}): ${item.text}`;
 }
 
 function formatExplore(item: Extract<ConversationItem, { kind: "explore" }>) {
-  const title = item.status === "exploring" ? "探索中" : "已探索";
+  const title = item.status === "exploring" ? "Exploring" : "Explored";
   const lines = item.entries.map((entry) => {
-    const prefix =
-      entry.kind === "search"
-        ? "搜索"
-        : entry.kind === "read"
-          ? "读取"
-          : entry.kind === "list"
-            ? "列表"
-            : entry.kind === "open"
-              ? "打开"
-              : entry.kind === "write"
-                ? "写入"
-                : entry.kind;
+    const prefix = entry.kind[0].toUpperCase() + entry.kind.slice(1);
     return `- ${prefix} ${entry.label}${entry.detail ? ` (${entry.detail})` : ""}`;
   });
   return [title, ...lines].join("\n");

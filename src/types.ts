@@ -85,7 +85,7 @@ export type ConversationItem =
       id: string;
       kind: "explore";
       status: "exploring" | "explored";
-      entries: { kind: "read" | "search" | "list" | "run" | "open" | "write"; label: string; detail?: string }[];
+      entries: { kind: "read" | "search" | "list" | "run"; label: string; detail?: string }[];
     }
   | {
       id: string;
@@ -209,7 +209,6 @@ export type AppSettings = {
   lastComposerReasoningEffort: string | null;
   uiScale: number;
   theme: ThemePreference;
-  language: "en" | "zh";
   usageShowRemaining: boolean;
   showMessageFilePath: boolean;
   threadTitleAutogenerationEnabled: boolean;

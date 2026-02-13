@@ -1,6 +1,5 @@
 import { useMemo, useRef } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
-import { useTranslation } from "react-i18next";
 import type { DebugEntry } from "../../../types";
 
 type DebugPanelProps = {
@@ -34,7 +33,6 @@ export function DebugPanel({
   onResizeStart,
   variant = "dock",
 }: DebugPanelProps) {
-  const { t } = useTranslation();
   const isVisible = variant === "full" || isOpen;
 
   type FormattedDebugEntry = DebugEntry & {
@@ -98,25 +96,25 @@ export function DebugPanel({
           className="debug-panel-resizer"
           role="separator"
           aria-orientation="horizontal"
-          aria-label={t("debug.resize_debug_panel")}
+          aria-label="Resize debug panel"
           onMouseDown={onResizeStart}
         />
       ) : null}
       <div className="debug-header">
-        <div className="debug-title">{t("sidebar.debug")}</div>
+        <div className="debug-title">Debug</div>
         <div className="debug-actions">
           <button className="ghost" onClick={onCopy}>
-            {t("common.copy")}
+            Copy
           </button>
           <button className="ghost" onClick={onClear}>
-            {t("composer.clear")}
+            Clear
           </button>
         </div>
       </div>
       {isOpen ? (
         <div className="debug-list">
           {formattedEntries.length === 0 ? (
-            <div className="debug-empty">{t("debug.no_debug_events")}</div>
+            <div className="debug-empty">No debug events yet.</div>
           ) : null}
           {formattedEntries.map((entry) => (
             <div key={entry.id} className="debug-row">

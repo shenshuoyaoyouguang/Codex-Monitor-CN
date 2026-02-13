@@ -6,7 +6,6 @@ import type {
   WorkspaceSettings,
 } from "../../../types";
 import type { TerminalSessionState } from "../../terminal/hooks/useTerminalSession";
-import { useTranslation } from "react-i18next";
 import { writeTerminalSession } from "../../../services/tauri";
 import { pushErrorToast } from "../../../services/toasts";
 import {
@@ -62,12 +61,12 @@ export type WorkspaceLaunchScriptsState = {
   onCreateNew: () => Promise<void>;
 };
 
-function buildLaunchTitle(entry: LaunchScriptEntry, t: (key: string) => string) {
+function buildLaunchTitle(entry: LaunchScriptEntry) {
   const label = entry.label?.trim();
   if (label) {
-    return `${t("launch_scripts.launch")}: ${label}`;
+    return `Launch: ${label}`;
   }
-  return `${t("launch_scripts.launch")}: ${getLaunchScriptIconLabel(entry.icon, t)}`;
+  return `Launch: ${getLaunchScriptIconLabel(entry.icon)}`;
 }
 
 export function useWorkspaceLaunchScripts({
@@ -79,8 +78,6 @@ export function useWorkspaceLaunchScripts({
   terminalState,
   activeTerminalId,
 }: UseWorkspaceLaunchScriptsOptions): WorkspaceLaunchScriptsState {
-  const { t } = useTranslation();
-
   const [editorOpenId, setEditorOpenId] = useState<string | null>(null);
   const [draftScript, setDraftScript] = useState("");
   const [draftIcon, setDraftIcon] = useState<LaunchScriptIconId>(DEFAULT_LAUNCH_SCRIPT_ICON);
@@ -183,7 +180,7 @@ export function useWorkspaceLaunchScripts({
     }
     const trimmed = newDraftScript.trim();
     if (!trimmed) {
-      setNewError("脚本不能为空。");
+      setNewError("Script cannot be empty.");
       return;
     }
     setIsSaving(true);
@@ -223,8 +220,8 @@ export function useWorkspaceLaunchScripts({
     }
     const trimmed = draftScript.trim();
     if (!trimmed) {
-      setError("脚本不能为空。");
-      setErrorById((prev) => ({ ...prev, [editorOpenId]: "脚本不能为空。" }));
+      setError("Script cannot be empty.");
+      setErrorById((prev) => ({ ...prev, [editorOpenId]: "Script cannot be empty." }));
       return;
     }
     setIsSaving(true);
@@ -301,7 +298,7 @@ export function useWorkspaceLaunchScripts({
       }
       setError(null);
       setErrorById((prev) => ({ ...prev, [id]: null }));
-      const title = buildLaunchTitle(entry, t);
+      const title = buildLaunchTitle(entry);
       const terminalId = ensureLaunchTerminal(activeWorkspace.id, entry, title);
       pendingRunRef.current = {
         workspaceId: activeWorkspace.id,
@@ -324,7 +321,6 @@ export function useWorkspaceLaunchScripts({
       onOpenEditor,
       openTerminal,
       restartLaunchSession,
-      t,
     ],
   );
 
@@ -348,7 +344,7 @@ export function useWorkspaceLaunchScripts({
         setError(message);
         setErrorById((prev) => ({ ...prev, [pending.entryId]: message }));
         pushErrorToast({
-          title: "启动脚本错误",
+          title: "Launch script error",
           message,
         });
       },

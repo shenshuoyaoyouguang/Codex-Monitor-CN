@@ -1,4 +1,4 @@
-﻿import { useCallback } from "react";
+import { useCallback } from "react";
 import type { MouseEvent } from "react";
 import { Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
@@ -78,7 +78,7 @@ export function useFileLinkOpener(
         },
       );
       pushErrorToast({
-        title: "无法打开文件",
+        title: "Couldn’t open file",
         message,
       });
       console.warn("Failed to open file link", { message, ...context });
@@ -157,11 +157,11 @@ export function useFileLinkOpener(
           ? revealInFileManagerLabel()
           : target.kind === "command"
             ? command
-              ? `在 ${target.label} 中打开`
-              : "在设置中设置命令"
+              ? `Open in ${target.label}`
+              : "Set command in Settings"
             : appName
-              ? `在 ${appName} 中打开`
-              : "在设置中设置应用名称";
+              ? `Open in ${appName}`
+              : "Set app name in Settings";
       const items = [
         await MenuItem.new({
           text: openLabel,
@@ -193,11 +193,11 @@ export function useFileLinkOpener(
               }),
             ]),
         await MenuItem.new({
-          text: "下载链接文件",
+          text: "Download Linked File",
           enabled: false,
         }),
         await MenuItem.new({
-          text: "复制链接",
+          text: "Copy Link",
           action: async () => {
             const link =
               resolvedPath.startsWith("/") ? `file://${resolvedPath}` : resolvedPath;
@@ -222,5 +222,3 @@ export function useFileLinkOpener(
 
   return { openFileLink, showFileLinkMenu };
 }
-
-

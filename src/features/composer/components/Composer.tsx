@@ -176,7 +176,7 @@ export const Composer = memo(function Composer({
   queuedMessages = [],
   onEditQueued,
   onDeleteQueued,
-  sendLabel,
+  sendLabel = "Send",
   draftText = "",
   onDraftChange,
   historyKey = null,

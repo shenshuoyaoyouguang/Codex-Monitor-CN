@@ -37,21 +37,21 @@ const ICON_MAP: Record<LaunchScriptIconId, LucideIcon> = {
 };
 
 const ICON_LABELS: Record<LaunchScriptIconId, string> = {
-  play: "launch_scripts.icon_play",
-  build: "launch_scripts.icon_build",
-  debug: "launch_scripts.icon_debug",
-  wrench: "launch_scripts.icon_wrench",
-  terminal: "launch_scripts.icon_terminal",
-  code: "launch_scripts.icon_code",
-  server: "launch_scripts.icon_server",
-  database: "launch_scripts.icon_database",
-  package: "launch_scripts.icon_package",
-  test: "launch_scripts.icon_test",
-  lint: "launch_scripts.icon_lint",
-  dev: "launch_scripts.icon_dev",
-  git: "launch_scripts.icon_git",
-  config: "launch_scripts.icon_config",
-  logs: "launch_scripts.icon_logs",
+  play: "Play",
+  build: "Build",
+  debug: "Debug",
+  wrench: "Wrench",
+  terminal: "Terminal",
+  code: "Code",
+  server: "Server",
+  database: "Database",
+  package: "Package",
+  test: "Test",
+  lint: "Lint",
+  dev: "Dev",
+  git: "Git",
+  config: "Config",
+  logs: "Logs",
 };
 
 function isLaunchScriptIconId(value: string): value is LaunchScriptIconId {
@@ -78,8 +78,7 @@ export function getLaunchScriptIcon(id?: string | null): LucideIcon {
   return ICON_MAP[iconId];
 }
 
-export function getLaunchScriptIconLabel(id?: string | null, t?: (key: string) => string): string {
+export function getLaunchScriptIconLabel(id?: string | null): string {
   const iconId = coerceLaunchScriptIconId(id);
-  const labelKey = ICON_LABELS[iconId];
-  return t ? t(labelKey) : labelKey;
+  return ICON_LABELS[iconId];
 }

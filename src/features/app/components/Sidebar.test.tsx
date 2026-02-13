@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createRef } from "react";
@@ -73,41 +73,35 @@ describe("Sidebar", () => {
     render(<Sidebar {...baseProps} />);
 
     const toggleButton = screen.getByRole("button", { name: "Toggle search" });
-    expect(screen.queryByLabelText("Search workspaces")).toBeNull();
+    expect(screen.queryByLabelText("Search projects")).toBeNull();
 
     act(() => {
       fireEvent.click(toggleButton);
     });
-    const input = screen.getByLabelText("Search workspaces") as HTMLInputElement;
+    const input = screen.getByLabelText("Search projects") as HTMLInputElement;
     expect(input).toBeTruthy();
 
     act(() => {
       fireEvent.change(input, { target: { value: "alpha" } });
-    });
-    act(() => {
       vi.runOnlyPendingTimers();
     });
     expect(input.value).toBe("alpha");
 
     act(() => {
       fireEvent.click(toggleButton);
-    });
-    act(() => {
       vi.runOnlyPendingTimers();
     });
-    expect(screen.queryByLabelText("Search workspaces")).toBeNull();
+    expect(screen.queryByLabelText("Search projects")).toBeNull();
 
     act(() => {
       fireEvent.click(toggleButton);
-    });
-    act(() => {
       vi.runOnlyPendingTimers();
     });
-    const reopened = screen.getByLabelText("Search workspaces") as HTMLInputElement;
+    const reopened = screen.getByLabelText("Search projects") as HTMLInputElement;
     expect(reopened.value).toBe("");
   });
 
-  it.skip("opens thread sort menu from the header filter button", async () => {
+  it("opens thread sort menu from the header filter button", () => {
     const onSetThreadListSortKey = vi.fn();
     render(
       <Sidebar
@@ -117,20 +111,15 @@ describe("Sidebar", () => {
       />,
     );
 
-    const button = screen.getByRole("button", { name: "Sort conversations" });
+    const button = screen.getByRole("button", { name: "Sort threads" });
     expect(screen.queryByRole("menu")).toBeNull();
 
     fireEvent.click(button);
-    await waitFor(() => {
-      expect(screen.queryByRole("menu")).not.toBeNull();
-    });
-    const option = screen.getByRole("menuitemradio", { name: "Recently created" });
+    const option = screen.getByRole("menuitemradio", { name: "Most recent" });
     fireEvent.click(option);
 
     expect(onSetThreadListSortKey).toHaveBeenCalledWith("created_at");
-    await waitFor(() => {
-      expect(screen.queryByRole("menu")).toBeNull();
-    });
+    expect(screen.queryByRole("menu")).toBeNull();
   });
 
   it("refreshes all workspace threads from the header button", () => {
@@ -244,14 +233,12 @@ describe("Sidebar", () => {
 
     render(<Sidebar {...props} />);
 
-    const draftRow = screen.getByRole("button", { name: /New Agent/i });
+    const draftRow = screen.getByRole("button", { name: /new agent/i });
     expect(draftRow).toBeTruthy();
     expect(draftRow.className).toContain("thread-row-draft");
     expect(draftRow.className).toContain("active");
 
-    act(() => {
-      fireEvent.click(draftRow);
-    });
+    fireEvent.click(draftRow);
     expect(onSelectWorkspace).toHaveBeenCalledWith("ws-1");
   });
 });

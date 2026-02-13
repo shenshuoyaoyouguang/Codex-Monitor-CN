@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import * as Sentry from "@sentry/react";
 import type {
   AppSettings,
@@ -80,7 +79,6 @@ function normalizeWorkspacePathKey(value: string) {
 }
 
 export function useWorkspaces(options: UseWorkspacesOptions = {}) {
-  const { t } = useTranslation();
   const [workspaces, setWorkspaces] = useState<WorkspaceInfo[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -801,10 +799,10 @@ export function useWorkspaces(options: UseWorkspacesOptions = {}) {
     const confirmed = await ask(
       `Are you sure you want to delete "${workspaceName}"?\n\nThis will remove the workspace from CodexMonitor.${detail}`,
       {
-        title: t("workspace.delete_workspace"),
+        title: "Delete Workspace",
         kind: "warning",
-        okLabel: t("common.delete"),
-        cancelLabel: t("common.cancel"),
+        okLabel: "Delete",
+        cancelLabel: "Cancel",
       },
     );
 
@@ -853,10 +851,10 @@ export function useWorkspaces(options: UseWorkspacesOptions = {}) {
     const confirmed = await ask(
       `Are you sure you want to delete "${workspaceName}"?\n\nThis will close the agent, remove its worktree, and delete it from CodexMonitor.`,
       {
-        title: t("workspace.delete_worktree"),
+        title: "Delete Worktree",
         kind: "warning",
-        okLabel: t("common.delete"),
-        cancelLabel: t("common.cancel"),
+        okLabel: "Delete",
+        cancelLabel: "Cancel",
       },
     );
 

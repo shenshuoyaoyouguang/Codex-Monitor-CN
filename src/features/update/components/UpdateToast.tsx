@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import type { UpdateState } from "../hooks/useUpdater";
 import {
   ToastActions,
@@ -31,7 +30,6 @@ function formatBytes(value: number) {
 }
 
 export function UpdateToast({ state, onUpdate, onDismiss }: UpdateToastProps) {
-  const { t } = useTranslation();
   if (state.stage === "idle") {
     return null;
   }
@@ -47,25 +45,25 @@ export function UpdateToast({ state, onUpdate, onDismiss }: UpdateToastProps) {
     <ToastViewport className="update-toasts" role="region" ariaLive="polite">
       <ToastCard className="update-toast" role="status">
         <ToastHeader className="update-toast-header">
-          <ToastTitle className="update-toast-title">{t("update.title")}</ToastTitle>
+          <ToastTitle className="update-toast-title">Update</ToastTitle>
           {state.version ? (
             <div className="update-toast-version">v{state.version}</div>
           ) : null}
         </ToastHeader>
         {state.stage === "checking" && (
-          <ToastBody className="update-toast-body">{t("update.checking")}</ToastBody>
+          <ToastBody className="update-toast-body">Checking for updates...</ToastBody>
         )}
         {state.stage === "available" && (
           <>
             <ToastBody className="update-toast-body">
-              {t("update.available")}
+              A new version is available.
             </ToastBody>
             <ToastActions className="update-toast-actions">
               <button className="secondary" onClick={onDismiss}>
-                {t("update.later")}
+                Later
               </button>
               <button className="primary" onClick={onUpdate}>
-                {t("update.update_now")}
+                Update
               </button>
             </ToastActions>
           </>
@@ -73,17 +71,17 @@ export function UpdateToast({ state, onUpdate, onDismiss }: UpdateToastProps) {
         {state.stage === "latest" && (
           <div className="update-toast-inline">
             <ToastBody className="update-toast-body update-toast-body-inline">
-              {t("update.latest")}
+              You’re up to date.
             </ToastBody>
             <button className="secondary" onClick={onDismiss}>
-              {t("update.close")}
+              Dismiss
             </button>
           </div>
         )}
         {state.stage === "downloading" && (
           <>
             <ToastBody className="update-toast-body">
-              {t("update.downloading")}
+              Downloading update…
             </ToastBody>
             <div className="update-toast-progress">
               <div className="update-toast-progress-bar">
@@ -95,29 +93,29 @@ export function UpdateToast({ state, onUpdate, onDismiss }: UpdateToastProps) {
               <div className="update-toast-progress-meta">
                 {totalBytes
                   ? `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)}`
-                  : t("update.downloaded", { size: formatBytes(downloadedBytes) })}
+                  : `${formatBytes(downloadedBytes)} downloaded`}
               </div>
             </div>
           </>
         )}
         {state.stage === "installing" && (
-          <ToastBody className="update-toast-body">{t("update.installing")}</ToastBody>
+          <ToastBody className="update-toast-body">Installing update…</ToastBody>
         )}
         {state.stage === "restarting" && (
-          <ToastBody className="update-toast-body">{t("update.restarting")}</ToastBody>
+          <ToastBody className="update-toast-body">Restarting…</ToastBody>
         )}
         {state.stage === "error" && (
           <>
-            <ToastBody className="update-toast-body">{t("update.failed")}</ToastBody>
+            <ToastBody className="update-toast-body">Update failed.</ToastBody>
             {state.error ? (
               <ToastError className="update-toast-error">{state.error}</ToastError>
             ) : null}
             <ToastActions className="update-toast-actions">
               <button className="secondary" onClick={onDismiss}>
-                {t("update.close")}
+                Dismiss
               </button>
               <button className="primary" onClick={onUpdate}>
-                {t("update.retry")}
+                Retry
               </button>
             </ToastActions>
           </>

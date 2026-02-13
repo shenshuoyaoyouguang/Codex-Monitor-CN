@@ -1,6 +1,5 @@
 import ChevronLeft from "lucide-react/dist/esm/icons/chevron-left";
 import X from "lucide-react/dist/esm/icons/x";
-import { useTranslation } from "react-i18next";
 import type {
   AppSettings,
   CodexDoctorResult,
@@ -102,7 +101,6 @@ export function SettingsView({
   initialSection,
   orbitServiceClient = ORBIT_SERVICES,
 }: SettingsViewProps) {
-  const { t } = useTranslation();
   const {
     activeSection,
     showMobileDetail,
@@ -159,13 +157,13 @@ export function SettingsView({
     >
       <div className="settings-titlebar">
         <div className="settings-title" id="settings-modal-title">
-          {t("settings_view.settings")}
+          Settings
         </div>
         <button
           type="button"
           className="ghost icon-button settings-close"
           onClick={onClose}
-          aria-label={t("settings_view.close_settings")}
+          aria-label="Close settings"
         >
           <X aria-hidden />
         </button>
@@ -188,10 +186,10 @@ export function SettingsView({
                   type="button"
                   className="settings-mobile-back"
                   onClick={() => setShowMobileDetail(false)}
-                  aria-label={t("settings_view.back_to_sections")}
+                  aria-label="Back to settings sections"
                 >
                   <ChevronLeft aria-hidden />
-                  {t("settings_view.sections")}
+                  Sections
                 </button>
                 <div className="settings-mobile-detail-title">{activeSectionLabel}</div>
               </div>

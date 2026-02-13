@@ -1,5 +1,3 @@
-import { useTranslation } from "react-i18next";
-
 type WorkspaceGroupProps = {
   toggleId: string | null;
   name: string;
@@ -17,7 +15,6 @@ export function WorkspaceGroup({
   onToggleCollapse,
   children,
 }: WorkspaceGroupProps) {
-  const { t } = useTranslation();
   const isToggleable = Boolean(toggleId);
   return (
     <div className="workspace-group">
@@ -42,7 +39,7 @@ export function WorkspaceGroup({
               : undefined
           }
           role={isToggleable ? "button" : undefined}
-          aria-label={isToggleable ? `${isCollapsed ? t("workspace.expand_group") : t("workspace.collapse_group")}` : undefined}
+          aria-label={isToggleable ? `${isCollapsed ? "Expand" : "Collapse"} group` : undefined}
           aria-expanded={isToggleable ? !isCollapsed : undefined}
           tabIndex={isToggleable ? 0 : undefined}
         >
@@ -57,7 +54,7 @@ export function WorkspaceGroup({
                 }
                 onToggleCollapse(toggleId);
               }}
-              aria-label={isCollapsed ? t("workspace.expand_group") : t("workspace.collapse_group")}
+              aria-label={isCollapsed ? "Expand group" : "Collapse group"}
               aria-expanded={!isCollapsed}
               type="button"
             >

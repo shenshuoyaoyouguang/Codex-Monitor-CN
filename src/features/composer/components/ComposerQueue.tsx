@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { useTranslation } from "react-i18next";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { Menu, MenuItem } from "@tauri-apps/api/menu";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -16,18 +15,17 @@ export function ComposerQueue({
   onEditQueued,
   onDeleteQueued,
 }: ComposerQueueProps) {
-  const { t } = useTranslation();
   const handleQueueMenu = useCallback(
     async (event: React.MouseEvent, item: QueuedMessage) => {
       event.preventDefault();
       event.stopPropagation();
       const { clientX, clientY } = event;
       const editItem = await MenuItem.new({
-        text: t("common.edit"),
+        text: "Edit",
         action: () => onEditQueued?.(item),
       });
       const deleteItem = await MenuItem.new({
-        text: t("common.delete"),
+        text: "Delete",
         action: () => onDeleteQueued?.(item.id),
       });
       const menu = await Menu.new({ items: [editItem, deleteItem] });
@@ -44,23 +42,25 @@ export function ComposerQueue({
 
   return (
     <div className="composer-queue">
-      <div className="composer-queue-title">{t("composer.queue")}</div>
+      <div className="composer-queue-title">Queued</div>
       <div className="composer-queue-list">
         {queuedMessages.map((item) => (
           <div key={item.id} className="composer-queue-item">
             <span className="composer-queue-text">
               {item.text ||
                 (item.images?.length
-                  ? t("composer.image")
+                  ? item.images.length === 1
+                    ? "Image"
+                    : "Images"
                   : "")}
               {item.images?.length
-                ? ` · ${item.images.length} ${t("composer.images")}`
+                ? ` · ${item.images.length} image${item.images.length === 1 ? "" : "s"}`
                 : ""}
             </span>
             <button
               className="composer-queue-menu"
               onClick={(event) => handleQueueMenu(event, item)}
-              aria-label={t("composer_queue.queue_item_menu")}
+              aria-label="Queue item menu"
             >
               ...
             </button>

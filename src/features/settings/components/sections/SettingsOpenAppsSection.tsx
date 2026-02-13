@@ -1,7 +1,6 @@
 import ChevronDown from "lucide-react/dist/esm/icons/chevron-down";
 import ChevronUp from "lucide-react/dist/esm/icons/chevron-up";
 import Trash2 from "lucide-react/dist/esm/icons/trash-2";
-import { useTranslation } from "react-i18next";
 import type { OpenAppTarget } from "@/types";
 import {
   fileManagerName,
@@ -40,13 +39,11 @@ export function SettingsOpenAppsSection({
   onAddOpenApp,
   onSelectOpenAppDefault,
 }: SettingsOpenAppsSectionProps) {
-  const { t } = useTranslation();
-
   return (
     <section className="settings-section">
-      <div className="settings-section-title">{t('settings.sections.open_with')}</div>
+      <div className="settings-section-title">Open in</div>
       <div className="settings-section-subtitle">
-        {t('settings.open_with.customize')}
+        Customize the Open in menu shown in the title bar and file previews.
       </div>
       <div className="settings-open-apps">
         {openAppDrafts.map((target, index) => {
@@ -58,12 +55,12 @@ export function SettingsOpenAppsSection({
             target.kind !== "command" || Boolean(target.command?.trim());
           const isComplete = labelValid && appNameValid && commandValid;
           const incompleteHint = !labelValid
-            ? t('settings.open_with.requires_label')
+            ? "Label required"
             : target.kind === "app"
-              ? t('settings.open_with.requires_app_name')
+              ? "App name required"
               : target.kind === "command"
-                ? t('settings.open_with.requires_command')
-                : t('settings.open_with.fill_required');
+                ? "Command required"
+                : "Complete required fields";
 
           return (
             <div
@@ -81,86 +78,86 @@ export function SettingsOpenAppsSection({
               </div>
               <div className="settings-open-app-fields">
                 <label className="settings-open-app-field settings-open-app-field--label">
-                  <span className="settings-visually-hidden">{t('settings.open_with.label')}</span>
+                  <span className="settings-visually-hidden">Label</span>
                   <input
                     className="settings-input settings-input--compact settings-open-app-input settings-open-app-input--label"
                     value={target.label}
-                    placeholder={t('settings.open_with.label')}
+                    placeholder="Label"
                     onChange={(event) =>
                       onOpenAppDraftChange(index, {
                         label: event.target.value,
                       })
                     }
                     onBlur={onCommitOpenApps}
-                    aria-label={`${t('settings.open_with.label')} ${index + 1}`}
+                    aria-label={`Open app label ${index + 1}`}
                     data-invalid={!labelValid || undefined}
                   />
                 </label>
                 <label className="settings-open-app-field settings-open-app-field--type">
-                  <span className="settings-visually-hidden">{t('settings.open_with.type')}</span>
+                  <span className="settings-visually-hidden">Type</span>
                   <select
                     className="settings-select settings-select--compact settings-open-app-kind"
                     value={target.kind}
                     onChange={(event) =>
                       onOpenAppKindChange(index, event.target.value as OpenAppTarget["kind"])
                     }
-                    aria-label={`${t('settings.open_with.type')} ${index + 1}`}
+                    aria-label={`Open app type ${index + 1}`}
                   >
-                    <option value="app">{t('settings.open_with.app')}</option>
-                    <option value="command">{t('settings.open_with.command')}</option>
+                    <option value="app">App</option>
+                    <option value="command">Command</option>
                     <option value="finder">{fileManagerName()}</option>
                   </select>
                 </label>
                 {target.kind === "app" && (
                   <label className="settings-open-app-field settings-open-app-field--appname">
-                    <span className="settings-visually-hidden">{t('settings.open_with.app_name')}</span>
+                    <span className="settings-visually-hidden">App name</span>
                     <input
                       className="settings-input settings-input--compact settings-open-app-input settings-open-app-input--appname"
                       value={target.appName ?? ""}
-                      placeholder={t('settings.open_with.app_name')}
+                      placeholder="App name"
                       onChange={(event) =>
                         onOpenAppDraftChange(index, {
                           appName: event.target.value,
                         })
                       }
                       onBlur={onCommitOpenApps}
-                      aria-label={`${t('settings.open_with.app_name')} ${index + 1}`}
+                      aria-label={`Open app name ${index + 1}`}
                       data-invalid={!appNameValid || undefined}
                     />
                   </label>
                 )}
                 {target.kind === "command" && (
                   <label className="settings-open-app-field settings-open-app-field--command">
-                    <span className="settings-visually-hidden">{t('settings.open_with.command')}</span>
+                    <span className="settings-visually-hidden">Command</span>
                     <input
                       className="settings-input settings-input--compact settings-open-app-input settings-open-app-input--command"
                       value={target.command ?? ""}
-                      placeholder={t('settings.open_with.command')}
+                      placeholder="Command"
                       onChange={(event) =>
                         onOpenAppDraftChange(index, {
                           command: event.target.value,
                         })
                       }
                       onBlur={onCommitOpenApps}
-                      aria-label={`${t('settings.open_with.command')} ${index + 1}`}
+                      aria-label={`Open app command ${index + 1}`}
                       data-invalid={!commandValid || undefined}
                     />
                   </label>
                 )}
                 {target.kind !== "finder" && (
                   <label className="settings-open-app-field settings-open-app-field--args">
-                    <span className="settings-visually-hidden">{t('settings.open_with.arguments')}</span>
+                    <span className="settings-visually-hidden">Args</span>
                     <input
                       className="settings-input settings-input--compact settings-open-app-input settings-open-app-input--args"
                       value={target.argsText}
-                      placeholder={t('settings.open_with.arguments')}
+                      placeholder="Args"
                       onChange={(event) =>
                         onOpenAppDraftChange(index, {
                           argsText: event.target.value,
                         })
                       }
                       onBlur={onCommitOpenApps}
-                      aria-label={`${t('settings.open_with.arguments')} ${index + 1}`}
+                      aria-label={`Open app args ${index + 1}`}
                     />
                   </label>
                 )}
@@ -172,7 +169,7 @@ export function SettingsOpenAppsSection({
                     title={incompleteHint}
                     aria-label={incompleteHint}
                   >
-                    {t('settings.open_with.incomplete')}
+                    Incomplete
                   </span>
                 )}
                 <label className="settings-open-app-default">
@@ -183,7 +180,7 @@ export function SettingsOpenAppsSection({
                     onChange={() => onSelectOpenAppDefault(target.id)}
                     disabled={!isComplete}
                   />
-                  {t('settings.open_with.default')}
+                  Default
                 </label>
                 <div className="settings-open-app-order">
                   <button
@@ -191,7 +188,7 @@ export function SettingsOpenAppsSection({
                     className="ghost icon-button"
                     onClick={() => onMoveOpenApp(index, "up")}
                     disabled={index === 0}
-                    aria-label={t('settings.open_with.move_up')}
+                    aria-label="Move up"
                   >
                     <ChevronUp aria-hidden />
                   </button>
@@ -200,7 +197,7 @@ export function SettingsOpenAppsSection({
                     className="ghost icon-button"
                     onClick={() => onMoveOpenApp(index, "down")}
                     disabled={index === openAppDrafts.length - 1}
-                    aria-label={t('settings.open_with.move_down')}
+                    aria-label="Move down"
                   >
                     <ChevronDown aria-hidden />
                   </button>
@@ -210,8 +207,8 @@ export function SettingsOpenAppsSection({
                   className="ghost icon-button"
                   onClick={() => onDeleteOpenApp(index)}
                   disabled={openAppDrafts.length <= 1}
-                  aria-label={t('settings.open_with.remove')}
-                  title={t('settings.open_with.remove')}
+                  aria-label="Remove app"
+                  title="Remove app"
                 >
                   <Trash2 aria-hidden />
                 </button>
@@ -222,13 +219,13 @@ export function SettingsOpenAppsSection({
       </div>
       <div className="settings-open-app-footer">
         <button type="button" className="ghost" onClick={onAddOpenApp}>
-          {t('settings.open_with.add')}
+          Add app
         </button>
         <div className="settings-help">
-          {t('settings.open_with.command_description')}{" "}
+          Commands receive the selected path as the final argument.{" "}
           {isMacPlatform()
-            ? t('settings.open_with.app_mode_description')
-            : t('settings.open_with.command_mode_description')}
+            ? "Apps open via `open -a` with optional args."
+            : "Apps run as an executable with optional args."}
         </div>
       </div>
     </section>

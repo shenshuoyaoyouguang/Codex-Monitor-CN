@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { useTranslation } from "react-i18next";
 import { BrainCog } from "lucide-react";
 import type { AccessMode, ThreadTokenUsage } from "../../../types";
 
@@ -36,7 +35,6 @@ export function ComposerMetaBar({
   onSelectAccessMode,
   contextUsage = null,
 }: ComposerMetaBarProps) {
-  const { t } = useTranslation();
   const contextWindow = contextUsage?.modelContextWindow ?? null;
   const lastTokens = contextUsage?.last.totalTokens ?? 0;
   const totalTokens = contextUsage?.total.totalTokens ?? 0;
@@ -66,7 +64,7 @@ export function ComposerMetaBar({
         {collaborationModes.length > 0 && (
           canUsePlanToggle ? (
             <div className="composer-select-wrap composer-plan-toggle-wrap">
-              <label className="composer-plan-toggle" aria-label={t("composer_meta.plan_mode")}>
+              <label className="composer-plan-toggle" aria-label="Plan mode">
                 <input
                   className="composer-plan-toggle-input"
                   type="checkbox"
@@ -92,7 +90,7 @@ export function ComposerMetaBar({
                   </svg>
                 </span>
                 <span className="composer-plan-toggle-label">
-                  {planMode?.label || t("composer_meta.plan")}
+                  {planMode?.label || "Plan"}
                 </span>
               </label>
             </div>
@@ -111,7 +109,7 @@ export function ComposerMetaBar({
             </span>
               <select
                 className="composer-select composer-select--model composer-select--collab"
-                aria-label={t("composer_meta.collaboration_mode")}
+                aria-label="Collaboration mode"
                 value={selectedCollaborationModeId ?? ""}
                 onChange={(event) =>
                   onSelectCollaborationMode(event.target.value || null)
@@ -160,12 +158,12 @@ export function ComposerMetaBar({
           </span>
           <select
             className="composer-select composer-select--model"
-            aria-label={t("composer_meta.model")}
+            aria-label="Model"
             value={selectedModelId ?? ""}
             onChange={(event) => onSelectModel(event.target.value)}
             disabled={disabled}
           >
-            {models.length === 0 && <option value="">{t("composer_meta.no_models")}</option>}
+            {models.length === 0 && <option value="">No models</option>}
             {models.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.displayName || model.model}
@@ -179,12 +177,12 @@ export function ComposerMetaBar({
           </span>
           <select
             className="composer-select composer-select--effort"
-            aria-label={t("composer_meta.reasoning_mode")}
+            aria-label="Thinking mode"
             value={selectedEffort ?? ""}
             onChange={(event) => onSelectEffort(event.target.value)}
             disabled={disabled || !reasoningSupported}
           >
-            {reasoningOptions.length === 0 && <option value="">{t("composer_meta.default")}</option>}
+            {reasoningOptions.length === 0 && <option value="">Default</option>}
             {reasoningOptions.map((effort) => (
               <option key={effort} value={effort}>
                 {effort}
@@ -212,16 +210,16 @@ export function ComposerMetaBar({
           </span>
           <select
             className="composer-select composer-select--approval"
-            aria-label={t("composer_meta.agent_access")}
+            aria-label="Agent access"
             disabled={disabled}
             value={accessMode}
             onChange={(event) =>
               onSelectAccessMode(event.target.value as AccessMode)
             }
           >
-            <option value="read-only">{t("settings.features.read_only")}</option>
-            <option value="current">{t("settings.features.on_demand")}</option>
-            <option value="full-access">{t("settings.features.full_access")}</option>
+            <option value="read-only">Read only</option>
+            <option value="current">On-Request</option>
+            <option value="full-access">Full access</option>
           </select>
         </div>
       </div>
@@ -230,13 +228,13 @@ export function ComposerMetaBar({
           className="composer-context-ring"
           data-tooltip={
             contextFreePercent === null
-              ? t("composer_meta.context_remaining_none")
-              : t("composer_meta.context_remaining", { percent: Math.round(contextFreePercent) })
+              ? "Context free --"
+              : `Context free ${Math.round(contextFreePercent)}%`
           }
           aria-label={
             contextFreePercent === null
-              ? t("composer_meta.context_remaining_none")
-              : t("composer_meta.context_remaining", { percent: Math.round(contextFreePercent) })
+              ? "Context free --"
+              : `Context free ${Math.round(contextFreePercent)}%`
           }
           style={
             {

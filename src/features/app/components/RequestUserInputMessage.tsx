@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import type {
   RequestUserInputRequest,
   RequestUserInputResponse,
@@ -24,7 +23,6 @@ export function RequestUserInputMessage({
   activeWorkspaceId,
   onSubmit,
 }: RequestUserInputMessageProps) {
-  const { t } = useTranslation();
   const activeRequests = useMemo(
     () =>
       requests.filter((request) => {
@@ -91,7 +89,7 @@ export function RequestUserInputMessage({
       const note = (notes[key] ?? "").trim();
       if (note) {
         if (hasOptions) {
-          answerList.push(t("user_input.user_note", { note }));
+          answerList.push(`user_note: ${note}`);
         } else {
           answerList.push(note);
         }
@@ -118,13 +116,13 @@ export function RequestUserInputMessage({
       <div
         className="bubble request-user-input-card"
         role="group"
-        aria-label={t("user_input.requires_user_input")}
+        aria-label="User input requested"
       >
         <div className="request-user-input-header">
-          <div className="request-user-input-title">{t("user_input.requires_input")}</div>
+          <div className="request-user-input-title">Input requested</div>
           {totalRequests > 1 ? (
             <div className="request-user-input-queue">
-              {t("user_input.request_count", { current: 1, total: totalRequests })}
+              {`Request 1 of ${totalRequests}`}
             </div>
           ) : null}
         </div>
@@ -135,10 +133,10 @@ export function RequestUserInputMessage({
               const selectedIndex = selections[questionId];
               const options = question.options ?? [];
               const notePlaceholder = question.isOther
-                ? t("user_input.optional_response")
+                ? "Type your answer (optional)"
                 : options.length
-                ? t("user_input.optional_note")
-                : t("user_input.optional_response");
+                ? "Add notes (optional)"
+                : "Type your answer (optional)";
               return (
                 <section key={questionId} className="request-user-input-question">
                   {question.header ? (
@@ -186,13 +184,13 @@ export function RequestUserInputMessage({
             })
           ) : (
             <div className="request-user-input-empty">
-              {t("user_input.no_question")}
+              No questions provided.
             </div>
           )}
         </div>
         <div className="request-user-input-actions">
           <button className="primary" onClick={handleSubmit}>
-            {t("user_input.submit")}
+            Submit
           </button>
         </div>
       </div>

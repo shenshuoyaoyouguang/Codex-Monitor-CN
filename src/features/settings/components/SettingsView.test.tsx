@@ -71,7 +71,6 @@ const baseSettings: AppSettings = {
   lastComposerReasoningEffort: null,
   uiScale: 1,
   theme: "system",
-  language: "en",
   usageShowRemaining: false,
   showMessageFilePath: true,
   threadTitleAutogenerationEnabled: false,
@@ -816,8 +815,8 @@ describe("SettingsView Codex overrides", () => {
       expect(screen.getByRole("button", { name: "Start daemon" })).toBeTruthy();
       expect(screen.getByRole("button", { name: "Stop daemon" })).toBeTruthy();
       expect(screen.getByRole("button", { name: "Refresh status" })).toBeTruthy();
-      expect(screen.getByLabelText("settings.features.host")).toBeTruthy();
-      expect(screen.getByLabelText("settings.features.remote_backend")).toBeTruthy();
+      expect(screen.getByLabelText("Remote backend host")).toBeTruthy();
+      expect(screen.getByLabelText("Remote backend token")).toBeTruthy();
     });
   });
 
@@ -899,7 +898,7 @@ describe("SettingsView Codex overrides", () => {
       expect(screen.queryByRole("button", { name: "Start daemon" })).toBeNull();
       expect(screen.queryByRole("button", { name: "Detect Tailscale" })).toBeNull();
       expect(screen.queryByRole("button", { name: "Connect test" })).toBeNull();
-      expect(screen.queryByLabelText("settings.features.host")).toBeNull();
+      expect(screen.queryByLabelText("Remote backend host")).toBeNull();
       expect(screen.queryByRole("button", { name: "Sign In" })).toBeNull();
       expect(
         screen.getByText(/use the orbit websocket url and token configured/i),
@@ -1480,6 +1479,42 @@ describe("SettingsView Codex defaults", () => {
 });
 
 describe("SettingsView Features", () => {
+  it("updates personality selection", async () => {
+    const onUpdateAppSettings = vi.fn().mockResolvedValue(undefined);
+    renderFeaturesSection({ onUpdateAppSettings });
+
+    fireEvent.change(screen.getByLabelText("Personality"), {
+      target: { value: "pragmatic" },
+    });
+
+    await waitFor(() => {
+      expect(onUpdateAppSettings).toHaveBeenCalledWith(
+        expect.objectContaining({ personality: "pragmatic" }),
+      );
+    });
+  });
+
+  it("toggles steer mode in stable features", async () => {
+    const onUpdateAppSettings = vi.fn().mockResolvedValue(undefined);
+    renderFeaturesSection({
+      onUpdateAppSettings,
+      appSettings: { steerEnabled: true },
+    });
+
+    const steerTitle = screen.getByText("Steer mode");
+    const steerRow = steerTitle.closest(".settings-toggle-row");
+    expect(steerRow).not.toBeNull();
+
+    const toggle = within(steerRow as HTMLElement).getByRole("button");
+    fireEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(onUpdateAppSettings).toHaveBeenCalledWith(
+        expect.objectContaining({ steerEnabled: false }),
+      );
+    });
+  });
+
   it("toggles background terminal in stable features", async () => {
     const onUpdateAppSettings = vi.fn().mockResolvedValue(undefined);
     renderFeaturesSection({
@@ -1783,6 +1818,84 @@ describe("SettingsView Shortcuts", () => {
     });
     await waitFor(() => {
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("filters shortcuts by search query", async () => {
+    render(
+      <SettingsView
+        workspaceGroups={[]}
+        groupedWorkspaces={[]}
+        ungroupedLabel="Ungrouped"
+        onClose={vi.fn()}
+        onMoveWorkspace={vi.fn()}
+        onDeleteWorkspace={vi.fn()}
+        onCreateWorkspaceGroup={vi.fn().mockResolvedValue(null)}
+        onRenameWorkspaceGroup={vi.fn().mockResolvedValue(null)}
+        onMoveWorkspaceGroup={vi.fn().mockResolvedValue(null)}
+        onDeleteWorkspaceGroup={vi.fn().mockResolvedValue(null)}
+        onAssignWorkspaceGroup={vi.fn().mockResolvedValue(null)}
+        reduceTransparency={false}
+        onToggleTransparency={vi.fn()}
+        appSettings={baseSettings}
+        openAppIconById={{}}
+        onUpdateAppSettings={vi.fn().mockResolvedValue(undefined)}
+        onRunDoctor={vi.fn().mockResolvedValue(createDoctorResult())}
+        onUpdateWorkspaceCodexBin={vi.fn().mockResolvedValue(undefined)}
+        onUpdateWorkspaceSettings={vi.fn().mockResolvedValue(undefined)}
+        scaleShortcutTitle="Scale shortcut"
+        scaleShortcutText="Use Command +/-"
+        onTestNotificationSound={vi.fn()}
+        onTestSystemNotification={vi.fn()}
+        dictationModelStatus={null}
+        onDownloadDictationModel={vi.fn()}
+        onCancelDictationDownload={vi.fn()}
+        onRemoveDictationModel={vi.fn()}
+        initialSection="shortcuts"
+      />,
+    );
+
+    const searchInput = screen.getByLabelText("Search shortcuts");
+    expect(screen.getByText("Toggle terminal panel")).toBeTruthy();
+    expect(screen.getByText("Cycle model")).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: "navigation" } });
+    });
+    await waitFor(() => {
+      expect(screen.getByText("Next workspace")).toBeTruthy();
+      expect(screen.queryByText("Toggle terminal panel")).toBeNull();
+    });
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: "sidebars" } });
+    });
+    await waitFor(() => {
+      expect(screen.getByText("Toggle projects sidebar")).toBeTruthy();
+      expect(screen.queryByText("Next workspace")).toBeNull();
+    });
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: "new shortcut while focused" } });
+    });
+    await waitFor(() => {
+      expect(screen.getByText("Cycle model")).toBeTruthy();
+      expect(screen.queryByText("Toggle terminal panel")).toBeNull();
+    });
+
+    await act(async () => {
+      fireEvent.change(searchInput, { target: { value: "no-such-shortcut" } });
+    });
+    await waitFor(() => {
+      expect(screen.getByText('No shortcuts match "no-such-shortcut".')).toBeTruthy();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Clear" }));
+    });
+    await waitFor(() => {
+      expect(screen.getByText("Toggle terminal panel")).toBeTruthy();
+      expect(screen.queryByText('No shortcuts match "no-such-shortcut".')).toBeNull();
     });
   });
 });

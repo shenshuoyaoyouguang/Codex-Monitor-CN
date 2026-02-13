@@ -46,15 +46,15 @@ export function AboutView() {
           <img
             className="about-icon"
             src="/app-icon.png"
-            alt={t('about.app_icon')}
+            alt="Codex Monitor icon"
           />
           <div className="about-title">Codex Monitor</div>
         </div>
         <div className="about-version">
-          {version ? t('about.version', { version }) : t('about.version_unknown')}
+          {version ? `Version ${version}` : "Version —"}
         </div>
         <div className="about-tagline">
-          {t('about.tagline')}
+          Monitor the situation of your Codex agents
         </div>
         <div className="about-divider" />
         <div className="about-links">
@@ -74,7 +74,7 @@ export function AboutView() {
             Twitter
           </button>
         </div>
-        <div className="about-footer">{t('about.footer')}</div>
+        <div className="about-footer">Made with ♥ by Codex & Dimillian</div>
       </div>
     </div>
   );

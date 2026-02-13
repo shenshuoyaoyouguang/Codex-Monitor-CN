@@ -6,8 +6,7 @@ import Plus from "lucide-react/dist/esm/icons/plus";
 import RotateCcw from "lucide-react/dist/esm/icons/rotate-ccw";
 import Upload from "lucide-react/dist/esm/icons/upload";
 import X from "lucide-react/dist/esm/icons/x";
-import { formatRelativeTime } from "../../../i18n/utils/date";
-import { useTranslation } from "../../../i18n/hooks/useTranslation";
+import { formatRelativeTime } from "../../../utils/time";
 import {
   getStatusClass,
   getStatusSymbol,
@@ -44,7 +43,6 @@ export function CommitButton({
   commitLoading,
   onCommit,
 }: CommitButtonProps) {
-  const { t } = useTranslation("git_diff");
   const hasMessage = commitMessage.trim().length > 0;
   const hasChanges = hasStagedFiles || hasUnstagedFiles;
   const canCommit = hasMessage && hasChanges && !commitLoading;
@@ -64,12 +62,12 @@ export function CommitButton({
         disabled={!canCommit}
         title={
           !hasMessage
-            ? t("enter_commit_message")
+            ? "Enter a commit message"
             : !hasChanges
-              ? t("no_changes_to_commit")
+              ? "No changes to commit"
               : hasStagedFiles
-                ? t("commit_staged")
-                : t("commit_unstaged")
+                ? "Commit staged changes"
+                : "Commit all unstaged changes"
         }
       >
         {commitLoading ? (
@@ -89,7 +87,7 @@ export function CommitButton({
             <path d="M20 6 9 17l-5-5" />
           </svg>
         )}
-        <span>{commitLoading ? t("committing") : t("commit")}</span>
+        <span>{commitLoading ? "Committing..." : "Commit"}</span>
       </button>
     </div>
   );
@@ -108,7 +106,6 @@ export function SidebarError({
   action,
   onDismiss,
 }: SidebarErrorProps) {
-  const { t } = useTranslation("git_diff");
   return (
     <div className={`sidebar-error sidebar-error-${variant}`}>
       <div className="sidebar-error-body">
@@ -131,8 +128,8 @@ export function SidebarError({
         type="button"
         className="ghost icon-button sidebar-error-dismiss"
         onClick={onDismiss}
-        aria-label={t("dismiss_error")}
-        title={t("dismiss_error")}
+        aria-label="Dismiss error"
+        title="Dismiss error"
       >
         <X size={12} aria-hidden />
       </button>
@@ -165,7 +162,6 @@ function DiffFileRow({
   onUnstageFile,
   onDiscardFile,
 }: DiffFileRowProps) {
-  const { t } = useTranslation("git_diff");
   const { name, dir } = splitPath(file.path);
   const { base, extension } = splitNameAndExtension(name);
   const statusSymbol = getStatusSymbol(file.status);
@@ -206,7 +202,7 @@ function DiffFileRow({
           <span className="diff-sep">/</span>
           <span className="diff-del">-{file.deletions}</span>
         </span>
-        <div className="diff-row-actions" role="group" aria-label={t("file_operations")}>
+        <div className="diff-row-actions" role="group" aria-label="File actions">
           {showStage && (
             <button
               type="button"
@@ -215,8 +211,8 @@ function DiffFileRow({
                 event.stopPropagation();
                 void onStageFile?.(file.path);
               }}
-              data-tooltip={t("stage")}
-              aria-label={t("stage_file")}
+              data-tooltip="Stage Changes"
+              aria-label="Stage file"
             >
               <Plus size={12} aria-hidden />
             </button>
@@ -229,8 +225,8 @@ function DiffFileRow({
                 event.stopPropagation();
                 void onUnstageFile?.(file.path);
               }}
-              data-tooltip={t("unstage")}
-              aria-label={t("unstage_file")}
+              data-tooltip="Unstage Changes"
+              aria-label="Unstage file"
             >
               <Minus size={12} aria-hidden />
             </button>
@@ -243,8 +239,8 @@ function DiffFileRow({
                 event.stopPropagation();
                 void onDiscardFile?.(file.path);
               }}
-              data-tooltip={t("discard")}
-              aria-label={t("discard_changes")}
+              data-tooltip="Discard Changes"
+              aria-label="Discard changes"
             >
               <RotateCcw size={12} aria-hidden />
             </button>
@@ -294,7 +290,6 @@ export function DiffSection({
   onFileClick,
   onShowFileMenu,
 }: DiffSectionProps) {
-  const { t } = useTranslation("git_diff");
   const filePaths = files.map((file) => file.path);
   const canStageAll =
     section === "unstaged" &&
@@ -311,7 +306,7 @@ export function DiffSection({
           {title} ({files.length})
         </span>
         {showSectionActions && (
-          <div className="diff-section-actions" role="group" aria-label={`${title} ${t("file_operations")}`}>
+          <div className="diff-section-actions" role="group" aria-label={`${title} actions`}>
             {canStageAll && (
               <button
                 type="button"
@@ -327,8 +322,8 @@ export function DiffSection({
                     }
                   })();
                 }}
-                data-tooltip={t("stage_all")}
-                aria-label={t("stage_all")}
+                data-tooltip="Stage All Changes"
+                aria-label="Stage all changes"
               >
                 <Plus size={12} aria-hidden />
               </button>
@@ -344,8 +339,8 @@ export function DiffSection({
                     }
                   })();
                 }}
-                data-tooltip={t("unstage_all")}
-                aria-label={t("unstage_all")}
+                data-tooltip="Unstage All Changes"
+                aria-label="Unstage all changes"
               >
                 <Minus size={12} aria-hidden />
               </button>
@@ -357,8 +352,8 @@ export function DiffSection({
                 onClick={() => {
                   void onDiscardFiles?.(filePaths);
                 }}
-                data-tooltip={t("discard_all")}
-                aria-label={t("discard_all")}
+                data-tooltip="Discard All Changes"
+                aria-label="Discard all changes"
               >
                 <RotateCcw size={12} aria-hidden />
               </button>
@@ -406,7 +401,6 @@ export function GitLogEntryRow({
   onSelect,
   onContextMenu,
 }: GitLogEntryRowProps) {
-  const { t } = useTranslation("git_diff");
   return (
     <div
       className={`git-log-entry ${compact ? "git-log-entry-compact" : ""} ${isSelected ? "active" : ""}`}
@@ -421,11 +415,11 @@ export function GitLogEntryRow({
         }
       }}
     >
-      <div className="git-log-summary">{entry.summary || t("no_description")}</div>
+      <div className="git-log-summary">{entry.summary || "No message"}</div>
       <div className="git-log-meta">
         <span className="git-log-sha">{entry.sha.slice(0, 7)}</span>
         <span className="git-log-sep">·</span>
-        <span className="git-log-author">{entry.author || t("unknown_author")}</span>
+        <span className="git-log-author">{entry.author || "Unknown"}</span>
         <span className="git-log-sep">·</span>
         <span className="git-log-date">{formatRelativeTime(entry.timestamp * 1000)}</span>
       </div>

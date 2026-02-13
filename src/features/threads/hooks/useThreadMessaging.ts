@@ -29,7 +29,7 @@ import {
 import { isUnsupportedTurnSteerError } from "@threads/utils/threadRpc";
 import type { ThreadAction, ThreadState } from "./useThreadsReducer";
 import { useReviewPrompt } from "./useReviewPrompt";
-import { formatRelativeTime } from "../../../i18n/utils/date";
+import { formatRelativeTime } from "@utils/time";
 
 type SendMessageOptions = {
   skipPromptExpansion?: boolean;

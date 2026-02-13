@@ -19,7 +19,7 @@ describe("UpdateToast", () => {
     expect(screen.getByRole("status")).toBeTruthy();
     expect(screen.getAllByText("Update")).toHaveLength(2);
     expect(screen.getByText("v1.2.3")).toBeTruthy();
-    expect(screen.getByText("New version available.")).toBeTruthy();
+    expect(screen.getByText("A new version is available.")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Later" }));
     fireEvent.click(screen.getByRole("button", { name: "Update" }));
@@ -63,7 +63,7 @@ describe("UpdateToast", () => {
     expect(screen.getByText("Update failed.")).toBeTruthy();
     expect(screen.getByText("Network error")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     expect(onDismiss).toHaveBeenCalledTimes(1);
@@ -79,8 +79,8 @@ describe("UpdateToast", () => {
     );
     const scoped = within(container);
 
-    expect(scoped.getByText("Already up to date.")).toBeTruthy();
-    fireEvent.click(scoped.getByRole("button", { name: "Close" }));
+    expect(scoped.getByText("You’re up to date.")).toBeTruthy();
+    fireEvent.click(scoped.getByRole("button", { name: "Dismiss" }));
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 });

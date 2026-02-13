@@ -1,5 +1,5 @@
-import type { TurnPlan } from "../../../types";
 import { useTranslation } from "react-i18next";
+import type { TurnPlan } from "../../../types";
 
 type PlanPanelProps = {
   plan: TurnPlan | null;
@@ -15,14 +15,14 @@ function formatProgress(plan: TurnPlan) {
   return `${completed}/${total}`;
 }
 
-function statusLabel(status: TurnPlan["steps"][number]["status"], t: any) {
+function statusLabel(status: TurnPlan["steps"][number]["status"]) {
   if (status === "completed") {
-    return t('plan.step_completed');
+    return "[x]";
   }
   if (status === "inProgress") {
-    return t('plan.step_in_progress');
+    return "[>]";
   }
-  return t('plan.step_pending');
+  return "[ ]";
 }
 
 export function PlanPanel({ plan, isProcessing }: PlanPanelProps) {
@@ -48,7 +48,7 @@ export function PlanPanel({ plan, isProcessing }: PlanPanelProps) {
           {steps.map((step, index) => (
             <li key={`${step.step}-${index}`} className={`plan-step ${step.status}`}>
               <span className="plan-step-status" aria-hidden>
-                {statusLabel(step.status, t)}
+                {statusLabel(step.status)}
               </span>
               <span className="plan-step-text">{step.step}</span>
             </li>

@@ -1,5 +1,4 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { useTranslation } from "react-i18next";
 import Image from "lucide-react/dist/esm/icons/image";
 import X from "lucide-react/dist/esm/icons/x";
 
@@ -9,12 +8,12 @@ type ComposerAttachmentsProps = {
   onRemoveAttachment?: (path: string) => void;
 };
 
-function fileTitle(path: string, t: (key: string) => string) {
+function fileTitle(path: string) {
   if (path.startsWith("data:")) {
-    return t("composer.pasted_image");
+    return "Pasted image";
   }
   if (path.startsWith("http://") || path.startsWith("https://")) {
-    return t("composer.image");
+    return "Image";
   }
   const normalized = path.replace(/\\/g, "/");
   const parts = normalized.split("/").filter(Boolean);
@@ -40,8 +39,6 @@ export function ComposerAttachments({
   disabled,
   onRemoveAttachment,
 }: ComposerAttachmentsProps) {
-  const { t } = useTranslation();
-
   if (attachments.length === 0) {
     return null;
   }
@@ -49,8 +46,8 @@ export function ComposerAttachments({
   return (
     <div className="composer-attachments">
       {attachments.map((path) => {
-        const title = fileTitle(path, t);
-        const titleAttr = path.startsWith("data:") ? t("composer.pasted_image") : path;
+        const title = fileTitle(path);
+        const titleAttr = path.startsWith("data:") ? "Pasted image" : path;
         const previewSrc = attachmentPreviewSrc(path);
         return (
           <div
@@ -77,7 +74,7 @@ export function ComposerAttachments({
               type="button"
               className="composer-attachment-remove"
               onClick={() => onRemoveAttachment?.(path)}
-              aria-label={t("composer.remove_attachment", { name: title })}
+              aria-label={`Remove ${title}`}
               disabled={disabled}
             >
               <X size={12} aria-hidden />

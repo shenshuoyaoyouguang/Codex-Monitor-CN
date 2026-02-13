@@ -1,5 +1,4 @@
 import type { MouseEvent } from "react";
-import { useTranslation } from "react-i18next";
 
 import type { WorkspaceInfo } from "../../../types";
 
@@ -37,7 +36,6 @@ export function WorkspaceCard({
   onToggleAddMenu,
   children,
 }: WorkspaceCardProps) {
-  const { t } = useTranslation();
   const contentCollapsedClass = isCollapsed ? " collapsed" : "";
 
   return (
@@ -66,7 +64,7 @@ export function WorkspaceCard({
                   onToggleWorkspaceCollapse(workspace.id, !isCollapsed);
                 }}
                 data-tauri-drag-region="false"
-                aria-label={isCollapsed ? t("workspace.show_agents") : t("workspace.hide_agents")}
+                aria-label={isCollapsed ? "Show agents" : "Hide agents"}
                 aria-expanded={!isCollapsed}
               >
                 <span className="workspace-toggle-icon">›</span>
@@ -94,7 +92,7 @@ export function WorkspaceCard({
                 );
               }}
               data-tauri-drag-region="false"
-              aria-label={t("workspace.add_agent_option")}
+              aria-label="Add agent options"
               aria-expanded={addMenuOpen}
             >
               +
@@ -109,7 +107,7 @@ export function WorkspaceCard({
               onConnectWorkspace(workspace);
             }}
           >
-            {t("common.connect")}
+            connect
           </span>
         )}
       </div>
