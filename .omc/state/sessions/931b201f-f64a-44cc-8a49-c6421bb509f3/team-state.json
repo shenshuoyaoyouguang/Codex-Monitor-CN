@@ -1,8 +1,0 @@
-{
-  "active": true,
-  "started_at": "2026-02-13T06:00:32.122Z",
-  "original_prompt": "/oh-my-claudecode:team 探索代码库，了解i18n（国际化）相关的实现后,进行完善i18n,因为目前界面没有完全汉化",
-  "session_id": "931b201f-f64a-44cc-8a49-c6421bb509f3",
-  "reinforcement_count": 0,
-  "last_checked_at": "2026-02-13T06:00:32.123Z"
-}

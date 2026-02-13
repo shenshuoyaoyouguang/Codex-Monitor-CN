@@ -33,9 +33,12 @@ jobs:
         run: npm run typecheck
   test-js:
     runs-on: ubuntu-latest
+<<<<<<< HEAD
     env:
       LC_ALL: en_US.UTF-8
       LANG: en_US.UTF-8
+=======
+>>>>>>> upstream/main
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
