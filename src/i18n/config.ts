@@ -38,17 +38,18 @@ i18next
     },
   });
 
-// 菜单翻译键列表
+// 菜单翻译键列表 (使用 Rust 中注册的菜单项 ID)
 const MENU_TEXT_KEYS = [
-  'app_name', 'about', 'check_updates', 'settings', 'services',
+  'app_name', 'about', 'check_for_updates', 'file_open_settings', 'services',
   'hide', 'hide_others', 'quit', 'file', 'edit', 'composer',
-  'view', 'window', 'help', 'new_agent', 'new_worktree_agent',
-  'new_clone_agent', 'add_workspaces', 'close_window', 'undo',
-  'redo', 'cut', 'copy', 'paste', 'select_all', 'cycle_model',
-  'cycle_access_mode', 'cycle_reasoning_mode', 'cycle_collaboration_mode',
-  'toggle_projects_sidebar', 'toggle_git_sidebar', 'toggle_debug_panel',
-  'toggle_terminal', 'next_agent', 'previous_agent', 'next_workspace',
-  'previous_workspace', 'toggle_full_screen', 'minimize', 'maximize',
+  'view', 'window', 'help', 'file_new_agent', 'file_new_worktree_agent',
+  'file_new_clone_agent', 'file_add_workspaces', 'file_close_window', 'undo',
+  'redo', 'cut', 'copy', 'paste', 'select_all', 'composer_cycle_model',
+  'composer_cycle_access', 'composer_cycle_reasoning', 'composer_cycle_collaboration',
+  'view_toggle_projects_sidebar', 'view_toggle_git_sidebar', 'view_toggle_debug_panel',
+  'view_toggle_terminal', 'view_next_agent', 'view_prev_agent', 'view_next_workspace',
+  'view_prev_workspace', 'view_fullscreen', 'window_minimize', 'window_maximize',
+  'window_close', 'help_about',
 ];
 
 // 更新菜单文本
