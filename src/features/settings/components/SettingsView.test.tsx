@@ -226,49 +226,6 @@ const renderDisplaySection = (
   return { onUpdateAppSettings, onToggleTransparency };
 };
 
-const renderComposerSection = (
-  options: {
-    appSettings?: Partial<AppSettings>;
-    onUpdateAppSettings?: ComponentProps<typeof SettingsView>["onUpdateAppSettings"];
-  } = {},
-) => {
-  cleanup();
-  const onUpdateAppSettings =
-    options.onUpdateAppSettings ?? vi.fn().mockResolvedValue(undefined);
-  const props: ComponentProps<typeof SettingsView> = {
-    reduceTransparency: false,
-    onToggleTransparency: vi.fn(),
-    appSettings: { ...baseSettings, ...options.appSettings },
-    openAppIconById: {},
-    onUpdateAppSettings,
-    workspaceGroups: [],
-    groupedWorkspaces: [],
-    ungroupedLabel: "Ungrouped",
-    onClose: vi.fn(),
-    onMoveWorkspace: vi.fn(),
-    onDeleteWorkspace: vi.fn(),
-    onCreateWorkspaceGroup: vi.fn().mockResolvedValue(null),
-    onRenameWorkspaceGroup: vi.fn().mockResolvedValue(null),
-    onMoveWorkspaceGroup: vi.fn().mockResolvedValue(null),
-    onDeleteWorkspaceGroup: vi.fn().mockResolvedValue(null),
-    onAssignWorkspaceGroup: vi.fn().mockResolvedValue(null),
-    onRunDoctor: vi.fn().mockResolvedValue(createDoctorResult()),
-    onUpdateWorkspaceSettings: vi.fn().mockResolvedValue(undefined),
-    scaleShortcutTitle: "Scale shortcut",
-    scaleShortcutText: "Use Command +/-",
-    onTestNotificationSound: vi.fn(),
-    onTestSystemNotification: vi.fn(),
-    dictationModelStatus: null,
-    onDownloadDictationModel: vi.fn(),
-    onCancelDictationDownload: vi.fn(),
-    onRemoveDictationModel: vi.fn(),
-    initialSection: "composer",
-  };
-
-  render(<SettingsView {...props} />);
-  return { onUpdateAppSettings };
-};
-
 const renderFeaturesSection = (
   options: {
     appSettings?: Partial<AppSettings>;
