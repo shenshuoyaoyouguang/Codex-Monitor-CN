@@ -640,7 +640,6 @@ jobs:
           path.write_text(json.dumps(data, indent=2) + "\n")
           PY
 
-<<<<<<< HEAD
           python3 - <<PY
           import re
           from pathlib import Path
@@ -648,7 +647,15 @@ jobs:
           path = Path("src-tauri/Cargo.toml")
           content = path.read_text()
           content, count = re.subn(
-            r'(?m)^version = ".*"$',
+            r'(?m)^version = ".*"
+          git push origin "chore/bump-version-${NEXT_VERSION}"
+
+          gh pr create \
+            --title "chore: bump version to ${NEXT_VERSION}" \
+            --body "Post-release version bump to ${NEXT_VERSION}." \
+            --base main \
+            --head "chore/bump-version-${NEXT_VERSION}"
+,
             'version = "$NEXT_VERSION"',
             content,
             count=1,
@@ -692,10 +699,6 @@ jobs:
 
           git checkout -b "chore/bump-version-${NEXT_VERSION}"
           git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json src-tauri/gen/apple/codex-monitor_iOS/Info.plist
-=======
-          git checkout -b "chore/bump-version-${NEXT_VERSION}"
-          git add package.json package-lock.json src-tauri/tauri.conf.json
->>>>>>> upstream/main
           git commit -m "chore: bump version to ${NEXT_VERSION}"
           git push origin "chore/bump-version-${NEXT_VERSION}"
 
