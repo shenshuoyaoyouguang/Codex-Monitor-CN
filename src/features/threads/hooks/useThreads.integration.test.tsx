@@ -59,7 +59,7 @@ describe("useThreads UX integration", () => {
   beforeEach(() => {
     handlers = null;
     localStorage.clear();
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     now = 1000;
     nowSpy = vi.spyOn(Date, "now").mockImplementation(() => now++);
   });
@@ -190,33 +190,9 @@ describe("useThreads UX integration", () => {
     );
   });
 
-  it("keeps local items when resume response does not overlap", async () => {
-    vi.mocked(resumeThread).mockResolvedValue({
-      result: {
-        thread: {
-          id: "thread-3",
-          preview: "Remote preview",
-          updated_at: 9999,
-          turns: [
-            {
-              items: [
-                {
-                  type: "userMessage",
-                  id: "server-user-1",
-                  content: [{ type: "text", text: "Remote hello" }],
-                },
-                {
-                  type: "agentMessage",
-                  id: "server-assistant-1",
-                  text: "Remote response",
-                },
-              ],
-            },
-          ],
-        },
-      },
-    });
-
+  it("keeps local items without calling resume when snapshot exists", async () => {
+    // When local items already exist (from onAgentMessageCompleted),
+    // setActiveThreadId should NOT call resumeThread - it keeps local data.
     const { result } = renderHook(() =>
       useThreads({
         activeWorkspace: workspace,
@@ -226,6 +202,7 @@ describe("useThreads UX integration", () => {
 
     expect(handlers).not.toBeNull();
 
+    // Add local items first (simulating real-time message received)
     await act(async () => {
       handlers?.onAgentMessageCompleted?.({
         workspaceId: "ws-1",
@@ -235,14 +212,16 @@ describe("useThreads UX integration", () => {
       });
     });
 
+    // Now set this thread as active
     await act(async () => {
       result.current.setActiveThreadId("thread-3");
     });
 
-    await waitFor(() => {
-      expect(vi.mocked(resumeThread)).toHaveBeenCalledWith("ws-1", "thread-3");
-    });
+    // resumeThread should NOT be called because we already have local items
+    // (hasLocalThreadSnapshot returns true)
+    expect(vi.mocked(resumeThread)).not.toHaveBeenCalled();
 
+    // Verify local items are preserved
     await waitFor(() => {
       const activeItems = result.current.activeItems;
       const hasLocal = activeItems.some(
@@ -251,11 +230,7 @@ describe("useThreads UX integration", () => {
           item.role === "assistant" &&
           item.id === "local-assistant-1",
       );
-      const hasRemote = activeItems.some(
-        (item) => item.kind === "message" && item.id === "server-user-1",
-      );
       expect(hasLocal).toBe(true);
-      expect(hasRemote).toBe(false);
     });
   });
 

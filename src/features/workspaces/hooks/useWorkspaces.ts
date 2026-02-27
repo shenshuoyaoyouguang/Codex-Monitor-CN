@@ -534,6 +534,7 @@ export function useWorkspaces(options: UseWorkspacesOptions = {}) {
     });
     try {
       await connectWorkspaceService(entry.id);
+      markWorkspaceConnected(entry.id);
     } catch (error) {
       onDebug?.({
         id: `${Date.now()}-client-connect-workspace-error`,

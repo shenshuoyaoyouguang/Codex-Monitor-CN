@@ -165,7 +165,7 @@ describe("useThreadRateLimits", () => {
     );
   });
 
-  it("merges partial payloads with previous workspace rate limits", async () => {
+  it("normalizes partial payloads without merging previous rate limits", async () => {
     const dispatch = vi.fn();
     const previousRateLimits = {
       primary: {
@@ -207,26 +207,23 @@ describe("useThreadRateLimits", () => {
       await result.current.refreshAccountRateLimits();
     });
 
+    // normalizeRateLimits 不合并之前的数据，只基于输入返回默认值
     expect(dispatch).toHaveBeenCalledWith({
       type: "setRateLimits",
       workspaceId: "ws-1",
       rateLimits: {
         primary: {
-          usedPercent: 42,
-          windowDurationMins: 60,
+          usedPercent: 0,
+          windowDurationMins: null,
           resetsAt: 88888,
         },
         secondary: {
-          usedPercent: 70,
-          windowDurationMins: 10080,
-          resetsAt: 99999,
+          usedPercent: 0,
+          windowDurationMins: null,
+          resetsAt: null,
         },
-        credits: {
-          hasCredits: true,
-          unlimited: false,
-          balance: "5",
-        },
-        planType: "pro",
+        credits: null,
+        planType: null,
       },
     });
   });

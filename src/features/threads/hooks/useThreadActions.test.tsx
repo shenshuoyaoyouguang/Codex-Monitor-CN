@@ -275,6 +275,7 @@ describe("useThreadActions", () => {
 
     expect(resumeThread).toHaveBeenCalledWith("ws-1", "thread-2");
     expect(applyCollabThreadLinksFromThread).toHaveBeenCalledWith(
+      "ws-1",
       "thread-2",
       expect.objectContaining({ id: "thread-2" }),
     );
@@ -571,11 +572,13 @@ describe("useThreadActions", () => {
       type: "setThreads",
       workspaceId: "ws-1",
       sortKey: "updated_at",
+      preserveAnchors: true,
       threads: [
         {
           id: "thread-1",
           name: "Custom",
           updatedAt: 5000,
+          createdAt: 0,
         },
       ],
     });
@@ -716,7 +719,7 @@ describe("useThreadActions", () => {
       sortKey: "updated_at",
       threads: [
         { id: "thread-1", name: "Agent 1", updatedAt: 6000 },
-        { id: "thread-2", name: "Older preview", updatedAt: 4000 },
+        { id: "thread-2", name: "Older preview", updatedAt: 4000, createdAt: 0 },
       ],
     });
     expect(dispatch).toHaveBeenCalledWith({

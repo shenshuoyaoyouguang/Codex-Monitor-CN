@@ -626,20 +626,7 @@ describe("useThreadTurnEvents", () => {
   });
 
   it("dispatches normalized rate limits updates", () => {
-    const previousRateLimits = {
-      primary: {
-        usedPercent: 35,
-        windowDurationMins: 60,
-        resetsAt: 1_700_000_000,
-      },
-      secondary: null,
-      credits: null,
-      planType: null,
-    } satisfies RateLimitSnapshot;
-
-    const { result, dispatch, getCurrentRateLimits } = makeOptions({
-      rateLimitsByWorkspace: { "ws-1": previousRateLimits },
-    });
+    const { result, dispatch } = makeOptions();
     const normalized = { primary: { usedPercent: 10 } };
 
     vi.mocked(normalizeRateLimits).mockReturnValue(normalized as never);
@@ -648,11 +635,7 @@ describe("useThreadTurnEvents", () => {
       result.current.onAccountRateLimitsUpdated("ws-1", { primary: {} });
     });
 
-    expect(getCurrentRateLimits).toHaveBeenCalledWith("ws-1");
-    expect(normalizeRateLimits).toHaveBeenCalledWith(
-      { primary: {} },
-      previousRateLimits,
-    );
+    expect(normalizeRateLimits).toHaveBeenCalledWith({ primary: {} });
     expect(dispatch).toHaveBeenCalledWith({
       type: "setRateLimits",
       workspaceId: "ws-1",

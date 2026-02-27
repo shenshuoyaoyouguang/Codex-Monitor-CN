@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useResizablePanels } from "./useResizablePanels";
 
 type HookResult = ReturnType<typeof useResizablePanels>;
@@ -70,6 +70,7 @@ describe("useResizablePanels", () => {
       hook.result.onSidebarResizeStart({
         clientX: 0,
         clientY: 0,
+        preventDefault: vi.fn(),
       } as React.MouseEvent);
     });
 
