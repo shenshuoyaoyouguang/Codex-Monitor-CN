@@ -434,7 +434,7 @@ jobs:
           Path("release-artifacts/release-notes.md").write_text(notes + "\n")
           PY
 
-          python3 - <<PY
+          python3 - <<'PY'
           import json
           from datetime import datetime, timezone
           from pathlib import Path
@@ -443,13 +443,20 @@ jobs:
           notes = Path("release-artifacts/release-notes.md").read_text().strip()
           artifacts_dir = Path("release-artifacts")
 
+          version_path = Path("src-tauri/tauri.conf.json")
+          version_data = json.loads(version_path.read_text())
+          version = version_data["version"]
+
           def release_url(filename):
-            return f"https://github.com/Dimillian/CodexMonitor/releases/download/v${VERSION}/{quote(filename)}"
+            return f"https://github.com/Dimillian/CodexMonitor/releases/download/v{version}/{quote(filename)}"
+
+          signature_path = artifacts_dir / "CodexMonitor.app.tar.gz.sig"
+          signature = signature_path.read_text().strip()
 
           platforms = {
             "darwin-aarch64": {
               "url": release_url("CodexMonitor.app.tar.gz"),
-              "signature": "${SIGNATURE}",
+              "signature": signature,
             }
           }
 
@@ -511,7 +518,7 @@ jobs:
           }
 
           payload = {
-            "version": "${VERSION}",
+            "version": version,
             "notes": notes,
             "pub_date": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "platforms": platforms,
@@ -647,15 +654,7 @@ jobs:
           path = Path("src-tauri/Cargo.toml")
           content = path.read_text()
           content, count = re.subn(
-            r'(?m)^version = ".*"
-          git push origin "chore/bump-version-${NEXT_VERSION}"
-
-          gh pr create \
-            --title "chore: bump version to ${NEXT_VERSION}" \
-            --body "Post-release version bump to ${NEXT_VERSION}." \
-            --base main \
-            --head "chore/bump-version-${NEXT_VERSION}"
-,
+            r'(?m)^version = ".*"$',
             'version = "$NEXT_VERSION"',
             content,
             count=1,
@@ -672,7 +671,7 @@ jobs:
           path = Path("src-tauri/Cargo.lock")
           content = path.read_text()
           content, count = re.subn(
-            r'(?ms)(\[\[package\]\]\nname = "codex-monitor"\nversion = ")[^"]+(")',
+            r'(?ms)(\[\[package\]\]\nname = "codex-monitor"\nversion = ")[^"]+("})',
             r'\g<1>$NEXT_VERSION\2',
             content,
             count=1,
@@ -687,18 +686,22 @@ jobs:
           from pathlib import Path
 
           path = Path("src-tauri/gen/apple/codex-monitor_iOS/Info.plist")
-          with path.open("rb") as f:
-            data = plistlib.load(f)
+          if path.exists():
+            with path.open("rb") as f:
+              data = plistlib.load(f)
 
-          data["CFBundleShortVersionString"] = "$NEXT_VERSION"
-          data["CFBundleVersion"] = "$NEXT_VERSION"
+            data["CFBundleShortVersionString"] = "$NEXT_VERSION"
+            data["CFBundleVersion"] = "$NEXT_VERSION"
 
-          with path.open("wb") as f:
-            plistlib.dump(data, f, sort_keys=False)
+            with path.open("wb") as f:
+              plistlib.dump(data, f, sort_keys=False)
           PY
 
           git checkout -b "chore/bump-version-${NEXT_VERSION}"
-          git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json src-tauri/gen/apple/codex-monitor_iOS/Info.plist
+          git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json
+          if [ -f "src-tauri/gen/apple/codex-monitor_iOS/Info.plist" ]; then
+            git add src-tauri/gen/apple/codex-monitor_iOS/Info.plist
+          fi
           git commit -m "chore: bump version to ${NEXT_VERSION}"
           git push origin "chore/bump-version-${NEXT_VERSION}"
 
