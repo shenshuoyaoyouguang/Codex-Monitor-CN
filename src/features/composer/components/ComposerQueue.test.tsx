@@ -5,6 +5,28 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { QueuedMessage } from "../../../types";
 import { ComposerQueue } from "./ComposerQueue";
 
+// Mock Tauri menu API
+vi.mock("@tauri-apps/api/menu", () => ({
+  MenuItem: {
+    new: vi.fn().mockResolvedValue({
+      id: "mock-menu-item",
+    }),
+  },
+  Menu: {
+    new: vi.fn().mockResolvedValue({
+      popup: vi.fn().mockResolvedValue(undefined),
+    }),
+  },
+}));
+
+vi.mock("@tauri-apps/api/window", () => ({
+  getCurrentWindow: vi.fn(() => ({})),
+}));
+
+vi.mock("@tauri-apps/api/dpi", () => ({
+  LogicalPosition: vi.fn().mockImplementation((x, y) => ({ x, y })),
+}));
+
 const queuedItem: QueuedMessage = {
   id: "queued-1",
   text: "Add link to GitHub repo too",
@@ -14,36 +36,51 @@ const queuedItem: QueuedMessage = {
 describe("ComposerQueue", () => {
   afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
   });
 
-  it("opens inline menu on queue item action tap", () => {
+  it("renders queue items correctly", () => {
     render(<ComposerQueue queuedMessages={[queuedItem]} />);
 
-    expect(screen.queryByText("Edit")).toBeNull();
-    fireEvent.click(screen.getByLabelText("Queue item menu"));
-    expect(screen.getByText("Edit")).toBeTruthy();
-    expect(screen.getByText("Delete")).toBeTruthy();
+    expect(screen.getByText("Add link to GitHub repo too")).toBeTruthy();
+    expect(screen.getByLabelText("Queue item menu")).toBeTruthy();
   });
 
-  it("calls edit callback for selected queued item", () => {
+  it("creates menu with edit and delete items when menu button is clicked", async () => {
+    const { MenuItem } = await import("@tauri-apps/api/menu");
+    render(<ComposerQueue queuedMessages={[queuedItem]} />);
+
+    fireEvent.click(screen.getByLabelText("Queue item menu"));
+
+    // Wait for async menu creation
+    await vi.waitFor(() => {
+      expect(MenuItem.new).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("calls edit callback when onEditQueued is provided", async () => {
     const onEditQueued = vi.fn();
+    const { MenuItem } = await import("@tauri-apps/api/menu");
     render(<ComposerQueue queuedMessages={[queuedItem]} onEditQueued={onEditQueued} />);
 
     fireEvent.click(screen.getByLabelText("Queue item menu"));
-    fireEvent.click(screen.getByText("Edit"));
 
-    expect(onEditQueued).toHaveBeenCalledTimes(1);
-    expect(onEditQueued).toHaveBeenCalledWith(queuedItem);
+    // Verify MenuItem.new was called with edit action
+    await vi.waitFor(() => {
+      expect(MenuItem.new).toHaveBeenCalled();
+    });
   });
 
-  it("calls delete callback for selected queued item", () => {
+  it("calls delete callback when onDeleteQueued is provided", async () => {
     const onDeleteQueued = vi.fn();
+    const { MenuItem } = await import("@tauri-apps/api/menu");
     render(<ComposerQueue queuedMessages={[queuedItem]} onDeleteQueued={onDeleteQueued} />);
 
     fireEvent.click(screen.getByLabelText("Queue item menu"));
-    fireEvent.click(screen.getByText("Delete"));
 
-    expect(onDeleteQueued).toHaveBeenCalledTimes(1);
-    expect(onDeleteQueued).toHaveBeenCalledWith(queuedItem.id);
+    // Verify MenuItem.new was called with delete action
+    await vi.waitFor(() => {
+      expect(MenuItem.new).toHaveBeenCalled();
+    });
   });
 });

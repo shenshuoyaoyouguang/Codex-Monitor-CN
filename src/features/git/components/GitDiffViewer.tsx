@@ -267,6 +267,18 @@ const DiffCard = memo(function DiffCard({
             style={{ width: "100%", maxWidth: "100%", minWidth: 0 }}
           />
         </div>
+      ) : entry.diff.trim().length > 0 && hasSelectableLines ? (
+        <div className="diff-viewer-output diff-viewer-output-flat">
+          <DiffBlock
+            diff={entry.diff}
+            parsedLines={parsedLines}
+            onLineSelect={undefined}
+            onLineMouseDown={undefined}
+            onLineMouseEnter={undefined}
+            onLineMouseUp={undefined}
+            selectedRange={null}
+          />
+        </div>
       ) : (
         <div className="diff-viewer-placeholder">{placeholder}</div>
       )}

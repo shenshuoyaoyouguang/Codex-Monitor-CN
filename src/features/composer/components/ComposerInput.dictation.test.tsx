@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { createRef } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ComposerInput } from "./ComposerInput";
@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 describe("ComposerInput dictation controls", () => {
-  it("uses the mic control to cancel transcription while processing", () => {
+  it("shows processing state on mic button while processing dictation", () => {
     const onToggleDictation = vi.fn();
     const onOpenDictationSettings = vi.fn();
     render(
@@ -46,12 +46,11 @@ describe("ComposerInput dictation controls", () => {
       />,
     );
 
-    const cancelButton = screen.getByRole("button", {
-      name: "Cancel transcription",
+    // In processing state, the mic button shows "Processing..." and is disabled
+    const micButton = screen.getByRole("button", {
+      name: "Processing...",
     });
-    fireEvent.click(cancelButton);
-
-    expect(onToggleDictation).toHaveBeenCalledTimes(1);
-    expect(onOpenDictationSettings).not.toHaveBeenCalled();
+    expect(micButton).toBeTruthy();
+    expect(micButton).toHaveProperty("disabled", true);
   });
 });

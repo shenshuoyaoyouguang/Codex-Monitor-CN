@@ -18,23 +18,7 @@ vi.mock("@tanstack/react-virtual", () => ({
 }));
 
 vi.mock("@pierre/diffs", () => ({
-  parsePatchFiles: (diff: string) =>
-    diff.includes("@@")
-      ? [
-          {
-            files: [
-              {
-                name: "src/main.ts",
-                prevName: undefined,
-                type: "change",
-                hunks: [],
-                splitLineCount: 0,
-                unifiedLineCount: 0,
-              },
-            ],
-          },
-        ]
-      : [],
+  parsePatchFiles: (_diff: string) => [],
 }));
 
 vi.mock("@pierre/diffs/react", () => ({
@@ -81,7 +65,7 @@ describe("GitDiffViewer", () => {
             path: "src/main.ts@@item-change-1@@change-0",
             displayPath: "src/main.ts",
             status: "M",
-            diff: "file edited\n+added line\n-removed line",
+            diff: "@@ -1,3 +1,3 @@\n file edited\n+added line\n-removed line",
           },
         ]}
         selectedPath="src/main.ts@@item-change-1@@change-0"
@@ -94,8 +78,9 @@ describe("GitDiffViewer", () => {
     expect(screen.getByText("added line")).toBeTruthy();
     expect(screen.getByText("removed line")).toBeTruthy();
 
-    const rawLines = Array.from(document.querySelectorAll(".diff-viewer-raw-line"));
-    expect(rawLines[1]?.className).toContain("diff-viewer-raw-line-add");
-    expect(rawLines[2]?.className).toContain("diff-viewer-raw-line-del");
+    const addLines = Array.from(document.querySelectorAll(".diff-line-add"));
+    const delLines = Array.from(document.querySelectorAll(".diff-line-del"));
+    expect(addLines.length).toBeGreaterThan(0);
+    expect(delLines.length).toBeGreaterThan(0);
   });
 });

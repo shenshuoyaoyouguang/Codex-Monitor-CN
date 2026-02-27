@@ -123,7 +123,9 @@ describe("useWorkspaceController dialogs", () => {
       await result.current.removeWorkspace(workspaceOne.id);
     });
 
-    expect(ask).toHaveBeenCalledTimes(1);
+    // ask is called twice: once by useWorkspaceController.confirmWorkspaceRemoval
+    // and once by useWorkspaces.removeWorkspace
+    expect(ask).toHaveBeenCalledTimes(2);
     expect(removeWorkspace).toHaveBeenCalledWith(workspaceOne.id);
     expect(message).toHaveBeenCalledTimes(1);
     const [, options] = vi.mocked(message).mock.calls[0];
