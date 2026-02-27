@@ -1,7 +1,9 @@
+import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import Play from "lucide-react/dist/esm/icons/play";
 import type { LaunchScriptIconId } from "../../../types";
 import { PopoverSurface } from "../../design-system/components/popover/PopoverPrimitives";
-import { useMenuController } from "../hooks/useMenuController";
+import { useDismissibleMenu } from "../hooks/useDismissibleMenu";
 import { LaunchScriptIconPicker } from "./LaunchScriptIconPicker";
 import { DEFAULT_LAUNCH_SCRIPT_ICON } from "../utils/launchScriptIcons";
 
@@ -54,15 +56,18 @@ export function LaunchScriptButton({
   onNewDraftLabelChange,
   onCreateNew,
 }: LaunchScriptButtonProps) {
-  const editorMenu = useMenuController({
-    open: editorOpen,
-    onDismiss: () => {
+  const { t } = useTranslation();
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+  const hasLaunchScript = Boolean(launchScript?.trim());
+
+  useDismissibleMenu({
+    isOpen: editorOpen,
+    containerRef: popoverRef,
+    onClose: () => {
       onCloseEditor();
       onCloseNew?.();
     },
   });
-  const { containerRef: popoverRef } = editorMenu;
-  const hasLaunchScript = Boolean(launchScript?.trim());
 
   return (
     <div className="launch-script-menu" ref={popoverRef}>
@@ -76,18 +81,18 @@ export function LaunchScriptButton({
             onOpenEditor();
           }}
           data-tauri-drag-region="false"
-          aria-label={hasLaunchScript ? "Run launch script" : "Set launch script"}
-          title={hasLaunchScript ? "Run launch script" : "Set launch script"}
+          aria-label={hasLaunchScript ? t("app.run_launch_script") : t("app.setup_launch_script")}
+          title={hasLaunchScript ? t("app.run_launch_script") : t("app.setup_launch_script")}
         >
           <Play size={14} aria-hidden />
         </button>
       </div>
       {editorOpen && (
         <PopoverSurface className="launch-script-popover" role="dialog">
-          <div className="launch-script-title">Launch script</div>
+          <div className="launch-script-title">{t("launch_scripts.launch_script")}</div>
           <textarea
             className="launch-script-textarea"
-            placeholder="e.g. npm run dev"
+            placeholder={t("launch_scripts.command_placeholder")}
             value={draftScript}
             onChange={(event) => onDraftChange(event.target.value)}
             rows={6}
@@ -104,7 +109,7 @@ export function LaunchScriptButton({
               }}
               data-tauri-drag-region="false"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             {showNew && onOpenNew && (
               <button
@@ -113,7 +118,7 @@ export function LaunchScriptButton({
                 onClick={onOpenNew}
                 data-tauri-drag-region="false"
               >
-                New
+                {t("launch_scripts.new_script")}
               </button>
             )}
             <button
@@ -123,12 +128,12 @@ export function LaunchScriptButton({
               disabled={isSaving}
               data-tauri-drag-region="false"
             >
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? t("launch_scripts.script_saving") : t("common.save")}
             </button>
           </div>
           {showNew && newEditorOpen && onNewDraftChange && onNewDraftIconChange && onCreateNew && (
             <div className="launch-script-new">
-              <div className="launch-script-title">New launch script</div>
+              <div className="launch-script-title">{t("launch_scripts.new_script")}</div>
               <LaunchScriptIconPicker
                 value={newDraftIcon}
                 onChange={onNewDraftIconChange}
@@ -136,14 +141,14 @@ export function LaunchScriptButton({
               <input
                 className="launch-script-input"
                 type="text"
-                placeholder="Optional label"
+                placeholder={t("launch_scripts.optional_label")}
                 value={newDraftLabel}
                 onChange={(event) => onNewDraftLabelChange?.(event.target.value)}
                 data-tauri-drag-region="false"
               />
               <textarea
                 className="launch-script-textarea"
-                placeholder="e.g. npm run dev"
+                placeholder={t("launch_scripts.command_placeholder")}
                 value={newDraftScript}
                 onChange={(event) => onNewDraftChange(event.target.value)}
                 rows={5}
@@ -157,7 +162,7 @@ export function LaunchScriptButton({
                   onClick={onCloseNew}
                   data-tauri-drag-region="false"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="button"
@@ -166,7 +171,7 @@ export function LaunchScriptButton({
                   disabled={isSaving}
                   data-tauri-drag-region="false"
                 >
-                  {isSaving ? "Saving..." : "Create"}
+                  {isSaving ? t("launch_scripts.creating") : t("launch_scripts.new_script")}
                 </button>
               </div>
             </div>

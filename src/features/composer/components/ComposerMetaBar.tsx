@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
-import { BrainCog, SlidersHorizontal } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { BrainCog } from "lucide-react";
 import type { AccessMode, ThreadTokenUsage } from "../../../types";
-import type { CodexArgsOption } from "../../threads/utils/codexArgsProfiles";
 
 type ComposerMetaBarProps = {
   disabled: boolean;
@@ -17,9 +17,6 @@ type ComposerMetaBarProps = {
   reasoningSupported: boolean;
   accessMode: AccessMode;
   onSelectAccessMode: (mode: AccessMode) => void;
-  codexArgsOptions?: CodexArgsOption[];
-  selectedCodexArgsOverride?: string | null;
-  onSelectCodexArgsOverride?: (value: string | null) => void;
   contextUsage?: ThreadTokenUsage | null;
 };
 
@@ -37,11 +34,9 @@ export function ComposerMetaBar({
   reasoningSupported,
   accessMode,
   onSelectAccessMode,
-  codexArgsOptions = [],
-  selectedCodexArgsOverride = null,
-  onSelectCodexArgsOverride,
   contextUsage = null,
 }: ComposerMetaBarProps) {
+  const { t } = useTranslation();
   const contextWindow = contextUsage?.modelContextWindow ?? null;
   const lastTokens = contextUsage?.last.totalTokens ?? 0;
   const totalTokens = contextUsage?.total.totalTokens ?? 0;
@@ -71,7 +66,7 @@ export function ComposerMetaBar({
         {collaborationModes.length > 0 && (
           canUsePlanToggle ? (
             <div className="composer-select-wrap composer-plan-toggle-wrap">
-              <label className="composer-plan-toggle" aria-label="Plan mode">
+              <label className="composer-plan-toggle" aria-label={t("composer_meta.plan_mode")}>
                 <input
                   className="composer-plan-toggle-input"
                   type="checkbox"
@@ -97,7 +92,7 @@ export function ComposerMetaBar({
                   </svg>
                 </span>
                 <span className="composer-plan-toggle-label">
-                  {planMode?.label || "Plan"}
+                  {planMode?.label || t("composer_meta.plan")}
                 </span>
               </label>
             </div>
@@ -116,7 +111,7 @@ export function ComposerMetaBar({
             </span>
               <select
                 className="composer-select composer-select--model composer-select--collab"
-                aria-label="Collaboration mode"
+                aria-label={t("composer_meta.collaboration_mode")}
                 value={selectedCollaborationModeId ?? ""}
                 onChange={(event) =>
                   onSelectCollaborationMode(event.target.value || null)
@@ -165,12 +160,12 @@ export function ComposerMetaBar({
           </span>
           <select
             className="composer-select composer-select--model"
-            aria-label="Model"
+            aria-label={t("composer_meta.model")}
             value={selectedModelId ?? ""}
             onChange={(event) => onSelectModel(event.target.value)}
             disabled={disabled}
           >
-            {models.length === 0 && <option value="">No models</option>}
+            {models.length === 0 && <option value="">{t("composer_meta.no_models")}</option>}
             {models.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.displayName || model.model}
@@ -184,12 +179,12 @@ export function ComposerMetaBar({
           </span>
           <select
             className="composer-select composer-select--effort"
-            aria-label="Thinking mode"
+            aria-label={t("composer_meta.reasoning_mode")}
             value={selectedEffort ?? ""}
             onChange={(event) => onSelectEffort(event.target.value)}
             disabled={disabled || !reasoningSupported}
           >
-            {reasoningOptions.length === 0 && <option value="">Default</option>}
+            {reasoningOptions.length === 0 && <option value="">{t("composer_meta.default")}</option>}
             {reasoningOptions.map((effort) => (
               <option key={effort} value={effort}>
                 {effort}
@@ -197,28 +192,6 @@ export function ComposerMetaBar({
             ))}
           </select>
         </div>
-        {codexArgsOptions.length > 1 && onSelectCodexArgsOverride && (
-          <div className="composer-select-wrap">
-            <span className="composer-icon" aria-hidden>
-              <SlidersHorizontal size={14} strokeWidth={1.8} />
-            </span>
-            <select
-              className="composer-select composer-select--approval"
-              aria-label="Codex args profile"
-              disabled={disabled}
-              value={selectedCodexArgsOverride ?? ""}
-              onChange={(event) =>
-                onSelectCodexArgsOverride(event.target.value || null)
-              }
-            >
-              {codexArgsOptions.map((option) => (
-                <option key={option.value || "default"} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
         <div className="composer-select-wrap">
           <span className="composer-icon" aria-hidden>
             <svg viewBox="0 0 24 24" fill="none">
@@ -239,16 +212,16 @@ export function ComposerMetaBar({
           </span>
           <select
             className="composer-select composer-select--approval"
-            aria-label="Agent access"
+            aria-label={t("composer_meta.agent_access")}
             disabled={disabled}
             value={accessMode}
             onChange={(event) =>
               onSelectAccessMode(event.target.value as AccessMode)
             }
           >
-            <option value="read-only">Read only</option>
-            <option value="current">On-Request</option>
-            <option value="full-access">Full access</option>
+            <option value="read-only">{t("settings.features.read_only")}</option>
+            <option value="current">{t("settings.features.on_demand")}</option>
+            <option value="full-access">{t("settings.features.full_access")}</option>
           </select>
         </div>
       </div>
@@ -257,13 +230,13 @@ export function ComposerMetaBar({
           className="composer-context-ring"
           data-tooltip={
             contextFreePercent === null
-              ? "Context free --"
-              : `Context free ${Math.round(contextFreePercent)}%`
+              ? t("composer_meta.context_remaining_none")
+              : t("composer_meta.context_remaining", { percent: Math.round(contextFreePercent) })
           }
           aria-label={
             contextFreePercent === null
-              ? "Context free --"
-              : `Context free ${Math.round(contextFreePercent)}%`
+              ? t("composer_meta.context_remaining_none")
+              : t("composer_meta.context_remaining", { percent: Math.round(contextFreePercent) })
           }
           style={
             {

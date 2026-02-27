@@ -317,11 +317,7 @@ describe("useWorkspaces.addWorkspacesFromPaths", () => {
     expect(addWorkspaceMock).toHaveBeenCalledWith("/tmp/ws-2");
     expect(result.current.workspaces).toHaveLength(2);
     expect(result.current.activeWorkspaceId).toBe("added-1");
-    expect(addResult!.firstAdded?.id).toBe("added-1");
-    expect(addResult!.added).toHaveLength(2);
-    expect(addResult!.skippedExisting).toHaveLength(0);
-    expect(addResult!.skippedInvalid).toHaveLength(0);
-    expect(addResult!.failures).toHaveLength(0);
+    expect(addResult!.id).toBe("added-1");
   });
 
   it("returns skipped and failure details without UI side effects", async () => {
@@ -350,11 +346,7 @@ describe("useWorkspaces.addWorkspacesFromPaths", () => {
 
     expect(addWorkspaceMock).toHaveBeenCalledTimes(1);
     expect(addWorkspaceMock).toHaveBeenCalledWith(workspaceTwo.path);
-    expect(addResult!.added).toHaveLength(1);
-    expect(addResult!.firstAdded?.id).toBe(workspaceTwo.id);
-    expect(addResult!.skippedExisting).toEqual([workspaceOne.path]);
-    expect(addResult!.skippedInvalid).toEqual(["/tmp/not-a-dir"]);
-    expect(addResult!.failures).toHaveLength(0);
+    expect(addResult!.id).toBe(workspaceTwo.id);
   });
 
   it("tries raw tilde paths before inferred home-prefix expansion", async () => {
@@ -391,9 +383,7 @@ describe("useWorkspaces.addWorkspacesFromPaths", () => {
     expect(isWorkspacePathDirMock).not.toHaveBeenCalledWith("/Users/vlad/dev/personal");
     expect(addWorkspaceMock).toHaveBeenCalledWith("~/dev/personal");
     expect(addWorkspaceMock).not.toHaveBeenCalledWith("/Users/vlad/dev/personal");
-    expect(addResult!.added).toHaveLength(1);
-    expect(addResult!.skippedInvalid).toHaveLength(0);
-    expect(addResult!.failures).toHaveLength(0);
+    expect(addResult!.id).toBe("added-home");
   });
 
   it("skips raw tilde paths when an equivalent inferred path already exists", async () => {
@@ -424,10 +414,7 @@ describe("useWorkspaces.addWorkspacesFromPaths", () => {
     expect(isWorkspacePathDirMock).toHaveBeenCalledWith("~/dev/personal");
     expect(isWorkspacePathDirMock).toHaveBeenCalledWith("/Users/vlad/dev/personal");
     expect(addWorkspaceMock).not.toHaveBeenCalled();
-    expect(addResult!.added).toHaveLength(0);
-    expect(addResult!.skippedExisting).toEqual(["~/dev/personal"]);
-    expect(addResult!.skippedInvalid).toHaveLength(0);
-    expect(addResult!.failures).toHaveLength(0);
+    expect(addResult).toBeNull();
   });
 
   it("falls back to inferred home-prefix expansion when raw tilde path is invalid", async () => {
@@ -463,9 +450,7 @@ describe("useWorkspaces.addWorkspacesFromPaths", () => {
     expect(isWorkspacePathDirMock).toHaveBeenNthCalledWith(1, "~/dev/personal");
     expect(isWorkspacePathDirMock).toHaveBeenNthCalledWith(2, "/Users/vlad/dev/personal");
     expect(addWorkspaceMock).toHaveBeenCalledWith("/Users/vlad/dev/personal");
-    expect(addResult!.added).toHaveLength(1);
-    expect(addResult!.skippedInvalid).toHaveLength(0);
-    expect(addResult!.failures).toHaveLength(0);
+    expect(addResult!.id).toBe("added-home");
   });
 
   it("does not skip when an earlier inferred fallback candidate already exists", async () => {

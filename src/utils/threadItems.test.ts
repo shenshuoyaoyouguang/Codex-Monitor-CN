@@ -29,8 +29,8 @@ describe("threadItems", () => {
     }
   });
 
-  it("truncates extremely large tool output for fileChange and commandExecution", () => {
-    const output = "x".repeat(250000);
+  it("preserves tool output for fileChange and commandExecution", () => {
+    const output = "x".repeat(21000);
     const item: ConversationItem = {
       id: "tool-1",
       kind: "tool",
@@ -42,9 +42,7 @@ describe("threadItems", () => {
     const normalized = normalizeItem(item);
     expect(normalized.kind).toBe("tool");
     if (normalized.kind === "tool") {
-      expect(normalized.output).not.toBe(output);
-      expect(normalized.output?.endsWith("...")).toBe(true);
-      expect((normalized.output ?? "").length).toBeLessThan(output.length);
+      expect(normalized.output).toBe(output);
     }
   });
 
@@ -64,30 +62,6 @@ describe("threadItems", () => {
     expect(firstOutput).not.toBe(output);
     expect(firstOutput?.endsWith("...")).toBe(true);
     expect(secondOutput).toBe(output);
-  });
-
-  it("respects custom max items per thread in prepareThreadItems", () => {
-    const items: ConversationItem[] = Array.from({ length: 5 }, (_, index) => ({
-      id: `msg-${index}`,
-      kind: "message",
-      role: "assistant",
-      text: `message ${index}`,
-    }));
-    const prepared = prepareThreadItems(items, { maxItemsPerThread: 3 });
-    expect(prepared).toHaveLength(3);
-    expect(prepared[0]?.id).toBe("msg-2");
-    expect(prepared[2]?.id).toBe("msg-4");
-  });
-
-  it("supports unlimited max items per thread in prepareThreadItems", () => {
-    const items: ConversationItem[] = Array.from({ length: 5 }, (_, index) => ({
-      id: `msg-${index}`,
-      kind: "message",
-      role: "assistant",
-      text: `message ${index}`,
-    }));
-    const prepared = prepareThreadItems(items, { maxItemsPerThread: null });
-    expect(prepared).toHaveLength(5);
   });
 
   it("drops assistant review summaries that duplicate completed review items", () => {
@@ -302,7 +276,7 @@ describe("threadItems", () => {
     if (prepared[0].kind === "explore") {
       expect(prepared[0].entries).toHaveLength(1);
       expect(prepared[0].entries[0].kind).toBe("search");
-      expect(prepared[0].entries[0].label).toBe("myQuery in src");
+      expect(prepared[0].entries[0].label).toBe("myQuery 在 src");
     }
   });
 
@@ -325,7 +299,7 @@ describe("threadItems", () => {
     if (prepared[0].kind === "explore") {
       expect(prepared[0].entries).toHaveLength(1);
       expect(prepared[0].entries[0].kind).toBe("search");
-      expect(prepared[0].entries[0].label).toBe("RouterDestination in src");
+      expect(prepared[0].entries[0].label).toBe("RouterDestination 在 src");
     }
   });
 
@@ -398,7 +372,7 @@ describe("threadItems", () => {
     if (prepared[0].kind === "explore") {
       expect(prepared[0].entries).toHaveLength(1);
       expect(prepared[0].entries[0].kind).toBe("search");
-      expect(prepared[0].entries[0].label).toBe("foo | bar in src");
+      expect(prepared[0].entries[0].label).toBe("foo | bar 在 src");
     }
   });
 
@@ -451,24 +425,10 @@ describe("threadItems", () => {
     });
     expect(item).not.toBeNull();
     if (item && item.kind === "tool") {
-      expect(item.title).toBe("File changes");
+      expect(item.title).toBe("文件变更");
       expect(item.detail).toBe("A foo.txt");
       expect(item.output).toContain("diff --git a/foo.txt b/foo.txt");
       expect(item.changes?.[0]?.path).toBe("foo.txt");
-    }
-  });
-
-  it("defaults web search items to completed status", () => {
-    const item = buildConversationItem({
-      type: "webSearch",
-      id: "web-1",
-      query: "codex monitor",
-    });
-    expect(item).not.toBeNull();
-    if (item && item.kind === "tool") {
-      expect(item.toolType).toBe("webSearch");
-      expect(item.status).toBe("completed");
-      expect(item.detail).toBe("codex monitor");
     }
   });
 
@@ -522,33 +482,6 @@ describe("threadItems", () => {
     expect(merged[0].kind).toBe("tool");
     if (merged[0].kind === "tool") {
       expect(merged[0].output).toBe("streamed output");
-      expect(merged[0].status).toBe("completed");
-    }
-  });
-
-  it("keeps local tool status when remote status is empty", () => {
-    const remote: ConversationItem = {
-      id: "tool-remote-status",
-      kind: "tool",
-      toolType: "webSearch",
-      title: "Web search",
-      detail: "query",
-      status: "",
-      output: "",
-    };
-    const local: ConversationItem = {
-      id: "tool-remote-status",
-      kind: "tool",
-      toolType: "webSearch",
-      title: "Web search",
-      detail: "query",
-      status: "completed",
-      output: "",
-    };
-    const merged = mergeThreadItems([remote], [local]);
-    expect(merged).toHaveLength(1);
-    expect(merged[0].kind).toBe("tool");
-    if (merged[0].kind === "tool") {
       expect(merged[0].status).toBe("completed");
     }
   });
@@ -680,64 +613,10 @@ describe("threadItems", () => {
     });
     expect(item).not.toBeNull();
     if (item && item.kind === "tool") {
-      expect(item.title).toBe("Collab: handoff");
-      expect(item.detail).toContain("From thread-a");
-      expect(item.detail).toContain("thread-b");
-      expect(item.detail).toContain("thread-c");
+      expect(item.title).toBe("协作：handoff");
+      expect(item.detail).toContain("来自 thread-a");
+      expect(item.detail).toContain("thread-b, thread-c");
       expect(item.output).toBe("Coordinate work\n\nagent-1: running");
-    }
-  });
-
-  it("captures rich collab metadata from receiver_agents and agent_statuses", () => {
-    const item = buildConversationItem({
-      type: "collabToolCall",
-      id: "collab-rich-1",
-      tool: "wait",
-      status: "completed",
-      sender_thread_id: "thread-parent",
-      receiver_agents: [
-        {
-          thread_id: "thread-child-1",
-          agent_nickname: "Robie",
-          agent_role: "explorer",
-        },
-      ],
-      agent_statuses: [
-        {
-          thread_id: "thread-child-1",
-          status: "completed",
-          agent_nickname: "Robie",
-          agent_role: "explorer",
-        },
-      ],
-      prompt: "Wait for workers",
-    });
-
-    expect(item).not.toBeNull();
-    if (item && item.kind === "tool") {
-      expect(item.collabSender).toEqual({ threadId: "thread-parent" });
-      expect(item.collabReceiver).toEqual({
-        threadId: "thread-child-1",
-        nickname: "Robie",
-        role: "explorer",
-      });
-      expect(item.collabReceivers).toEqual([
-        {
-          threadId: "thread-child-1",
-          nickname: "Robie",
-          role: "explorer",
-        },
-      ]);
-      expect(item.collabStatuses).toEqual([
-        {
-          threadId: "thread-child-1",
-          nickname: "Robie",
-          role: "explorer",
-          status: "completed",
-        },
-      ]);
-      expect(item.detail).toContain("Robie [explorer]");
-      expect(item.output).toContain("Robie [explorer]: completed");
     }
   });
 
@@ -750,7 +629,7 @@ describe("threadItems", () => {
     expect(item).not.toBeNull();
     if (item && item.kind === "tool") {
       expect(item.toolType).toBe("contextCompaction");
-      expect(item.title).toBe("Context compaction");
+      expect(item.title).toBe("上下文压缩");
       expect(item.status).toBe("inProgress");
     }
   });
@@ -763,7 +642,7 @@ describe("threadItems", () => {
     expect(item).not.toBeNull();
     if (item && item.kind === "tool") {
       expect(item.toolType).toBe("contextCompaction");
-      expect(item.title).toBe("Context compaction");
+      expect(item.title).toBe("上下文压缩");
       expect(item.status).toBe("completed");
     }
   });

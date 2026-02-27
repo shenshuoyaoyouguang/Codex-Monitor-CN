@@ -94,7 +94,7 @@ export function buildSecondaryNodes(options: LayoutNodesOptions): SecondaryLayou
         type="button"
         className={`compact-git-switch-button${compactGitDiffActive ? " active" : ""}`}
         onClick={options.onShowSelectedDiff}
-        disabled={!options.hasActiveGitDiffs}
+        disabled={!options.selectedDiffPath}
       >
         Diff
       </button>

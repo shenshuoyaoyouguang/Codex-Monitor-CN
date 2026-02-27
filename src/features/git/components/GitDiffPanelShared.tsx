@@ -6,8 +6,8 @@ import Plus from "lucide-react/dist/esm/icons/plus";
 import RotateCcw from "lucide-react/dist/esm/icons/rotate-ccw";
 import Upload from "lucide-react/dist/esm/icons/upload";
 import X from "lucide-react/dist/esm/icons/x";
-import { MagicSparkleIcon } from "../../shared/components/MagicSparkleIcon";
-import { formatRelativeTime } from "../../../utils/time";
+import { formatRelativeTime } from "../../../i18n/utils/date";
+import { useTranslation } from "../../../i18n/hooks/useTranslation";
 import {
   getStatusClass,
   getStatusSymbol,
@@ -44,6 +44,7 @@ export function CommitButton({
   commitLoading,
   onCommit,
 }: CommitButtonProps) {
+  const { t } = useTranslation("git_diff");
   const hasMessage = commitMessage.trim().length > 0;
   const hasChanges = hasStagedFiles || hasUnstagedFiles;
   const canCommit = hasMessage && hasChanges && !commitLoading;
@@ -63,12 +64,12 @@ export function CommitButton({
         disabled={!canCommit}
         title={
           !hasMessage
-            ? "Enter a commit message"
+            ? t("enter_commit_message")
             : !hasChanges
-              ? "No changes to commit"
+              ? t("no_changes_to_commit")
               : hasStagedFiles
-                ? "Commit staged changes"
-                : "Commit all unstaged changes"
+                ? t("commit_staged")
+                : t("commit_unstaged")
         }
       >
         {commitLoading ? (
@@ -88,7 +89,7 @@ export function CommitButton({
             <path d="M20 6 9 17l-5-5" />
           </svg>
         )}
-        <span>{commitLoading ? "Committing..." : "Commit"}</span>
+        <span>{commitLoading ? t("committing") : t("commit")}</span>
       </button>
     </div>
   );
@@ -107,6 +108,7 @@ export function SidebarError({
   action,
   onDismiss,
 }: SidebarErrorProps) {
+  const { t } = useTranslation("git_diff");
   return (
     <div className={`sidebar-error sidebar-error-${variant}`}>
       <div className="sidebar-error-body">
@@ -129,8 +131,8 @@ export function SidebarError({
         type="button"
         className="ghost icon-button sidebar-error-dismiss"
         onClick={onDismiss}
-        aria-label="Dismiss error"
-        title="Dismiss error"
+        aria-label={t("dismiss_error")}
+        title={t("dismiss_error")}
       >
         <X size={12} aria-hidden />
       </button>
@@ -163,6 +165,7 @@ function DiffFileRow({
   onUnstageFile,
   onDiscardFile,
 }: DiffFileRowProps) {
+  const { t } = useTranslation("git_diff");
   const { name, dir } = splitPath(file.path);
   const { base, extension } = splitNameAndExtension(name);
   const statusSymbol = getStatusSymbol(file.status);
@@ -203,7 +206,7 @@ function DiffFileRow({
           <span className="diff-sep">/</span>
           <span className="diff-del">-{file.deletions}</span>
         </span>
-        <div className="diff-row-actions" role="group" aria-label="File actions">
+        <div className="diff-row-actions" role="group" aria-label={t("file_operations")}>
           {showStage && (
             <button
               type="button"
@@ -212,8 +215,8 @@ function DiffFileRow({
                 event.stopPropagation();
                 void onStageFile?.(file.path);
               }}
-              data-tooltip="Stage Changes"
-              aria-label="Stage file"
+              data-tooltip={t("stage")}
+              aria-label={t("stage_file")}
             >
               <Plus size={12} aria-hidden />
             </button>
@@ -226,8 +229,8 @@ function DiffFileRow({
                 event.stopPropagation();
                 void onUnstageFile?.(file.path);
               }}
-              data-tooltip="Unstage Changes"
-              aria-label="Unstage file"
+              data-tooltip={t("unstage")}
+              aria-label={t("unstage_file")}
             >
               <Minus size={12} aria-hidden />
             </button>
@@ -240,8 +243,8 @@ function DiffFileRow({
                 event.stopPropagation();
                 void onDiscardFile?.(file.path);
               }}
-              data-tooltip="Discard Changes"
-              aria-label="Discard changes"
+              data-tooltip={t("discard")}
+              aria-label={t("discard_changes")}
             >
               <RotateCcw size={12} aria-hidden />
             </button>
@@ -264,12 +267,6 @@ type DiffSectionProps = {
   onUnstageFile?: (path: string) => Promise<void> | void;
   onDiscardFile?: (path: string) => Promise<void> | void;
   onDiscardFiles?: (paths: string[]) => Promise<void> | void;
-  onReviewUncommittedChanges?: () => Promise<void> | void;
-  showWorktreeApplyAction?: boolean;
-  worktreeApplyTitle?: string | null;
-  worktreeApplyLoading?: boolean;
-  worktreeApplySuccess?: boolean;
-  onApplyWorktreeChanges?: () => Promise<void> | void;
   onFileClick: (
     event: ReactMouseEvent<HTMLDivElement>,
     path: string,
@@ -294,15 +291,10 @@ export function DiffSection({
   onUnstageFile,
   onDiscardFile,
   onDiscardFiles,
-  onReviewUncommittedChanges,
-  showWorktreeApplyAction = false,
-  worktreeApplyTitle = null,
-  worktreeApplyLoading = false,
-  worktreeApplySuccess = false,
-  onApplyWorktreeChanges,
   onFileClick,
   onShowFileMenu,
 }: DiffSectionProps) {
+  const { t } = useTranslation("git_diff");
   const filePaths = files.map((file) => file.path);
   const canStageAll =
     section === "unstaged" &&
@@ -310,14 +302,7 @@ export function DiffSection({
     filePaths.length > 0;
   const canUnstageAll = section === "staged" && Boolean(onUnstageFile) && filePaths.length > 0;
   const canDiscardAll = section === "unstaged" && Boolean(onDiscardFiles) && filePaths.length > 0;
-  const canReviewUncommitted =
-    section === "unstaged" &&
-    Boolean(onReviewUncommittedChanges) &&
-    filePaths.length > 0;
-  const canApplyWorktree =
-    showWorktreeApplyAction && Boolean(onApplyWorktreeChanges) && filePaths.length > 0;
-  const showSectionActions =
-    canApplyWorktree || canStageAll || canUnstageAll || canDiscardAll || canReviewUncommitted;
+  const showSectionActions = canStageAll || canUnstageAll || canDiscardAll;
 
   return (
     <div className="diff-section">
@@ -326,34 +311,7 @@ export function DiffSection({
           {title} ({files.length})
         </span>
         {showSectionActions && (
-          <div className="diff-section-actions" role="group" aria-label={`${title} actions`}>
-            {canApplyWorktree && (
-              <button
-                type="button"
-                className="diff-row-action diff-row-action--apply"
-                onClick={() => {
-                  void onApplyWorktreeChanges?.();
-                }}
-                disabled={worktreeApplyLoading || worktreeApplySuccess}
-                data-tooltip={worktreeApplyTitle ?? "Apply changes to parent workspace"}
-                aria-label="Apply worktree changes"
-              >
-                <WorktreeApplyIcon success={worktreeApplySuccess} />
-              </button>
-            )}
-            {canReviewUncommitted && (
-              <button
-                type="button"
-                className="diff-row-action diff-row-action--review"
-                onClick={() => {
-                  void onReviewUncommittedChanges?.();
-                }}
-                data-tooltip="Review Uncommitted Changes"
-                aria-label="Review uncommitted changes"
-              >
-                <MagicSparkleIcon size={12} />
-              </button>
-            )}
+          <div className="diff-section-actions" role="group" aria-label={`${title} ${t("file_operations")}`}>
             {canStageAll && (
               <button
                 type="button"
@@ -369,8 +327,8 @@ export function DiffSection({
                     }
                   })();
                 }}
-                data-tooltip="Stage All Changes"
-                aria-label="Stage all changes"
+                data-tooltip={t("stage_all")}
+                aria-label={t("stage_all")}
               >
                 <Plus size={12} aria-hidden />
               </button>
@@ -386,8 +344,8 @@ export function DiffSection({
                     }
                   })();
                 }}
-                data-tooltip="Unstage All Changes"
-                aria-label="Unstage all changes"
+                data-tooltip={t("unstage_all")}
+                aria-label={t("unstage_all")}
               >
                 <Minus size={12} aria-hidden />
               </button>
@@ -399,8 +357,8 @@ export function DiffSection({
                 onClick={() => {
                   void onDiscardFiles?.(filePaths);
                 }}
-                data-tooltip="Discard All Changes"
-                aria-label="Discard all changes"
+                data-tooltip={t("discard_all")}
+                aria-label={t("discard_all")}
               >
                 <RotateCcw size={12} aria-hidden />
               </button>
@@ -448,6 +406,7 @@ export function GitLogEntryRow({
   onSelect,
   onContextMenu,
 }: GitLogEntryRowProps) {
+  const { t } = useTranslation("git_diff");
   return (
     <div
       className={`git-log-entry ${compact ? "git-log-entry-compact" : ""} ${isSelected ? "active" : ""}`}
@@ -462,11 +421,11 @@ export function GitLogEntryRow({
         }
       }}
     >
-      <div className="git-log-summary">{entry.summary || "No message"}</div>
+      <div className="git-log-summary">{entry.summary || t("no_description")}</div>
       <div className="git-log-meta">
         <span className="git-log-sha">{entry.sha.slice(0, 7)}</span>
         <span className="git-log-sep">·</span>
-        <span className="git-log-author">{entry.author || "Unknown"}</span>
+        <span className="git-log-author">{entry.author || t("unknown_author")}</span>
         <span className="git-log-sep">·</span>
         <span className="git-log-date">{formatRelativeTime(entry.timestamp * 1000)}</span>
       </div>

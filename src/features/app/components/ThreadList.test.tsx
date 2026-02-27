@@ -99,7 +99,7 @@ describe("ThreadList", () => {
       />,
     );
 
-    const loadButton = screen.getByRole("button", { name: "Load older..." });
+    const loadButton = screen.getByRole("button", { name: "Load earlier..." });
     fireEvent.click(loadButton);
     expect(onLoadOlderThreads).toHaveBeenCalledWith("ws-1");
   });

@@ -1,19 +1,9 @@
-import type {
-  CollabAgentRef,
-  CollabAgentStatus,
-  ConversationItem,
-} from "../types";
-import { CHAT_SCROLLBACK_DEFAULT } from "./chatScrollback";
+import type { ConversationItem } from "../types";
 
-export type PrepareThreadItemsOptions = {
-  maxItemsPerThread?: number | null;
-};
-
-const DEFAULT_MAX_ITEMS_PER_THREAD = CHAT_SCROLLBACK_DEFAULT;
+const MAX_ITEMS_PER_THREAD = 200;
 const MAX_ITEM_TEXT = 20000;
-const MAX_LARGE_TOOL_TEXT = 200000;
 const TOOL_OUTPUT_RECENT_ITEMS = 40;
-const LARGE_TOOL_TYPES = new Set(["fileChange", "commandExecution"]);
+const NO_TRUNCATE_TOOL_TYPES = new Set(["fileChange", "commandExecution"]);
 const READ_COMMANDS = new Set(["cat", "sed", "head", "tail", "less", "more", "nl"]);
 const LIST_COMMANDS = new Set(["ls", "tree", "find", "fd"]);
 const SEARCH_COMMANDS = new Set(["rg", "grep", "ripgrep", "findstr"]);
@@ -60,13 +50,6 @@ function truncateText(text: string, maxLength = MAX_ITEM_TEXT) {
   return `${text.slice(0, sliceLength)}...`;
 }
 
-function truncateToolText(toolType: string, text: string) {
-  const maxLength = LARGE_TOOL_TYPES.has(toolType)
-    ? MAX_LARGE_TOOL_TEXT
-    : MAX_ITEM_TEXT;
-  return truncateText(text, maxLength);
-}
-
 function normalizeStringList(value: unknown) {
   if (Array.isArray(value)) {
     return value.map((entry) => asString(entry)).filter(Boolean);
@@ -75,202 +58,22 @@ function normalizeStringList(value: unknown) {
   return single ? [single] : [];
 }
 
-function buildCollabAgentRef(
-  threadIdValue: unknown,
-  nicknameValue?: unknown,
-  roleValue?: unknown,
-): CollabAgentRef | null {
-  const threadId = asString(threadIdValue).trim();
-  if (!threadId) {
-    return null;
-  }
-  const nickname = asString(nicknameValue ?? "").trim() || undefined;
-  const role = asString(roleValue ?? "").trim() || undefined;
-  return { threadId, nickname, role };
-}
-
-function parseCollabAgentRef(value: unknown): CollabAgentRef | null {
+function formatCollabAgentStates(value: unknown) {
   if (!value || typeof value !== "object") {
-    return null;
-  }
-  const record = value as Record<string, unknown>;
-  return buildCollabAgentRef(
-    record.threadId ?? record.thread_id ?? record.id,
-    record.agentNickname ?? record.agent_nickname ?? record.nickname,
-    record.agentRole ??
-      record.agent_role ??
-      record.agentType ??
-      record.agent_type ??
-      record.role,
-  );
-}
-
-function parseCollabAgentRefs(value: unknown) {
-  if (!value) {
-    return [];
-  }
-  if (Array.isArray(value)) {
-    return value
-      .map((entry) => parseCollabAgentRef(entry))
-      .filter((entry): entry is CollabAgentRef => Boolean(entry));
-  }
-  const single = parseCollabAgentRef(value);
-  return single ? [single] : [];
-}
-
-function mergeCollabAgentRefs(...lists: CollabAgentRef[][]) {
-  const byThreadId = new Map<string, CollabAgentRef>();
-  lists.forEach((list) => {
-    list.forEach((entry) => {
-      const existing = byThreadId.get(entry.threadId);
-      if (!existing) {
-        byThreadId.set(entry.threadId, { ...entry });
-        return;
-      }
-      byThreadId.set(entry.threadId, {
-        threadId: existing.threadId,
-        nickname: existing.nickname ?? entry.nickname,
-        role: existing.role ?? entry.role,
-      });
-    });
-  });
-  return Array.from(byThreadId.values());
-}
-
-function parseCollabAgentStatusesFromMap(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return [];
-  }
-  return Object.entries(value as Record<string, unknown>)
-    .map(([threadId, state]) => {
-      const stateRecord =
-        state && typeof state === "object"
-          ? (state as Record<string, unknown>)
-          : null;
-      const status = asString(stateRecord?.status ?? state ?? "").trim();
-      if (!status || !threadId) {
-        return null;
-      }
-      return buildCollabAgentStatus(
-        threadId,
-        status,
-        stateRecord?.agentNickname ??
-          stateRecord?.agent_nickname ??
-          stateRecord?.nickname,
-        stateRecord?.agentRole ??
-          stateRecord?.agent_role ??
-          stateRecord?.agentType ??
-          stateRecord?.agent_type ??
-          stateRecord?.role,
-      );
-    })
-    .filter((entry): entry is CollabAgentStatus => Boolean(entry));
-}
-
-function buildCollabAgentStatus(
-  threadIdValue: unknown,
-  statusValue: unknown,
-  nicknameValue?: unknown,
-  roleValue?: unknown,
-): CollabAgentStatus | null {
-  const status = asString(statusValue).trim();
-  if (!status) {
-    return null;
-  }
-  const base = buildCollabAgentRef(threadIdValue, nicknameValue, roleValue);
-  if (!base) {
-    return null;
-  }
-  return { ...base, status };
-}
-
-function parseCollabAgentStatuses(value: unknown) {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value
-    .map((entry) => {
-      if (!entry || typeof entry !== "object") {
-        return null;
-      }
-      const record = entry as Record<string, unknown>;
-      return buildCollabAgentStatus(
-        record.threadId ?? record.thread_id ?? record.id,
-        record.status,
-        record.agentNickname ?? record.agent_nickname ?? record.nickname,
-        record.agentRole ??
-          record.agent_role ??
-          record.agentType ??
-          record.agent_type ??
-          record.role,
-      );
-    })
-    .filter((entry): entry is CollabAgentStatus => Boolean(entry));
-}
-
-function mergeCollabAgentStatuses(...lists: CollabAgentStatus[][]) {
-  const byThreadId = new Map<string, CollabAgentStatus>();
-  lists.forEach((list) => {
-    list.forEach((entry) => {
-      const existing = byThreadId.get(entry.threadId);
-      if (!existing) {
-        byThreadId.set(entry.threadId, { ...entry });
-        return;
-      }
-      byThreadId.set(entry.threadId, {
-        threadId: existing.threadId,
-        status: existing.status || entry.status,
-        nickname: existing.nickname ?? entry.nickname,
-        role: existing.role ?? entry.role,
-      });
-    });
-  });
-  return Array.from(byThreadId.values());
-}
-
-function withCollabAgentMetadata(
-  statuses: CollabAgentStatus[],
-  agents: CollabAgentRef[],
-) {
-  if (statuses.length === 0 || agents.length === 0) {
-    return statuses;
-  }
-  const byThreadId = new Map(agents.map((agent) => [agent.threadId, agent]));
-  return statuses.map((entry) => {
-    const metadata = byThreadId.get(entry.threadId);
-    if (!metadata) {
-      return entry;
-    }
-    return {
-      ...entry,
-      nickname: entry.nickname ?? metadata.nickname,
-      role: entry.role ?? metadata.role,
-    };
-  });
-}
-
-function formatCollabAgentLabel(agent: CollabAgentRef) {
-  const nickname = agent.nickname?.trim();
-  const role = agent.role?.trim();
-  if (nickname && role) {
-    return `${nickname} [${role}]`;
-  }
-  if (nickname) {
-    return nickname;
-  }
-  if (role) {
-    return `${agent.threadId} [${role}]`;
-  }
-  return agent.threadId;
-}
-
-function formatCollabAgentStatuses(value: CollabAgentStatus[]) {
-  if (value.length === 0) {
     return "";
   }
-  return value
-    .map((entry) => `${formatCollabAgentLabel(entry)}: ${entry.status}`)
-    .join("\n");
+  const entries = Object.entries(value as Record<string, unknown>)
+    .map(([id, state]) => {
+      const status = asString(
+        (state as Record<string, unknown>)?.status ?? state ?? "",
+      );
+      return status ? `${id}: ${status}` : id;
+    })
+    .filter(Boolean);
+  if (entries.length === 0) {
+    return "";
+  }
+  return entries.join("\n");
 }
 
 export function normalizeItem(item: ConversationItem): ConversationItem {
@@ -291,19 +94,23 @@ export function normalizeItem(item: ConversationItem): ConversationItem {
     return { ...item, diff: truncateText(item.diff) };
   }
   if (item.kind === "tool") {
+    const isNoTruncateTool = NO_TRUNCATE_TOOL_TYPES.has(item.toolType);
     return {
       ...item,
       title: truncateText(item.title, 200),
       detail: truncateText(item.detail, 2000),
-      output: item.output
-        ? truncateToolText(item.toolType, item.output)
-        : item.output,
+      output: isNoTruncateTool
+        ? item.output
+        : item.output
+          ? truncateText(item.output)
+          : item.output,
       changes: item.changes
         ? item.changes.map((change) => ({
             ...change,
-            diff: change.diff
-              ? truncateToolText(item.toolType, change.diff)
-              : change.diff,
+            diff:
+              isNoTruncateTool || !change.diff
+                ? change.diff
+                : truncateText(change.diff),
           }))
         : item.changes,
     };
@@ -450,7 +257,7 @@ function parseSearch(tokens: string[]): ExploreEntry | null {
   const rawPath = positional.length > 1 ? positional[1] : "";
   const path =
     commandName === "rg" ? rawPath : rawPath && isPathLike(rawPath) ? rawPath : "";
-  const label = path ? `${query} in ${path}` : query;
+  const label = path ? `${query} 在 ${path}` : query;
   return { kind: "search", label };
 }
 
@@ -541,7 +348,7 @@ function summarizeCommandExecution(item: Extract<ConversationItem, { kind: "tool
   if (isFailedStatus(item.status)) {
     return null;
   }
-  const rawCommand = item.title.replace(/^Command:\s*/i, "").trim();
+  const rawCommand = item.title.replace(/^(?:Command|命令)[:：]\s*/i, "").trim();
   const cleaned = cleanCommandText(rawCommand);
   if (!cleaned) {
     return null;
@@ -610,7 +417,7 @@ function summarizeExploration(items: ConversationItem[]) {
   return result;
 }
 
-export function prepareThreadItems(items: ConversationItem[], options?: PrepareThreadItemsOptions) {
+export function prepareThreadItems(items: ConversationItem[]) {
   const filtered: ConversationItem[] = [];
   for (const item of items) {
     const last = filtered[filtered.length - 1];
@@ -626,21 +433,10 @@ export function prepareThreadItems(items: ConversationItem[], options?: PrepareT
     filtered.push(item);
   }
   const normalized = filtered.map((item) => normalizeItem(item));
-  const maxItemsPerThreadRaw = options?.maxItemsPerThread;
-  const maxItemsPerThread =
-    maxItemsPerThreadRaw === null
-      ? null
-      : typeof maxItemsPerThreadRaw === "number" &&
-          Number.isFinite(maxItemsPerThreadRaw) &&
-          maxItemsPerThreadRaw > 0
-        ? Math.floor(maxItemsPerThreadRaw)
-        : DEFAULT_MAX_ITEMS_PER_THREAD;
   const limited =
-    maxItemsPerThread === null
-      ? normalized
-      : normalized.length > maxItemsPerThread
-        ? normalized.slice(-maxItemsPerThread)
-        : normalized;
+    normalized.length > MAX_ITEMS_PER_THREAD
+      ? normalized.slice(-MAX_ITEMS_PER_THREAD)
+      : normalized;
   const summarized = summarizeExploration(limited);
   const cutoff = Math.max(0, summarized.length - TOOL_OUTPUT_RECENT_ITEMS);
   return summarized.map((item, index) => {
@@ -829,7 +625,7 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: "plan",
-      title: "Plan",
+      title: "计划",
       detail: asString(item.status ?? ""),
       status: asString(item.status ?? ""),
       output: asString(item.text ?? ""),
@@ -844,7 +640,7 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: type,
-      title: command ? `Command: ${command}` : "Command",
+      title: command ? `命令：${command}` : "命令",
       detail: asString(item.cwd ?? ""),
       status: asString(item.status ?? ""),
       output: asString(item.aggregatedOutput ?? ""),
@@ -890,8 +686,8 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: type,
-      title: "File changes",
-      detail: paths || "Pending changes",
+      title: "文件变更",
+      detail: paths || "待处理变更",
       status: asString(item.status ?? ""),
       output: diffOutput,
       changes: normalizedChanges,
@@ -914,90 +710,38 @@ export function buildConversationItem(
   if (type === "collabToolCall" || type === "collabAgentToolCall") {
     const tool = asString(item.tool ?? "");
     const status = asString(item.status ?? "");
-    const senderThreadId = asString(item.senderThreadId ?? item.sender_thread_id ?? "");
-    const sender = buildCollabAgentRef(
-      senderThreadId,
-      item.senderAgentNickname ??
-        item.sender_agent_nickname ??
-        item.agentNickname ??
-        item.agent_nickname,
-      item.senderAgentRole ??
-        item.sender_agent_role ??
-        item.agentRole ??
-        item.agent_role ??
-        item.agentType ??
-        item.agent_type,
-    );
-    const receiverFromInteraction = buildCollabAgentRef(
-      item.receiverThreadId ?? item.receiver_thread_id,
-      item.receiverAgentNickname ?? item.receiver_agent_nickname,
-      item.receiverAgentRole ??
-        item.receiver_agent_role ??
-        item.receiverAgentType ??
-        item.receiver_agent_type,
-    );
-    const receiverFromSpawn = buildCollabAgentRef(
-      item.newThreadId ?? item.new_thread_id,
-      item.newAgentNickname ?? item.new_agent_nickname,
-      item.newAgentRole ?? item.new_agent_role ?? item.newAgentType ?? item.new_agent_type,
-    );
-    const receiverIds = [
+    const sender = asString(item.senderThreadId ?? item.sender_thread_id ?? "");
+    const receivers = [
       ...normalizeStringList(item.receiverThreadId ?? item.receiver_thread_id),
       ...normalizeStringList(item.receiverThreadIds ?? item.receiver_thread_ids),
       ...normalizeStringList(item.newThreadId ?? item.new_thread_id),
-    ]
-      .map((entry) => buildCollabAgentRef(entry))
-      .filter((entry): entry is CollabAgentRef => Boolean(entry));
-    const receiverAgents = mergeCollabAgentRefs(
-      receiverIds,
-      parseCollabAgentRefs(item.receiverAgents ?? item.receiver_agents),
-      receiverFromInteraction ? [receiverFromInteraction] : [],
-      receiverFromSpawn ? [receiverFromSpawn] : [],
-    );
-    const collabStatuses = withCollabAgentMetadata(
-      mergeCollabAgentStatuses(
-        parseCollabAgentStatuses(item.agentStatuses ?? item.agent_statuses),
-        parseCollabAgentStatusesFromMap(item.statuses),
-        parseCollabAgentStatusesFromMap(
-          item.agentStatus ?? item.agentsStates ?? item.agents_states,
-        ),
-      ),
-      receiverAgents,
-    );
+    ];
     const prompt = asString(item.prompt ?? "");
-    const agentsState = formatCollabAgentStatuses(collabStatuses);
-    const detailParts = [sender ? `From ${formatCollabAgentLabel(sender)}` : ""]
-      .concat(
-        receiverAgents.length > 0
-          ? `→ ${receiverAgents.map((entry) => formatCollabAgentLabel(entry)).join(", ")}`
-          : "",
-      )
+    const agentsState = formatCollabAgentStates(
+      item.agentStatus ?? item.agentsStates ?? item.agents_states,
+    );
+    const detailParts = [sender ? `来自 ${sender}` : ""]
+      .concat(receivers.length > 0 ? `→ ${receivers.join(", ")}` : "")
       .filter(Boolean);
     const outputParts = [prompt, agentsState].filter(Boolean);
-    const primaryReceiver = receiverFromInteraction ?? receiverFromSpawn ?? receiverAgents[0];
     return {
       id,
       kind: "tool",
       toolType: "collabToolCall",
-      title: tool ? `Collab: ${tool}` : "Collab tool call",
+      title: tool ? `协作：${tool}` : "协作工具调用",
       detail: detailParts.join(" "),
       status,
       output: outputParts.join("\n\n"),
-      collabSender: sender ?? undefined,
-      collabReceiver: primaryReceiver ?? undefined,
-      collabReceivers: receiverAgents.length > 0 ? receiverAgents : undefined,
-      collabStatuses: collabStatuses.length > 0 ? collabStatuses : undefined,
     };
   }
   if (type === "webSearch") {
-    const status = asString(item.status ?? "").trim();
     return {
       id,
       kind: "tool",
       toolType: type,
-      title: "Web search",
+      title: "网页搜索",
       detail: asString(item.query ?? ""),
-      status: status || "completed",
+      status: "",
       output: "",
     };
   }
@@ -1006,7 +750,7 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: type,
-      title: "Image view",
+      title: "图片查看",
       detail: asString(item.path ?? ""),
       status: "",
       output: "",
@@ -1018,8 +762,8 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: type,
-      title: "Context compaction",
-      detail: "Compacting conversation context to fit token limits.",
+      title: "上下文压缩",
+      detail: "正在压缩对话上下文以适配 token 限制。",
       status: status || "completed",
       output: "",
     };
@@ -1167,31 +911,19 @@ function chooseRicherItem(remote: ConversationItem, local: ConversationItem) {
     const remoteOutput = remote.output ?? "";
     const localOutput = local.output ?? "";
     const hasRemoteOutput = remoteOutput.trim().length > 0;
-    const remoteStatus = remote.status?.trim();
     return {
       ...remote,
-      status: remoteStatus ? remote.status : local.status,
+      status: remote.status ?? local.status,
       output: hasRemoteOutput ? remoteOutput : localOutput,
       changes: remote.changes ?? local.changes,
-      collabSender: remote.collabSender ?? local.collabSender,
-      collabReceiver: remote.collabReceiver ?? local.collabReceiver,
-      collabReceivers:
-        (remote.collabReceivers?.length ?? 0) > 0
-          ? remote.collabReceivers
-          : local.collabReceivers,
-      collabStatuses:
-        (remote.collabStatuses?.length ?? 0) > 0
-          ? remote.collabStatuses
-          : local.collabStatuses,
     };
   }
   if (remote.kind === "diff" && local.kind === "diff") {
     const useLocal = local.diff.length > remote.diff.length;
-    const remoteStatus = remote.status?.trim();
     return {
       ...remote,
       diff: useLocal ? local.diff : remote.diff,
-      status: remoteStatus ? remote.status : local.status,
+      status: remote.status ?? local.status,
     };
   }
   return remote;

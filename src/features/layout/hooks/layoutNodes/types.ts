@@ -6,7 +6,6 @@ import type {
   ApprovalRequest,
   BranchInfo,
   CollaborationModeOption,
-  ComposerSendIntent,
   ConversationItem,
   ComposerEditorSettings,
   CustomPromptOption,
@@ -25,7 +24,6 @@ import type {
   ModelOption,
   OpenAppTarget,
   QueuedMessage,
-  FollowUpMessageBehavior,
   PullRequestReviewAction,
   PullRequestReviewIntent,
   PullRequestSelectionRange,
@@ -33,23 +31,16 @@ import type {
   RequestUserInputRequest,
   RequestUserInputResponse,
   SkillOption,
-  ThreadListOrganizeMode,
   ThreadListSortKey,
   ThreadSummary,
   ThreadTokenUsage,
   TurnPlan,
   WorkspaceInfo,
 } from "../../../../types";
-import type {
-  PostUpdateNoticeState,
-  UpdateState,
-} from "../../../update/hooks/useUpdater";
+import type { UpdateState } from "../../../update/hooks/useUpdater";
 import type { TerminalSessionState } from "../../../terminal/hooks/useTerminalSession";
 import type { TerminalTab } from "../../../terminal/hooks/useTerminalTabs";
 import type { ErrorToast } from "../../../../services/toasts";
-import type { GitDiffSource, GitPanelMode } from "../../../git/types";
-import type { PerFileDiffGroup } from "../../../git/utils/perFileThreadDiffs";
-import type { CodexArgsOption } from "@threads/utils/codexArgsProfiles";
 
 export type ThreadActivityStatus = {
   isProcessing: boolean;
@@ -61,7 +52,6 @@ export type ThreadActivityStatus = {
 
 export type GitDiffViewerItem = {
   path: string;
-  displayPath?: string;
   status: string;
   diff: string;
   isImage?: boolean;
@@ -116,17 +106,12 @@ export type LayoutNodesOptions = {
   threadListLoadingByWorkspace: Record<string, boolean>;
   threadListPagingByWorkspace: Record<string, boolean>;
   threadListCursorByWorkspace: Record<string, string | null>;
-  pinnedThreadsVersion: number;
   threadListSortKey: ThreadListSortKey;
   onSetThreadListSortKey: (sortKey: ThreadListSortKey) => void;
-  threadListOrganizeMode: ThreadListOrganizeMode;
-  onSetThreadListOrganizeMode: (organizeMode: ThreadListOrganizeMode) => void;
   onRefreshAllThreads: () => void;
   activeWorkspaceId: string | null;
   activeThreadId: string | null;
   activeItems: ConversationItem[];
-  showPollingFetchStatus?: boolean;
-  pollingIntervalMs?: number;
   activeRateLimits: RateLimitSnapshot | null;
   usageShowRemaining: boolean;
   accountInfo: AccountSnapshot | null;
@@ -160,7 +145,6 @@ export type LayoutNodesOptions = {
   onOpenDebug: () => void;
   showDebugButton: boolean;
   onAddWorkspace: () => void;
-  onAddWorkspaceFromUrl: () => void;
   onSelectHome: () => void;
   onSelectWorkspace: (workspaceId: string) => void;
   onConnectWorkspace: (workspace: WorkspaceInfo) => Promise<void>;
@@ -176,7 +160,6 @@ export type LayoutNodesOptions = {
   unpinThread: (workspaceId: string, threadId: string) => void;
   isThreadPinned: (workspaceId: string, threadId: string) => boolean;
   getPinTimestamp: (workspaceId: string, threadId: string) => number | null;
-  getThreadArgsBadge?: (workspaceId: string, threadId: string) => string | null;
   onRenameThread: (workspaceId: string, threadId: string) => void;
   onDeleteWorkspace: (workspaceId: string) => void;
   onDeleteWorktree: (workspaceId: string) => void;
@@ -192,8 +175,6 @@ export type LayoutNodesOptions = {
   updaterState: UpdateState;
   onUpdate: () => void;
   onDismissUpdate: () => void;
-  postUpdateNotice: PostUpdateNoticeState;
-  onDismissPostUpdateNotice: () => void;
   errorToasts: ErrorToast[];
   onDismissErrorToast: (id: string) => void;
   latestAgentRuns: Array<{
@@ -245,13 +226,12 @@ export type LayoutNodesOptions = {
   launchScriptsState?: WorkspaceLaunchScriptsState;
   mainHeaderActionsNode?: ReactNode;
   centerMode: "chat" | "diff";
-  splitChatDiffView: boolean;
   onExitDiff: () => void;
   activeTab: "home" | "projects" | "codex" | "git" | "log";
   onSelectTab: (tab: "home" | "projects" | "codex" | "git" | "log") => void;
   tabletNavTab: "codex" | "git" | "log";
-  gitPanelMode: GitPanelMode;
-  onGitPanelModeChange: (mode: GitPanelMode) => void;
+  gitPanelMode: "diff" | "log" | "issues" | "prs";
+  onGitPanelModeChange: (mode: "diff" | "log" | "issues" | "prs") => void;
   isPhone: boolean;
   gitDiffViewStyle: "split" | "unified";
   gitDiffIgnoreWhitespaceChanges: boolean;
@@ -274,12 +254,9 @@ export type LayoutNodesOptions = {
     error: string | null;
   };
   fileStatus: string;
-  perFileDiffGroups: PerFileDiffGroup[];
   selectedDiffPath: string | null;
-  hasActiveGitDiffs: boolean;
   diffScrollRequestId: number;
   onSelectDiff: (path: string) => void;
-  onSelectPerFileDiff: (path: string) => void;
   gitLogEntries: GitLogEntry[];
   gitLogTotal: number;
   gitLogAhead: number;
@@ -326,15 +303,12 @@ export type LayoutNodesOptions = {
   onSelectGitRoot: (path: string) => void;
   onClearGitRoot: () => void;
   onPickGitRoot: () => void | Promise<void>;
-  onInitGitRepo: () => void | Promise<void>;
-  initGitRepoLoading: boolean;
   onStageGitAll: () => Promise<void>;
   onStageGitFile: (path: string) => Promise<void>;
   onUnstageGitFile: (path: string) => Promise<void>;
   onRevertGitFile: (path: string) => Promise<void>;
   onRevertAllGitChanges: () => Promise<void>;
-  onReviewUncommittedChanges: () => Promise<void>;
-  diffSource: GitDiffSource;
+  diffSource: "local" | "pr" | "commit";
   gitDiffs: GitDiffViewerItem[];
   gitDiffLoading: boolean;
   gitDiffError: string | null;
@@ -387,16 +361,18 @@ export type LayoutNodesOptions = {
     text: string,
     images: string[],
     appMentions?: AppMention[],
-    submitIntent?: ComposerSendIntent,
+  ) => void | Promise<void>;
+  onQueue: (
+    text: string,
+    images: string[],
+    appMentions?: AppMention[],
   ) => void | Promise<void>;
   onStop: () => void;
   canStop: boolean;
   onFileAutocompleteActiveChange?: (active: boolean) => void;
   isReviewing: boolean;
   isProcessing: boolean;
-  steerAvailable: boolean;
-  followUpMessageBehavior: FollowUpMessageBehavior;
-  composerFollowUpHintEnabled: boolean;
+  steerEnabled: boolean;
   reviewPrompt: ReviewPromptState;
   onReviewPromptClose: () => void;
   onReviewPromptShowPreset: () => void;
@@ -424,7 +400,6 @@ export type LayoutNodesOptions = {
   onReviewPromptConfirmCustom: () => Promise<void>;
   activeTokenUsage: ThreadTokenUsage | null;
   activeQueue: QueuedMessage[];
-  queuePausedReason: string | null;
   draftText: string;
   onDraftChange: (next: string) => void;
   activeImages: string[];
@@ -447,9 +422,6 @@ export type LayoutNodesOptions = {
   selectedEffort: string | null;
   onSelectEffort: (effort: string | null) => void;
   reasoningSupported: boolean;
-  codexArgsOptions: CodexArgsOption[];
-  selectedCodexArgsOverride: string | null;
-  onSelectCodexArgsOverride: (value: string | null) => void;
   accessMode: AccessMode;
   onSelectAccessMode: (mode: AccessMode) => void;
   skills: SkillOption[];
@@ -467,7 +439,6 @@ export type LayoutNodesOptions = {
   dictationState: DictationSessionState;
   dictationLevel: number;
   onToggleDictation: () => void;
-  onCancelDictation?: () => void;
   dictationTranscript: DictationTranscript | null;
   onDictationTranscriptHandled: (id: string) => void;
   dictationError: string | null;

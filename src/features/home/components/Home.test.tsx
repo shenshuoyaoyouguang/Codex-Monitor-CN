@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Home } from "./Home";
 
 const baseProps = {
-  onOpenSettings: vi.fn(),
+  onOpenProject: vi.fn(),
   onAddWorkspace: vi.fn(),
   onAddWorkspaceFromUrl: vi.fn(),
   latestAgentRuns: [],
@@ -97,7 +97,7 @@ describe("Home", () => {
     );
 
     expect(screen.getAllByText("agent time").length).toBeGreaterThan(0);
-    expect(screen.getByText("Runs")).toBeTruthy();
+    expect(screen.getAllByText("Runs").length).toBeGreaterThan(0);
     expect(screen.getByText("Peak day")).toBeTruthy();
   });
 });

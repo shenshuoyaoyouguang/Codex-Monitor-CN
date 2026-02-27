@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import type { WorkspaceInfo } from "../../../types";
 import { validateBranchName } from "../utils/branchValidation";
-import type { InitGitRepoOutcome } from "./useGitActions";
+
+// InitGitRepoOutcome represents the possible outcomes of initializing a git repo
+// Based on test usage: "cancelled", "failed", or success (no specific string pattern)
+type InitGitRepoOutcome = string;
 
 type InitGitRepoPromptState = {
   workspaceId: string;

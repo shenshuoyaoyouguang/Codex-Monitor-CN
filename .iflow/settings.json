@@ -1,0 +1,50 @@
+{
+    "hooks": {
+        "SessionStart": [
+            {
+                "matcher": "startup",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python .iflow/hooks/session-start.py",
+                        "timeout": 10
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Task",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python .iflow/hooks/inject-subagent-context.py",
+                        "timeout": 30
+                    },
+                    {
+                        "type": "command",
+                        "command": "python .iflow/hooks/hive-coordinator.py --event pre-tool-use",
+                        "timeout": 15
+                    }
+                ]
+            }
+        ],
+        "SubagentStop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python .iflow/hooks/ralph-loop.py",
+                        "timeout": 10
+                    },
+                    {
+                        "type": "command",
+                        "command": "python .iflow/hooks/hive-coordinator.py --event subagent-stop",
+                        "timeout": 10
+                    }
+                ]
+            }
+        ]
+    },
+    "enabledPlugins": {}
+}

@@ -52,7 +52,7 @@ export function DictationWaveform({
       className={`composer-waveform${processing ? " is-processing" : ""}`}
       aria-hidden
     >
-      {processing && <span className="composer-waveform-label">{t('dictation.processing')}</span>}
+      {processing && <span className="composer-waveform-label">{t("dictation.processing")}</span>}
       {barHeights.map((height, index) => (
         <span
           key={index}

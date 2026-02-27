@@ -6,22 +6,6 @@ import type { LayoutNodesOptions, LayoutNodesResult } from "./types";
 
 type GitLayoutNodes = Pick<LayoutNodesResult, "gitDiffPanelNode" | "gitDiffViewerNode">;
 
-function resolveGitDiffStyle({
-  isPhone,
-  splitChatDiffView,
-  centerMode,
-  userPreference,
-}: {
-  isPhone: boolean;
-  splitChatDiffView: boolean;
-  centerMode: LayoutNodesOptions["centerMode"];
-  userPreference: LayoutNodesOptions["gitDiffViewStyle"];
-}): LayoutNodesOptions["gitDiffViewStyle"] {
-  const shouldForceSingleColumn =
-    isPhone || (splitChatDiffView && centerMode === "chat");
-  return shouldForceSingleColumn ? "unified" : userPreference;
-}
-
 export function buildGitNodes(options: LayoutNodesOptions): GitLayoutNodes {
   const sidebarSelectedDiffPath =
     options.centerMode === "diff" ? options.selectedDiffPath : null;
@@ -87,17 +71,12 @@ export function buildGitNodes(options: LayoutNodesOptions): GitLayoutNodes {
         totalAdditions={options.gitStatus.totalAdditions}
         totalDeletions={options.gitStatus.totalDeletions}
         fileStatus={options.fileStatus}
-        perFileDiffGroups={options.perFileDiffGroups}
         error={options.gitStatus.error}
         logError={options.gitLogError}
         logLoading={options.gitLogLoading}
         stagedFiles={options.gitStatus.stagedFiles}
         unstagedFiles={options.gitStatus.unstagedFiles}
-        onSelectFile={
-          options.gitPanelMode === "perFile"
-            ? options.onSelectPerFileDiff
-            : options.onSelectDiff
-        }
+        onSelectFile={options.onSelectDiff}
         selectedPath={sidebarSelectedDiffPath}
         logEntries={options.gitLogEntries}
         logTotal={options.gitLogTotal}
@@ -130,8 +109,6 @@ export function buildGitNodes(options: LayoutNodesOptions): GitLayoutNodes {
         onSelectGitRoot={options.onSelectGitRoot}
         onClearGitRoot={options.onClearGitRoot}
         onPickGitRoot={options.onPickGitRoot}
-        onInitGitRepo={options.onInitGitRepo}
-        initGitRepoLoading={options.initGitRepoLoading}
         onStageAllChanges={options.onStageGitAll}
         onStageFile={options.onStageGitFile}
         onUnstageFile={options.onUnstageGitFile}
@@ -172,12 +149,7 @@ export function buildGitNodes(options: LayoutNodesOptions): GitLayoutNodes {
       scrollRequestId={options.diffScrollRequestId}
       isLoading={options.gitDiffLoading}
       error={options.gitDiffError}
-      diffStyle={resolveGitDiffStyle({
-        isPhone: options.isPhone,
-        splitChatDiffView: options.splitChatDiffView,
-        centerMode: options.centerMode,
-        userPreference: options.gitDiffViewStyle,
-      })}
+      diffStyle={options.isPhone ? "unified" : options.gitDiffViewStyle}
       ignoreWhitespaceChanges={options.gitDiffIgnoreWhitespaceChanges}
       pullRequest={options.selectedPullRequest}
       pullRequestComments={options.selectedPullRequestComments}

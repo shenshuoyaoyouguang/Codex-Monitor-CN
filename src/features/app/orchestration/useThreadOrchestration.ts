@@ -92,6 +92,7 @@ type UseThreadUiOrchestrationParams = {
   pendingNewThreadSeedRef: MutableRefObject<PendingNewThreadSeed | null>;
   runWithDraftStart: (runner: () => Promise<void>) => Promise<void>;
   handleComposerSend: SendOrQueueHandler;
+  handleComposerQueue?: SendOrQueueHandler;
   clearDraftState: () => void;
   exitDiffView: () => void;
   resetPullRequestSelection: () => void;
@@ -354,6 +355,7 @@ export function useThreadUiOrchestration({
   pendingNewThreadSeedRef,
   runWithDraftStart,
   handleComposerSend,
+  handleComposerQueue,
   clearDraftState,
   exitDiffView,
   resetPullRequestSelection,
@@ -397,6 +399,26 @@ export function useThreadUiOrchestration({
       );
     },
     [handleComposerSend, rememberPendingNewThreadSeed, runWithDraftStart],
+  );
+
+  const handleComposerQueueWithDraftStart = useCallback(
+    (
+      text: string,
+      images: string[],
+      appMentions?: AppMention[],
+      submitIntent?: ComposerSendIntent,
+    ) => {
+      if (!handleComposerQueue) {
+        return Promise.resolve();
+      }
+      rememberPendingNewThreadSeed();
+      return runWithDraftStart(() =>
+        appMentions && appMentions.length > 0
+          ? handleComposerQueue(text, images, appMentions, submitIntent)
+          : handleComposerQueue(text, images, undefined, submitIntent),
+      );
+    },
+    [handleComposerQueue, rememberPendingNewThreadSeed, runWithDraftStart],
   );
 
   const handleSelectWorkspaceInstance = useCallback(
@@ -457,6 +479,7 @@ export function useThreadUiOrchestration({
 
   return {
     handleComposerSendWithDraftStart,
+    handleComposerQueueWithDraftStart,
     handleSelectWorkspaceInstance,
     handleOpenThreadLink,
     handleArchiveActiveThread,

@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { AppSettings } from "@/types";
 import {
   CODE_FONT_SIZE_MAX,
@@ -7,20 +7,9 @@ import {
   DEFAULT_CODE_FONT_FAMILY,
   DEFAULT_UI_FONT_FAMILY,
 } from "@utils/fonts";
-
-import {
-  CHAT_SCROLLBACK_DEFAULT,
-  CHAT_SCROLLBACK_MAX,
-  CHAT_SCROLLBACK_MIN,
-  CHAT_SCROLLBACK_PRESETS,
-  clampChatScrollbackItems,
-  isChatScrollbackPreset,
-} from "@utils/chatScrollback";
-import {
-  SettingsSection,
-  SettingsToggleRow,
-  SettingsToggleSwitch,
-} from "@/features/design-system/components/settings/SettingsPrimitives";
+import { supportedLocales } from "@/i18n/config";
+import i18next from "@/i18n/config";
+import { useTranslation } from "react-i18next";
 
 type SettingsDisplaySectionProps = {
   appSettings: AppSettings;
@@ -69,107 +58,21 @@ export function SettingsDisplaySection({
   onTestNotificationSound,
   onTestSystemNotification,
 }: SettingsDisplaySectionProps) {
-  const scrollbackUnlimited = appSettings.chatHistoryScrollbackItems === null;
-  const [scrollbackDraft, setScrollbackDraft] = useState(() => {
-    const value = appSettings.chatHistoryScrollbackItems;
-    return typeof value === "number" && Number.isFinite(value)
-      ? String(value)
-      : String(CHAT_SCROLLBACK_DEFAULT);
-  });
-
-  useEffect(() => {
-    const value = appSettings.chatHistoryScrollbackItems;
-    if (typeof value === "number" && Number.isFinite(value)) {
-      setScrollbackDraft(String(value));
-    }
-  }, [appSettings.chatHistoryScrollbackItems]);
-
-  const scrollbackPresetValue = (() => {
-    const value = appSettings.chatHistoryScrollbackItems;
-    if (typeof value === "number" && isChatScrollbackPreset(value)) {
-      return String(value);
-    }
-    return "custom";
-  })();
-
-  const commitScrollback = () => {
-    if (scrollbackUnlimited) {
-      return;
-    }
-    const trimmed = scrollbackDraft.trim();
-    const parsed = trimmed ? Number(trimmed) : Number.NaN;
-    if (!Number.isFinite(parsed)) {
-      const current = appSettings.chatHistoryScrollbackItems;
-      const fallback =
-        typeof current === "number" && Number.isFinite(current)
-          ? current
-          : CHAT_SCROLLBACK_DEFAULT;
-      setScrollbackDraft(String(fallback));
-      return;
-    }
-    const nextValue = clampChatScrollbackItems(parsed);
-    setScrollbackDraft(String(nextValue));
-    if (appSettings.chatHistoryScrollbackItems === nextValue) {
-      return;
-    }
-    void onUpdateAppSettings({
-      ...appSettings,
-      chatHistoryScrollbackItems: nextValue,
-    });
-  };
-
-  const toggleUnlimitedScrollback = () => {
-    const nextUnlimited = !scrollbackUnlimited;
-    if (nextUnlimited) {
-      void onUpdateAppSettings({
-        ...appSettings,
-        chatHistoryScrollbackItems: null,
-      });
-      return;
-    }
-    const trimmed = scrollbackDraft.trim();
-    const parsed = trimmed ? Number(trimmed) : Number.NaN;
-    const nextValue = Number.isFinite(parsed)
-      ? clampChatScrollbackItems(parsed)
-      : CHAT_SCROLLBACK_DEFAULT;
-    setScrollbackDraft(String(nextValue));
-    void onUpdateAppSettings({
-      ...appSettings,
-      chatHistoryScrollbackItems: nextValue,
-    });
-  };
-
-  const selectScrollbackPreset = (rawValue: string) => {
-    if (scrollbackUnlimited) {
-      return;
-    }
-    if (rawValue === "custom") {
-      return;
-    }
-    const parsed = Number(rawValue);
-    if (!Number.isFinite(parsed)) {
-      return;
-    }
-    const nextValue = clampChatScrollbackItems(parsed);
-    setScrollbackDraft(String(nextValue));
-    void onUpdateAppSettings({
-      ...appSettings,
-      chatHistoryScrollbackItems: nextValue,
-    });
-  };
+  const { t } = useTranslation();
 
   return (
-    <SettingsSection
-      title="Display & Sound"
-      subtitle="Tune visuals and audio alerts to your preferences."
-    >
-      <div className="settings-subsection-title">Display</div>
+    <section className="settings-section">
+      <div className="settings-section-title">{t('settings.display_sound.title')}</div>
+      <div className="settings-section-subtitle">
+        {t('settings.display_sound.subtitle')}
+      </div>
+      <div className="settings-subsection-title">{t('settings.display_sound.display')}</div>
       <div className="settings-subsection-subtitle">
-        Adjust how the window renders backgrounds and effects.
+        {t('settings.display_sound.display_subtitle')}
       </div>
       <div className="settings-field">
         <label className="settings-field-label" htmlFor="theme-select">
-          Theme
+          {t('settings.display_sound.theme')}
         </label>
         <select
           id="theme-select"
@@ -182,60 +85,109 @@ export function SettingsDisplaySection({
             })
           }
         >
-          <option value="system">System</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="dim">Dim</option>
+          <option value="system">{t('settings.display_sound.theme_system')}</option>
+          <option value="light">{t('settings.display_sound.theme_light')}</option>
+          <option value="dark">{t('settings.display_sound.theme_dark')}</option>
+          <option value="dim">{t('settings.display_sound.theme_dim')}</option>
         </select>
       </div>
-      <SettingsToggleRow
-        title="Show remaining Codex limits"
-        subtitle="Display what is left instead of what is used."
-      >
-        <SettingsToggleSwitch
-          pressed={appSettings.usageShowRemaining}
+      <div className="settings-field">
+        <label className="settings-field-label" htmlFor="language-select">
+          {t('settings.display_sound.language')}
+        </label>
+        <select
+          id="language-select"
+          className="settings-select"
+          value={appSettings.language}
+          onChange={async (event) => {
+            const newLang = event.target.value as "en" | "zh";
+            await onUpdateAppSettings({
+              ...appSettings,
+              language: newLang,
+            });
+            await i18next.changeLanguage(newLang);
+          }}
+        >
+          {supportedLocales.map((locale) => (
+            <option key={locale.value} value={locale.value}>
+              {locale.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-title">{t('settings.display_sound.show_remaining_limits')}</div>
+          <div className="settings-toggle-subtitle">
+            {t('settings.display_sound.show_remaining_limits_subtitle')}
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`settings-toggle ${appSettings.usageShowRemaining ? "on" : ""}`}
           onClick={() =>
             void onUpdateAppSettings({
               ...appSettings,
               usageShowRemaining: !appSettings.usageShowRemaining,
             })
           }
-        />
-      </SettingsToggleRow>
-      <SettingsToggleRow
-        title="Show file path in messages"
-        subtitle="Display the parent path next to file links in messages."
-      >
-        <SettingsToggleSwitch
-          pressed={appSettings.showMessageFilePath}
+          aria-pressed={appSettings.usageShowRemaining}
+        >
+          <span className="settings-toggle-knob" />
+        </button>
+      </div>
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-title">{t('settings.display_sound.show_file_path_in_messages')}</div>
+          <div className="settings-toggle-subtitle">
+            {t('settings.display_sound.show_file_path_in_messages_subtitle')}
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`settings-toggle ${appSettings.showMessageFilePath ? "on" : ""}`}
           onClick={() =>
             void onUpdateAppSettings({
               ...appSettings,
               showMessageFilePath: !appSettings.showMessageFilePath,
             })
           }
-        />
-      </SettingsToggleRow>
-      <SettingsToggleRow
-        title="Split chat and diff center panes"
-        subtitle="Show chat and diff side by side instead of swapping between them."
-      >
-        <SettingsToggleSwitch
-          pressed={appSettings.splitChatDiffView}
+          aria-pressed={appSettings.showMessageFilePath}
+        >
+          <span className="settings-toggle-knob" />
+        </button>
+      </div>
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-title">{t('settings.display_sound.split_chat_diff')}</div>
+          <div className="settings-toggle-subtitle">
+            {t('settings.display_sound.split_chat_diff_subtitle')}
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`settings-toggle ${appSettings.splitChatDiffView ? "on" : ""}`}
           onClick={() =>
             void onUpdateAppSettings({
               ...appSettings,
               splitChatDiffView: !appSettings.splitChatDiffView,
             })
           }
-        />
-      </SettingsToggleRow>
-      <SettingsToggleRow
-        title="Auto-generate new thread titles"
-        subtitle="Generate a short title from your first message (uses extra tokens)."
-      >
-        <SettingsToggleSwitch
-          pressed={appSettings.threadTitleAutogenerationEnabled}
+          aria-pressed={appSettings.splitChatDiffView}
+        >
+          <span className="settings-toggle-knob" />
+        </button>
+      </div>
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-title">{t('settings.display_sound.auto_generate_thread_titles')}</div>
+          <div className="settings-toggle-subtitle">
+            {t('settings.display_sound.auto_generate_thread_titles_subtitle')}
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`settings-toggle ${appSettings.threadTitleAutogenerationEnabled ? "on" : ""}`}
           onClick={() =>
             void onUpdateAppSettings({
               ...appSettings,
@@ -243,109 +195,28 @@ export function SettingsDisplaySection({
                 !appSettings.threadTitleAutogenerationEnabled,
             })
           }
-        />
-      </SettingsToggleRow>
-      <div className="settings-subsection-title">Chat</div>
-      <div className="settings-subsection-subtitle">
-        Control how much conversation history is retained per thread.
-      </div>
-      <SettingsToggleRow
-        title="Unlimited chat history"
-        subtitle="Keep full thread history in memory (may impact performance)."
-      >
-        <SettingsToggleSwitch
-          pressed={scrollbackUnlimited}
-          onClick={toggleUnlimitedScrollback}
-          data-scrollback-control="true"
-        />
-      </SettingsToggleRow>
-      <div className="settings-field">
-        <label className="settings-field-label" htmlFor="chat-scrollback-preset">
-          Scrollback preset
-        </label>
-        <select
-          id="chat-scrollback-preset"
-          className="settings-select"
-          value={scrollbackPresetValue}
-          onChange={(event) => selectScrollbackPreset(event.target.value)}
-          data-scrollback-control="true"
-          disabled={scrollbackUnlimited}
+          aria-pressed={appSettings.threadTitleAutogenerationEnabled}
         >
-          <option value="custom">Custom</option>
-          {CHAT_SCROLLBACK_PRESETS.map((value) => (
-            <option key={value} value={value}>
-              {value === CHAT_SCROLLBACK_DEFAULT ? `${value} (Default)` : value}
-            </option>
-          ))}
-        </select>
-        <div className="settings-help">
-          Higher values keep more history but may increase memory usage. Use “Sync from
-          server” on a thread to re-fetch older messages.
-        </div>
+          <span className="settings-toggle-knob" />
+        </button>
       </div>
-      <div className="settings-field">
-        <label className="settings-field-label" htmlFor="chat-scrollback-items">
-          Max items per thread
-        </label>
-        <div className="settings-field-row">
-          <input
-            id="chat-scrollback-items"
-            type="text"
-            inputMode="numeric"
-            className="settings-input"
-            value={scrollbackDraft}
-            disabled={scrollbackUnlimited}
-            onChange={(event) => setScrollbackDraft(event.target.value)}
-            onBlur={(event) => {
-              const nextTarget = event.relatedTarget;
-              if (
-                nextTarget instanceof HTMLElement &&
-                nextTarget.dataset.scrollbackControl === "true"
-              ) {
-                return;
-              }
-              commitScrollback();
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                commitScrollback();
-              }
-            }}
-          />
-          <button
-            type="button"
-            className="ghost settings-button-compact"
-            data-scrollback-control="true"
-            disabled={scrollbackUnlimited}
-            onClick={() => {
-              setScrollbackDraft(String(CHAT_SCROLLBACK_DEFAULT));
-              void onUpdateAppSettings({
-                ...appSettings,
-                chatHistoryScrollbackItems: CHAT_SCROLLBACK_DEFAULT,
-              });
-            }}
-          >
-            Reset
-          </button>
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-title">{t('settings.display_sound.reduce_transparency')}</div>
+          <div className="settings-toggle-subtitle">{t('settings.display_sound.reduce_transparency_subtitle')}</div>
         </div>
-        <div className="settings-help">
-          Range: {CHAT_SCROLLBACK_MIN}–{CHAT_SCROLLBACK_MAX}. Counts messages, tool calls,
-          and other conversation items.
-        </div>
-      </div>
-      <SettingsToggleRow
-        title="Reduce transparency"
-        subtitle="Use solid surfaces instead of glass."
-      >
-        <SettingsToggleSwitch
-          pressed={reduceTransparency}
+        <button
+          type="button"
+          className={`settings-toggle ${reduceTransparency ? "on" : ""}`}
           onClick={() => onToggleTransparency(!reduceTransparency)}
-        />
-      </SettingsToggleRow>
+          aria-pressed={reduceTransparency}
+        >
+          <span className="settings-toggle-knob" />
+        </button>
+      </div>
       <div className="settings-toggle-row settings-scale-row">
         <div>
-          <div className="settings-toggle-title">Interface scale</div>
+          <div className="settings-toggle-title">{t('settings.display_sound.interface_scale')}</div>
           <div className="settings-toggle-subtitle" title={scaleShortcutTitle}>
             {scaleShortcutText}
           </div>
@@ -376,13 +247,13 @@ export function SettingsDisplaySection({
               void onResetScale();
             }}
           >
-            Reset
+            {t('settings.reset')}
           </button>
         </div>
       </div>
       <div className="settings-field">
         <label className="settings-field-label" htmlFor="ui-font-family">
-          UI font family
+          {t('settings.display_sound.ui_font_family')}
         </label>
         <div className="settings-field-row">
           <input
@@ -412,16 +283,16 @@ export function SettingsDisplaySection({
               });
             }}
           >
-            Reset
+            {t('settings.reset')}
           </button>
         </div>
         <div className="settings-help">
-          Applies to all UI text. Leave empty to use the default system font stack.
+          {t('settings.display_sound.ui_font_family_help')}
         </div>
       </div>
       <div className="settings-field">
         <label className="settings-field-label" htmlFor="code-font-family">
-          Code font family
+          {t('settings.display_sound.code_font_family')}
         </label>
         <div className="settings-field-row">
           <input
@@ -451,14 +322,14 @@ export function SettingsDisplaySection({
               });
             }}
           >
-            Reset
+            {t('settings.reset')}
           </button>
         </div>
-        <div className="settings-help">Applies to git diffs and other mono-spaced readouts.</div>
+        <div className="settings-help">{t('settings.display_sound.code_font_family_help')}</div>
       </div>
       <div className="settings-field">
         <label className="settings-field-label" htmlFor="code-font-size">
-          Code font size
+          {t('settings.display_sound.code_font_size')}
         </label>
         <div className="settings-field-row">
           <input
@@ -484,72 +355,71 @@ export function SettingsDisplaySection({
               void onCommitCodeFontSize(CODE_FONT_SIZE_DEFAULT);
             }}
           >
-            Reset
+            {t('settings.reset')}
           </button>
         </div>
-        <div className="settings-help">Adjusts code and diff text size.</div>
+        <div className="settings-help">{t('settings.display_sound.code_font_size_help')}</div>
       </div>
-      <div className="settings-subsection-title">Sounds</div>
-      <div className="settings-subsection-subtitle">Control notification audio alerts.</div>
-      <SettingsToggleRow
-        title="Notification sounds"
-        subtitle="Play a sound when a long-running agent finishes while the window is unfocused."
-      >
-        <SettingsToggleSwitch
-          pressed={appSettings.notificationSoundsEnabled}
+      <div className="settings-subsection-title">{t('settings.display_sound.sound')}</div>
+      <div className="settings-subsection-subtitle">{t('settings.display_sound.sound_subtitle')}</div>
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-title">{t('settings.display_sound.notification_sounds')}</div>
+          <div className="settings-toggle-subtitle">
+            {t('settings.display_sound.notification_sounds_subtitle')}
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`settings-toggle ${appSettings.notificationSoundsEnabled ? "on" : ""}`}
           onClick={() =>
             void onUpdateAppSettings({
               ...appSettings,
               notificationSoundsEnabled: !appSettings.notificationSoundsEnabled,
             })
           }
-        />
-      </SettingsToggleRow>
-      <SettingsToggleRow
-        title="System notifications"
-        subtitle="Show a system notification when a long-running agent finishes while the window is unfocused."
-      >
-        <SettingsToggleSwitch
-          pressed={appSettings.systemNotificationsEnabled}
+          aria-pressed={appSettings.notificationSoundsEnabled}
+        >
+          <span className="settings-toggle-knob" />
+        </button>
+      </div>
+      <div className="settings-toggle-row">
+        <div>
+          <div className="settings-toggle-title">{t('settings.display_sound.system_notifications')}</div>
+          <div className="settings-toggle-subtitle">
+            {t('settings.display_sound.system_notifications_subtitle')}
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`settings-toggle ${appSettings.systemNotificationsEnabled ? "on" : ""}`}
           onClick={() =>
             void onUpdateAppSettings({
               ...appSettings,
               systemNotificationsEnabled: !appSettings.systemNotificationsEnabled,
             })
           }
-        />
-      </SettingsToggleRow>
-      <SettingsToggleRow
-        title="Sub-agent notifications"
-        subtitle="Include spawned sub-agent threads in system notifications."
-      >
-        <SettingsToggleSwitch
-          pressed={appSettings.subagentSystemNotificationsEnabled}
-          onClick={() =>
-            void onUpdateAppSettings({
-              ...appSettings,
-              subagentSystemNotificationsEnabled:
-                !appSettings.subagentSystemNotificationsEnabled,
-            })
-          }
-        />
-      </SettingsToggleRow>
+          aria-pressed={appSettings.systemNotificationsEnabled}
+        >
+          <span className="settings-toggle-knob" />
+        </button>
+      </div>
       <div className="settings-sound-actions">
         <button
           type="button"
           className="ghost settings-button-compact"
           onClick={onTestNotificationSound}
         >
-          Test sound
+          {t('settings.display_sound.test_sound')}
         </button>
         <button
           type="button"
           className="ghost settings-button-compact"
           onClick={onTestSystemNotification}
         >
-          Test notification
+          {t('settings.display_sound.test_notification')}
         </button>
       </div>
-    </SettingsSection>
+    </section>
   );
 }

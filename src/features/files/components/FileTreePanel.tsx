@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { Menu, MenuItem } from "@tauri-apps/api/menu";
@@ -13,9 +14,10 @@ import File from "lucide-react/dist/esm/icons/file";
 import Folder from "lucide-react/dist/esm/icons/folder";
 import GitBranch from "lucide-react/dist/esm/icons/git-branch";
 import Search from "lucide-react/dist/esm/icons/search";
-import type { PanelTabId } from "../../layout/components/PanelTabs";
-import { PanelShell } from "../../layout/components/PanelShell";
+import { PanelTabs, type PanelTabId } from "../../layout/components/PanelTabs";
 import {
+  PanelFrame,
+  PanelHeader,
   PanelMeta,
   PanelSearchField,
 } from "../../design-system/components/panel/PanelPrimitives";
@@ -175,6 +177,7 @@ export function FileTreePanel({
   selectedOpenAppId,
   onSelectOpenAppId,
 }: FileTreePanelProps) {
+  const { t } = useTranslation();
   const [filterMode, setFilterMode] = useState<"all" | "modified">("all");
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
@@ -514,9 +517,9 @@ export function FileTreePanel({
   const selectionHints = useMemo(
     () =>
       previewKind === "text"
-        ? ["Shift + click or drag + click", "for multi-line selection"]
+        ? [t("file_tree_panel.selection_hint_drag"), t("file_tree_panel.selection_hint_multiline")]
         : [],
-    [previewKind],
+    [previewKind, t],
   );
 
   const handleAddSelection = useCallback(() => {
@@ -556,7 +559,7 @@ export function FileTreePanel({
       const menu = await Menu.new({
         items: [
           await MenuItem.new({
-            text: "Add to chat",
+            text: t("file_preview.add_to_chat"),
             enabled: canInsertText,
             action: async () => {
               if (!canInsertText) {
@@ -636,8 +639,8 @@ export function FileTreePanel({
               onInsertText?.(node.path);
             }}
             disabled={!canInsertText}
-            aria-label={`Mention ${node.name}`}
-            title="Mention in chat"
+            aria-label={t("file_tree_panel.mention_file", { name: node.name })}
+            title={t("file_tree.mention_in_conversation")}
           >
             <Plus size={10} aria-hidden />
           </button>
@@ -647,67 +650,61 @@ export function FileTreePanel({
   };
 
   return (
-    <PanelShell
-      filePanelMode={filePanelMode}
-      onFilePanelModeChange={onFilePanelModeChange}
-      className="file-tree-panel"
-      headerClassName="git-panel-header"
-      headerRight={
+    <PanelFrame className="file-tree-panel">
+      <PanelHeader className="git-panel-header">
+        <PanelTabs active={filePanelMode} onSelect={onFilePanelModeChange} />
         <PanelMeta className="file-tree-meta">
           <div className="file-tree-count">
             {visibleEntries.length
               ? normalizedQuery
-                ? `${visibleEntries.length} match${visibleEntries.length === 1 ? "" : "es"}`
+                ? t("file_tree.matched_items", { count: visibleEntries.length })
                 : filterMode === "modified"
-                  ? `${visibleEntries.length} modified`
-                  : `${visibleEntries.length} file${visibleEntries.length === 1 ? "" : "s"}`
+                  ? t("file_tree.modified_items", { count: visibleEntries.length })
+                  : t("file_tree.total_files", { count: visibleEntries.length })
               : showLoading
-                ? "Loading files"
+                ? t("file_tree.loading_files")
                 : filterMode === "modified"
-                  ? "No modified"
-                  : "No files"}
+                  ? t("file_tree.no_modified")
+                  : t("file_tree.no_files")}
           </div>
           {hasFolders ? (
             <button
               type="button"
               className="ghost icon-button file-tree-toggle"
               onClick={toggleAllFolders}
-              aria-label={allVisibleExpanded ? "Collapse all folders" : "Expand all folders"}
-              title={allVisibleExpanded ? "Collapse all folders" : "Expand all folders"}
+              aria-label={allVisibleExpanded ? t("file_tree.collapse_all_folders") : t("file_tree.expand_all_folders")}
+              title={allVisibleExpanded ? t("file_tree.collapse_all_folders") : t("file_tree.expand_all_folders")}
             >
               <ChevronsUpDown aria-hidden />
             </button>
           ) : null}
         </PanelMeta>
-      }
-      search={
-        <PanelSearchField
-          className="file-tree-search"
-          inputClassName="file-tree-search-input"
-          placeholder="Filter files and folders"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          aria-label="Filter files and folders"
-          icon={<Search aria-hidden />}
-          trailing={
-            <button
-              type="button"
-              className={`ghost icon-button file-tree-search-filter${filterMode === "modified" ? " is-active" : ""}`}
-              onClick={() => {
-                setFilterMode((prev) => (prev === "all" ? "modified" : "all"));
-              }}
-              aria-pressed={filterMode === "modified"}
-              aria-label={
-                filterMode === "modified" ? "Show all files" : "Show modified files only"
-              }
-              title={filterMode === "modified" ? "Show all files" : "Show modified files only"}
-            >
-              <GitBranch size={14} aria-hidden />
-            </button>
-          }
-        />
-      }
-    >
+      </PanelHeader>
+      <PanelSearchField
+        className="file-tree-search"
+        inputClassName="file-tree-search-input"
+        placeholder={t("file_tree.filter_files_folders")}
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        aria-label={t("file_tree.filter_files_folders")}
+        icon={<Search aria-hidden />}
+        trailing={
+          <button
+            type="button"
+            className={`ghost icon-button file-tree-search-filter${filterMode === "modified" ? " is-active" : ""}`}
+            onClick={() => {
+              setFilterMode((prev) => (prev === "all" ? "modified" : "all"));
+            }}
+            aria-pressed={filterMode === "modified"}
+            aria-label={
+              filterMode === "modified" ? t("file_tree_panel.show_all_files") : t("file_tree_panel.show_modified_only")
+            }
+            title={filterMode === "modified" ? t("file_tree_panel.show_all_files") : t("file_tree_panel.show_modified_only")}
+          >
+            <GitBranch size={14} aria-hidden />
+          </button>
+        }
+      />
       <div
         className="file-tree-list"
         ref={listRef}
@@ -727,11 +724,11 @@ export function FileTreePanel({
           <div className="file-tree-empty">
             {normalizedQuery
               ? filterMode === "modified"
-                ? "No modified files match your filter."
-                : "No matches found."
+                ? t("file_tree_panel.no_modified_matching")
+                : t("file_tree_panel.no_matches")
               : filterMode === "modified"
-                ? "No modified files."
-                : "No files available."}
+                ? t("file_tree_panel.no_modified_files")
+                : t("file_tree_panel.no_files_yet")}
           </div>
         ) : (
           <div
@@ -800,6 +797,6 @@ export function FileTreePanel({
             document.body,
           )
         : null}
-    </PanelShell>
+    </PanelFrame>
   );
 }

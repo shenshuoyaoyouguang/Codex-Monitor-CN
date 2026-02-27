@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import FolderKanban from "lucide-react/dist/esm/icons/folder-kanban";
 import GitBranch from "lucide-react/dist/esm/icons/git-branch";
-import House from "lucide-react/dist/esm/icons/house";
 import MessagesSquare from "lucide-react/dist/esm/icons/messages-square";
 import TerminalSquare from "lucide-react/dist/esm/icons/terminal-square";
 
@@ -12,17 +12,16 @@ type TabBarProps = {
   onSelect: (tab: TabKey) => void;
 };
 
-const tabs: { id: TabKey; label: string; icon: ReactNode }[] = [
-  { id: "home", label: "Home", icon: <House className="tabbar-icon" /> },
-  { id: "projects", label: "Projects", icon: <FolderKanban className="tabbar-icon" /> },
-  { id: "codex", label: "Codex", icon: <MessagesSquare className="tabbar-icon" /> },
-  { id: "git", label: "Git", icon: <GitBranch className="tabbar-icon" /> },
-  { id: "log", label: "Log", icon: <TerminalSquare className="tabbar-icon" /> },
-];
-
 export function TabBar({ activeTab, onSelect }: TabBarProps) {
+  const { t } = useTranslation();
+  const tabs: { id: TabKey; labelKey: string; icon: ReactNode }[] = [
+    { id: "projects", labelKey: "tabs.workspaces", icon: <FolderKanban className="tabbar-icon" /> },
+    { id: "codex", labelKey: "sidebar.codex", icon: <MessagesSquare className="tabbar-icon" /> },
+    { id: "git", labelKey: "git.branches", icon: <GitBranch className="tabbar-icon" /> },
+    { id: "log", labelKey: "tabs.log", icon: <TerminalSquare className="tabbar-icon" /> },
+  ];
   return (
-    <nav className="tabbar" aria-label="Primary">
+    <nav className="tabbar" aria-label={t("tabs.main_navigation")}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -32,7 +31,7 @@ export function TabBar({ activeTab, onSelect }: TabBarProps) {
           aria-current={activeTab === tab.id ? "page" : undefined}
         >
           {tab.icon}
-          <span className="tabbar-label">{tab.label}</span>
+          <span className="tabbar-label">{t(tab.labelKey)}</span>
         </button>
       ))}
     </nav>

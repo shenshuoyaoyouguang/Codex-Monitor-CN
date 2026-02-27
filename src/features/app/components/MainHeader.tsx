@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Check from "lucide-react/dist/esm/icons/check";
 import Copy from "lucide-react/dist/esm/icons/copy";
 import Terminal from "lucide-react/dist/esm/icons/terminal";
@@ -9,15 +10,12 @@ import { revealInFileManagerLabel } from "../../../utils/platformPaths";
 import { BranchList } from "../../git/components/BranchList";
 import { filterBranches, findExactBranch } from "../../git/utils/branchSearch";
 import { validateBranchName } from "../../git/utils/branchValidation";
-import {
-  MenuTrigger,
-  PopoverSurface,
-} from "../../design-system/components/popover/PopoverPrimitives";
+import { PopoverSurface } from "../../design-system/components/popover/PopoverPrimitives";
 import { OpenAppMenu } from "./OpenAppMenu";
 import { LaunchScriptButton } from "./LaunchScriptButton";
 import { LaunchScriptEntryButton } from "./LaunchScriptEntryButton";
 import type { WorkspaceLaunchScriptsState } from "../hooks/useWorkspaceLaunchScripts";
-import { useMenuController } from "../hooks/useMenuController";
+import { useDismissibleMenu } from "../hooks/useDismissibleMenu";
 
 type MainHeaderProps = {
   workspace: WorkspaceInfo;
@@ -107,22 +105,18 @@ export function MainHeader({
   launchScriptsState,
   worktreeRename,
 }: MainHeaderProps) {
+  const { t } = useTranslation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const [branchQuery, setBranchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const copyTimeoutRef = useRef<number | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const infoRef = useRef<HTMLDivElement | null>(null);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
   const renameConfirmRef = useRef<HTMLButtonElement | null>(null);
   const renameOnCancel = worktreeRename?.onCancel;
-  const branchMenu = useMenuController({
-    onDismiss: () => {
-      setBranchQuery("");
-      setError(null);
-    },
-  });
-  const infoMenu = useMenuController();
-  const { isOpen: menuOpen, setOpen: setMenuOpen, containerRef: menuRef } = branchMenu;
-  const { isOpen: infoOpen, containerRef: infoRef } = infoMenu;
 
   const trimmedQuery = branchQuery.trim();
   const filteredBranches = useMemo(
@@ -151,6 +145,22 @@ export function MainHeader({
     () => `cd "${relativeWorktreePath}"`,
     [relativeWorktreePath],
   );
+
+  useDismissibleMenu({
+    isOpen: menuOpen,
+    containerRef: menuRef,
+    onClose: () => {
+      setMenuOpen(false);
+      setBranchQuery("");
+      setError(null);
+    },
+  });
+
+  useDismissibleMenu({
+    isOpen: infoOpen,
+    containerRef: infoRef,
+    onClose: () => setInfoOpen(false),
+  });
 
   useEffect(() => {
     if (!infoOpen && renameOnCancel) {
@@ -196,21 +206,22 @@ export function MainHeader({
           </span>
           {disableBranchMenu ? (
             <div className="workspace-branch-static-row" ref={infoRef}>
-              <MenuTrigger
-                isOpen={infoOpen}
-                popupRole="dialog"
+              <button
+                type="button"
                 className="workspace-branch-static-button"
-                onClick={infoMenu.toggle}
+                onClick={() => setInfoOpen((prev) => !prev)}
+                aria-haspopup="dialog"
+                aria-expanded={infoOpen}
                 data-tauri-drag-region="false"
-                title="Worktree info"
+                title={t("header.worktree_info")}
               >
                 {worktreeLabel || branchName}
-              </MenuTrigger>
+              </button>
               {infoOpen && (
                 <PopoverSurface className="worktree-info-popover" role="dialog">
                   {worktreeRename && (
                     <div className="worktree-info-rename">
-                      <span className="worktree-info-label">Name</span>
+                      <span className="worktree-info-label">{t("main_header.name_label")}</span>
                       <div className="worktree-info-command">
                         <input
                           ref={renameInputRef}
@@ -257,8 +268,8 @@ export function MainHeader({
                           disabled={
                             worktreeRename.isSubmitting || !worktreeRename.isDirty
                           }
-                          aria-label="Confirm rename"
-                          title="Confirm rename"
+                          aria-label={t("header.confirm_rename")}
+                          title={t("header.confirm_rename")}
                         >
                           <Check aria-hidden />
                         </button>
@@ -274,7 +285,7 @@ export function MainHeader({
                       {worktreeRename.upstream && (
                         <div className="worktree-info-upstream">
                           <span className="worktree-info-subtle">
-                            Do you want to update the upstream branch to{" "}
+                            {t("main_header.update_upstream_confirm")}
                             <strong>{worktreeRename.upstream.newBranch}</strong>?
                           </span>
                           <button
@@ -283,7 +294,7 @@ export function MainHeader({
                             onClick={worktreeRename.upstream.onConfirm}
                             disabled={worktreeRename.upstream.isSubmitting}
                           >
-                            Update upstream
+                            {t("main_header.update_upstream")}
                           </button>
                           {worktreeRename.upstream.error && (
                             <div className="worktree-info-error">
@@ -294,10 +305,10 @@ export function MainHeader({
                       )}
                     </div>
                   )}
-                  <div className="worktree-info-title">Worktree</div>
+                  <div className="worktree-info-title">{t("main_header.worktree_title")}</div>
                   <div className="worktree-info-row">
                     <span className="worktree-info-label">
-                      Terminal{parentPath ? " (repo root)" : ""}
+                      {parentPath ? t("git.terminal_root") : t("git.terminal")}
                     </span>
                     <div className="worktree-info-command">
                       <code className="worktree-info-code">
@@ -310,18 +321,18 @@ export function MainHeader({
                           await navigator.clipboard.writeText(cdCommand);
                         }}
                         data-tauri-drag-region="false"
-                        aria-label="Copy command"
-                        title="Copy command"
+                        aria-label={t("header.copy_command")}
+                        title={t("header.copy_command")}
                       >
                         <Copy aria-hidden />
                       </button>
                     </div>
                     <span className="worktree-info-subtle">
-                      Open this worktree in your terminal.
+                      {t("main_header.open_in_terminal")}
                     </span>
                   </div>
                   <div className="worktree-info-row">
-                    <span className="worktree-info-label">Reveal</span>
+                    <span className="worktree-info-label">{t("main_header.show_label")}</span>
                     <button
                       type="button"
                       className="worktree-info-reveal"
@@ -338,17 +349,19 @@ export function MainHeader({
             </div>
           ) : (
             <div className="workspace-branch-menu" ref={menuRef}>
-              <MenuTrigger
-                isOpen={menuOpen}
+              <button
+                type="button"
                 className="workspace-branch-button"
-                onClick={branchMenu.toggle}
+                onClick={() => setMenuOpen((prev) => !prev)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
                 data-tauri-drag-region="false"
               >
                 <span className="workspace-branch">{branchName}</span>
                 <span className="workspace-branch-caret" aria-hidden>
                   ›
                 </span>
-              </MenuTrigger>
+              </button>
               {menuOpen && (
                 <PopoverSurface
                   className="workspace-branch-dropdown"
@@ -398,14 +411,14 @@ export function MainHeader({
                             }
                           }
                         }}
-                        placeholder="Search or create branch"
+                        placeholder={t("header.search_or_create_branch")}
                         className="branch-input"
                         autoCorrect="off"
                         autoCapitalize="none"
                         spellCheck={false}
                         autoFocus
                         data-tauri-drag-region="false"
-                        aria-label="Search branches"
+                        aria-label={t("header.search_branch")}
                       />
                       <button
                         type="button"
@@ -432,7 +445,7 @@ export function MainHeader({
                         }}
                         data-tauri-drag-region="false"
                       >
-                        Create
+                        {t("main_header.create")}
                       </button>
                     </div>
                     {branchValidationMessage && (
@@ -440,7 +453,7 @@ export function MainHeader({
                     )}
                     {canCreate && !branchValidationMessage && (
                       <div className="branch-create-hint">
-                        Create branch “{trimmedQuery}”
+                        {t("main_header.create_branch", { name: trimmedQuery })}
                       </div>
                     )}
                   </div>
@@ -454,7 +467,7 @@ export function MainHeader({
                     itemRole="menuitem"
                     itemDataTauriDragRegion="false"
                     emptyClassName="branch-empty"
-                    emptyText="No branches found"
+                    emptyText={t("header.no_branches_found")}
                     onSelect={async (branch) => {
                       if (branch.name === branchName) {
                         return;
@@ -545,8 +558,8 @@ export function MainHeader({
             className={`ghost main-header-action${isTerminalOpen ? " is-active" : ""}`}
             onClick={onToggleTerminal}
             data-tauri-drag-region="false"
-            aria-label="Toggle terminal panel"
-            title="Terminal"
+            aria-label={t("header.toggle_terminal_panel")}
+            title={t("header.terminal")}
           >
             <Terminal size={14} aria-hidden />
           </button>
@@ -557,8 +570,8 @@ export function MainHeader({
           onClick={handleCopyClick}
           disabled={!canCopyThread || !onCopyThread}
           data-tauri-drag-region="false"
-          aria-label="Copy thread"
-          title="Copy thread"
+          aria-label={t("header.copy_conversation")}
+          title={t("header.copy_conversation")}
         >
           <span className="main-header-icon" aria-hidden>
             <Copy className="main-header-icon-copy" size={14} />

@@ -1,6 +1,7 @@
+import FolderOpen from "lucide-react/dist/esm/icons/folder-open";
 import RefreshCw from "lucide-react/dist/esm/icons/refresh-cw";
 import type { LocalUsageSnapshot } from "../../../types";
-import { formatRelativeTime } from "../../../utils/time";
+import { formatRelativeTime } from "../../../i18n/utils/date";
 
 type LatestAgentRun = {
   message: string;
@@ -20,8 +21,8 @@ type UsageWorkspaceOption = {
 };
 
 type HomeProps = {
+  onOpenProject: () => void;
   onAddWorkspace: () => void;
-  onAddWorkspaceFromUrl: () => void;
   latestAgentRuns: LatestAgentRun[];
   isLoadingLatestAgents: boolean;
   localUsageSnapshot: LocalUsageSnapshot | null;
@@ -37,8 +38,8 @@ type HomeProps = {
 };
 
 export function Home({
+  onOpenProject,
   onAddWorkspace,
-  onAddWorkspaceFromUrl,
   latestAgentRuns,
   isLoadingLatestAgents,
   localUsageSnapshot,
@@ -238,7 +239,17 @@ export function Home({
       </div>
       <div className="home-actions">
         <button
-          className="home-button primary home-add-workspaces-button"
+          className="home-button primary"
+          onClick={onOpenProject}
+          data-tauri-drag-region="false"
+        >
+          <span className="home-icon" aria-hidden>
+            <FolderOpen size={18} />
+          </span>
+          Open Project
+        </button>
+        <button
+          className="home-button secondary"
           onClick={onAddWorkspace}
           data-tauri-drag-region="false"
         >
@@ -246,16 +257,6 @@ export function Home({
             +
           </span>
           Add Workspaces
-        </button>
-        <button
-          className="home-button secondary home-add-workspace-from-url-button"
-          onClick={onAddWorkspaceFromUrl}
-          data-tauri-drag-region="false"
-        >
-          <span className="home-icon" aria-hidden>
-            ⤓
-          </span>
-          Add Workspace from URL
         </button>
       </div>
       <div className="home-usage">

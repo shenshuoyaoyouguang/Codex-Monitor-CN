@@ -195,7 +195,7 @@ export const Composer = memo(function Composer({
   queuePausedReason = null,
   onEditQueued,
   onDeleteQueued,
-  sendLabel = "Send",
+  sendLabel,
   draftText = "",
   onDraftChange,
   historyKey = null,

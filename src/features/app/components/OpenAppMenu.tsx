@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ChevronDown from "lucide-react/dist/esm/icons/chevron-down";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import * as Sentry from "@sentry/react";
@@ -12,10 +13,10 @@ import {
 } from "../constants";
 import {
   PopoverMenuItem,
-  SplitActionMenu,
+  PopoverSurface,
 } from "../../design-system/components/popover/PopoverPrimitives";
 import { GENERIC_APP_ICON, getKnownOpenAppIcon } from "../utils/openAppIcons";
-import { useMenuController } from "../hooks/useMenuController";
+import { useDismissibleMenu } from "../hooks/useDismissibleMenu";
 
 type OpenTarget = {
   id: string;
@@ -39,8 +40,9 @@ export function OpenAppMenu({
   onSelectOpenAppId,
   iconById = {},
 }: OpenAppMenuProps) {
-  const openMenu = useMenuController();
-  const { isOpen: openMenuOpen, containerRef: openMenuRef } = openMenu;
+  const { t } = useTranslation();
+  const [openMenuOpen, setOpenMenuOpen] = useState(false);
+  const openMenuRef = useRef<HTMLDivElement | null>(null);
   const availableTargets =
     openTargets.length > 0 ? openTargets : DEFAULT_OPEN_APP_TARGETS;
   const openAppId = useMemo(
@@ -71,7 +73,7 @@ export function OpenAppMenu({
       DEFAULT_OPEN_APP_TARGETS.find((target) => target.id === DEFAULT_OPEN_APP_ID)
         ?.label ??
       DEFAULT_OPEN_APP_TARGETS[0]?.label ??
-      "Open",
+      t("app.open"),
     icon: getKnownOpenAppIcon(DEFAULT_OPEN_APP_ID) ?? GENERIC_APP_ICON,
     target:
       DEFAULT_OPEN_APP_TARGETS.find((target) => target.id === DEFAULT_OPEN_APP_ID) ??
@@ -104,7 +106,7 @@ export function OpenAppMenu({
       },
     });
     pushErrorToast({
-      title: "Couldn’t open workspace",
+      title: t("app.cannot_open_workspace"),
       message,
     });
     console.warn("Failed to open workspace in target app", {
@@ -113,6 +115,12 @@ export function OpenAppMenu({
       targetId: target.id,
     });
   };
+
+  useDismissibleMenu({
+    isOpen: openMenuOpen,
+    containerRef: openMenuRef,
+    onClose: () => setOpenMenuOpen(false),
+  });
 
   const resolveAppName = (target: OpenTarget) =>
     (target.target.appName ?? "").trim();
@@ -171,30 +179,27 @@ export function OpenAppMenu({
     }
     onSelectOpenAppId(target.id);
     window.localStorage.setItem(OPEN_APP_STORAGE_KEY, target.id);
-    openMenu.close();
+    setOpenMenuOpen(false);
     await openWithTarget(target);
   };
 
   const selectedCanOpen = canOpenTarget(selectedOpenTarget);
   const openLabel = selectedCanOpen
-    ? `Open in ${selectedOpenTarget.label}`
+    ? t("app.open") + " " + selectedOpenTarget.label
     : selectedOpenTarget.target.kind === "command"
-      ? "Set command in Settings"
-      : "Set app name in Settings";
+      ? t("app.configure_command_in_settings")
+      : t("app.configure_app_name_in_settings");
 
   return (
-    <SplitActionMenu
-      containerRef={openMenuRef}
-      className="open-app-menu"
-      buttonGroupClassName="open-app-button"
-      actionButton={
+    <div className="open-app-menu" ref={openMenuRef}>
+      <div className="open-app-button">
         <button
           type="button"
           className="ghost main-header-action open-app-action"
           onClick={handleOpen}
           disabled={!selectedCanOpen}
           data-tauri-drag-region="false"
-          aria-label={`Open in ${selectedOpenTarget.label}`}
+          aria-label={t("app.open") + " " + selectedOpenTarget.label}
           title={openLabel}
         >
           <span className="open-app-label">
@@ -207,31 +212,38 @@ export function OpenAppMenu({
             {selectedOpenTarget.label}
           </span>
         </button>
-      }
-      isOpen={openMenuOpen}
-      onToggle={openMenu.toggle}
-      toggleClassName="ghost main-header-action open-app-toggle"
-      toggleAriaLabel="Select editor"
-      toggleTitle="Select editor"
-      toggleIcon={<ChevronDown size={14} aria-hidden />}
-      popoverClassName="open-app-dropdown"
-      popoverRole="menu"
-    >
-      {resolvedOpenTargets.map((target) => (
-        // Keep entries visible but disable ones missing required config.
-        <PopoverMenuItem
-          key={target.id}
-          className="open-app-option"
-          onClick={() => handleSelectOpenTarget(target)}
-          disabled={!canOpenTarget(target)}
-          role="menuitem"
+        <button
+          type="button"
+          className="ghost main-header-action open-app-toggle"
+          onClick={() => setOpenMenuOpen((prev) => !prev)}
           data-tauri-drag-region="false"
-          icon={<img className="open-app-icon" src={target.icon} alt="" aria-hidden />}
-          active={target.id === resolvedOpenAppId}
+          aria-haspopup="menu"
+          aria-expanded={openMenuOpen}
+          aria-label={t("app.select_editor")}
+          title={t("app.select_editor")}
         >
-          {target.label}
-        </PopoverMenuItem>
-      ))}
-    </SplitActionMenu>
+          <ChevronDown size={14} aria-hidden />
+        </button>
+      </div>
+      {openMenuOpen && (
+        <PopoverSurface className="open-app-dropdown" role="menu">
+          {resolvedOpenTargets.map((target) => (
+            // Keep entries visible but disable ones missing required config.
+            <PopoverMenuItem
+              key={target.id}
+              className="open-app-option"
+              onClick={() => handleSelectOpenTarget(target)}
+              disabled={!canOpenTarget(target)}
+              role="menuitem"
+              data-tauri-drag-region="false"
+              icon={<img className="open-app-icon" src={target.icon} alt="" aria-hidden />}
+              active={target.id === resolvedOpenAppId}
+            >
+              {target.label}
+            </PopoverMenuItem>
+          ))}
+        </PopoverSurface>
+      )}
+    </div>
   );
 }

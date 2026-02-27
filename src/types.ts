@@ -93,7 +93,7 @@ export type ConversationItem =
       id: string;
       kind: "explore";
       status: "exploring" | "explored";
-      entries: { kind: "read" | "search" | "list" | "run"; label: string; detail?: string }[];
+      entries: { kind: "read" | "search" | "list" | "run" | "open" | "write"; label: string; detail?: string }[];
     }
   | {
       id: string;
@@ -212,6 +212,8 @@ export type AppSettings = {
   remoteBackends: RemoteBackendTarget[];
   activeRemoteBackendId: string | null;
   keepDaemonRunningAfterAppClose: boolean;
+  orbitAutoStartRunner: boolean;
+  orbitUseAccess: boolean;
   defaultAccessMode: AccessMode;
   reviewDeliveryMode: "inline" | "detached";
   composerModelShortcut: string | null;
@@ -236,6 +238,7 @@ export type AppSettings = {
   lastComposerReasoningEffort: string | null;
   uiScale: number;
   theme: ThemePreference;
+  language: "en" | "zh";
   usageShowRemaining: boolean;
   showMessageFilePath: boolean;
   chatHistoryScrollbackItems: number | null;

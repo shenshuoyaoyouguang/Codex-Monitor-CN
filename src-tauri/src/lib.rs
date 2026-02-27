@@ -182,6 +182,7 @@ pub fn run() {
             files::write_text_file,
             codex::get_config_model,
             menu::menu_set_accelerators,
+            menu::update_menu_texts,
             codex::codex_doctor,
             codex::codex_update,
             workspaces::list_workspaces,
