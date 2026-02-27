@@ -1,7 +1,7 @@
 name: Release
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Manual release trigger
 
 permissions:
   contents: write
