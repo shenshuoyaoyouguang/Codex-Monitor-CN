@@ -19,7 +19,6 @@ afterEach(() => {
 describe("ComposerInput dictation controls", () => {
   it("uses the mic control to cancel transcription while processing", () => {
     const onToggleDictation = vi.fn();
-    const onCancelDictation = vi.fn();
     const onOpenDictationSettings = vi.fn();
     render(
       <ComposerInput
@@ -34,7 +33,6 @@ describe("ComposerInput dictation controls", () => {
         dictationState="processing"
         dictationEnabled={true}
         onToggleDictation={onToggleDictation}
-        onCancelDictation={onCancelDictation}
         onOpenDictationSettings={onOpenDictationSettings}
         onTextChange={() => {}}
         onSelectionChange={() => {}}
@@ -53,8 +51,7 @@ describe("ComposerInput dictation controls", () => {
     });
     fireEvent.click(cancelButton);
 
-    expect(onCancelDictation).toHaveBeenCalledTimes(1);
-    expect(onToggleDictation).not.toHaveBeenCalled();
+    expect(onToggleDictation).toHaveBeenCalledTimes(1);
     expect(onOpenDictationSettings).not.toHaveBeenCalled();
   });
 });

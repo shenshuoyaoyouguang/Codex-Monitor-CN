@@ -45,7 +45,7 @@ function normalizeThreadStatusType(status: Record<string, unknown>): string {
 export function useThreadTurnEvents({
   dispatch,
   planByThreadRef,
-  getCurrentRateLimits,
+  getCurrentRateLimits: _getCurrentRateLimits,
   getCustomName,
   isThreadHidden,
   markProcessing,
@@ -330,14 +330,13 @@ export function useThreadTurnEvents({
 
   const onAccountRateLimitsUpdated = useCallback(
     (workspaceId: string, rateLimits: Record<string, unknown>) => {
-      const previousRateLimits = getCurrentRateLimits?.(workspaceId) ?? null;
       dispatch({
         type: "setRateLimits",
         workspaceId,
-        rateLimits: normalizeRateLimits(rateLimits, previousRateLimits),
+        rateLimits: normalizeRateLimits(rateLimits),
       });
     },
-    [dispatch, getCurrentRateLimits],
+    [dispatch],
   );
 
   const onTurnError = useCallback(

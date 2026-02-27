@@ -72,15 +72,18 @@ describe("useThreadActions", () => {
       itemsByThread: {},
       threadsByWorkspace: {},
       activeThreadIdByWorkspace: {},
+      activeTurnIdByThread: {},
       threadListCursorByWorkspace: {},
       threadStatusById: {},
       threadSortKey: "updated_at",
+      threadParentById: {},
       getCustomName: () => undefined,
       threadActivityRef,
       loadedThreadsRef,
       replaceOnResumeRef,
       applyCollabThreadLinksFromThread,
       updateThreadParent,
+      onSubagentThreadDetected: vi.fn(),
       ...overrides,
     };
 

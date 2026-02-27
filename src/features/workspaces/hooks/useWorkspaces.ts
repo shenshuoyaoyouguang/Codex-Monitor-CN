@@ -22,7 +22,6 @@ import {
   removeWorktree as removeWorktreeService,
   renameWorktree as renameWorktreeService,
   renameWorktreeUpstream as renameWorktreeUpstreamService,
-  updateWorkspaceCodexBin as updateWorkspaceCodexBinService,
   updateWorkspaceSettings as updateWorkspaceSettingsService,
 } from "../../../services/tauri";
 
@@ -241,7 +240,7 @@ export function useWorkspaces(options: UseWorkspacesOptions = {}) {
         payload: { path: selection },
       });
       try {
-        const workspace = await addWorkspaceService(selection, defaultCodexBin ?? null);
+        const workspace = await addWorkspaceService(selection);
         setWorkspaces((prev) => [...prev, workspace]);
         if (shouldActivate) {
           setActiveWorkspaceId(workspace.id);
@@ -321,7 +320,13 @@ export function useWorkspaces(options: UseWorkspacesOptions = {}) {
   );
 
   const addWorkspacesFromPaths = useCallback(
-    async (paths: string[]) => {
+    async (paths: string[]): Promise<{
+      added: WorkspaceInfo[];
+      firstAdded: WorkspaceInfo | null;
+      skippedExisting: string[];
+      skippedInvalid: string[];
+      failures: { path: string; message: string }[];
+    }> => {
       const existingPaths = new Set(
         workspaces.map((entry) => normalizeWorkspacePathKey(entry.path)),
       );
@@ -382,52 +387,13 @@ export function useWorkspaces(options: UseWorkspacesOptions = {}) {
         }
       }
 
-      const hasIssues =
-        skippedExisting.length > 0 || skippedInvalid.length > 0 || failures.length > 0;
-      if (hasIssues) {
-        const lines: string[] = [];
-        lines.push(`Added ${added.length} workspace${added.length === 1 ? "" : "s"}.`);
-        if (skippedExisting.length > 0) {
-          lines.push(
-            `Skipped ${skippedExisting.length} already added workspace${
-              skippedExisting.length === 1 ? "" : "s"
-            }.`,
-          );
-        }
-        if (skippedInvalid.length > 0) {
-          lines.push(
-            `Skipped ${skippedInvalid.length} invalid path${
-              skippedInvalid.length === 1 ? "" : "s"
-            } (not a folder).`,
-          );
-        }
-        if (failures.length > 0) {
-          lines.push(
-            `Failed to add ${failures.length} workspace${
-              failures.length === 1 ? "" : "s"
-            }.`,
-          );
-          const details = failures
-            .slice(0, 3)
-            .map(({ path, message }) => `- ${path}: ${message}`);
-          if (failures.length > 3) {
-            details.push(`- …and ${failures.length - 3} more`);
-          }
-          lines.push("");
-          lines.push("Failures:");
-          lines.push(...details);
-        }
-
-        const summary = lines.join("\n");
-        const title =
-          failures.length > 0 ? "Some workspaces failed to add" : "Some workspaces were skipped";
-        void message(summary, {
-          title,
-          kind: failures.length > 0 ? "error" : "warning",
-        });
-      }
-
-      return added[0] ?? null;
+      return {
+        added,
+        firstAdded: added[0] ?? null,
+        skippedExisting,
+        skippedInvalid,
+        failures,
+      };
     },
     [addWorkspaceFromPath, workspaces],
   );
@@ -640,45 +606,6 @@ export function useWorkspaces(options: UseWorkspacesOptions = {}) {
     },
     [onDebug, workspaces],
   );
-
-  async function updateWorkspaceCodexBin(workspaceId: string, codexBin: string | null) {
-    onDebug?.({
-      id: `${Date.now()}-client-update-workspace-codex-bin`,
-      timestamp: Date.now(),
-      source: "client",
-      label: "workspace/codexBin",
-      payload: { workspaceId, codexBin },
-    });
-    const previous = workspaces.find((entry) => entry.id === workspaceId) ?? null;
-    if (previous) {
-      setWorkspaces((prev) =>
-        prev.map((entry) =>
-          entry.id === workspaceId ? { ...entry, codex_bin: codexBin } : entry,
-        ),
-      );
-    }
-    try {
-      const updated = await updateWorkspaceCodexBinService(workspaceId, codexBin);
-      setWorkspaces((prev) =>
-        prev.map((entry) => (entry.id === workspaceId ? updated : entry)),
-      );
-      return updated;
-    } catch (error) {
-      if (previous) {
-        setWorkspaces((prev) =>
-          prev.map((entry) => (entry.id === workspaceId ? previous : entry)),
-        );
-      }
-      onDebug?.({
-        id: `${Date.now()}-client-update-workspace-codex-bin-error`,
-        timestamp: Date.now(),
-        source: "error",
-        label: "workspace/codexBin error",
-        payload: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
-  }
 
   const updateWorkspaceGroups = useCallback(
     async (nextGroups: WorkspaceGroup[]) => {
@@ -1050,7 +977,6 @@ export function useWorkspaces(options: UseWorkspacesOptions = {}) {
     connectWorkspace,
     markWorkspaceConnected,
     updateWorkspaceSettings,
-    updateWorkspaceCodexBin,
     createWorkspaceGroup,
     renameWorkspaceGroup,
     moveWorkspaceGroup,

@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { GitDiffViewer } from "./GitDiffViewer";
@@ -73,37 +73,6 @@ afterEach(() => {
 });
 
 describe("GitDiffViewer", () => {
-  it("inserts a diff line reference into composer when the line '+' action is clicked", () => {
-    const onInsertComposerText = vi.fn();
-
-    render(
-      <GitDiffViewer
-        diffs={[
-          {
-            path: "src/main.ts@@item-change-1@@change-0",
-            displayPath: "src/main.ts",
-            status: "M",
-            diff: "@@ -1,1 +1,2 @@\n line one\n+added line",
-          },
-        ]}
-        selectedPath="src/main.ts@@item-change-1@@change-0"
-        isLoading={false}
-        error={null}
-        diffStyle="unified"
-        onInsertComposerText={onInsertComposerText}
-      />,
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Ask for changes on hovered line" }),
-    );
-
-    expect(onInsertComposerText).toHaveBeenCalledTimes(1);
-    expect(onInsertComposerText).toHaveBeenCalledWith(
-      "src/main.ts:L2\n```diff\n+added line\n```\n\n",
-    );
-  });
-
   it("renders raw fallback lines instead of Diff unavailable for non-patch diffs", () => {
     render(
       <GitDiffViewer

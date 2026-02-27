@@ -84,6 +84,7 @@ import { useComposerInsert } from "@app/hooks/useComposerInsert";
 import { useRenameThreadPrompt } from "@threads/hooks/useRenameThreadPrompt";
 import { useWorktreePrompt } from "@/features/workspaces/hooks/useWorktreePrompt";
 import { useClonePrompt } from "@/features/workspaces/hooks/useClonePrompt";
+import { useWorkspaceFromUrlPrompt } from "@/features/workspaces/hooks/useWorkspaceFromUrlPrompt";
 import { useWorkspaceController } from "@app/hooks/useWorkspaceController";
 import { useWorkspaceSelection } from "@/features/workspaces/hooks/useWorkspaceSelection";
 import { useGitHubPanelController } from "@app/hooks/useGitHubPanelController";
@@ -210,7 +211,6 @@ function MainApp() {
     connectWorkspace,
     markWorkspaceConnected,
     updateWorkspaceSettings,
-    updateWorkspaceCodexBin,
     createWorkspaceGroup,
     renameWorkspaceGroup,
     moveWorkspaceGroup,
@@ -223,6 +223,11 @@ function MainApp() {
     deletingWorktreeIds,
     hasLoaded,
     refreshWorkspaces,
+    mobileRemoteWorkspacePathPrompt,
+    updateMobileRemoteWorkspacePathInput,
+    cancelMobileRemoteWorkspacePathPrompt,
+    submitMobileRemoteWorkspacePathPrompt,
+    appendMobileRemoteWorkspacePathFromRecent,
   } = useWorkspaceController({
     appSettings,
     addDebugEntry,
@@ -1083,6 +1088,22 @@ function MainApp() {
     },
   });
 
+  const {
+    workspaceFromUrlPrompt,
+    openWorkspaceFromUrlPrompt: _openWorkspaceFromUrlPrompt,
+    closeWorkspaceFromUrlPrompt,
+    chooseWorkspaceFromUrlDestinationPath,
+    submitWorkspaceFromUrlPrompt,
+    updateWorkspaceFromUrlUrl,
+    updateWorkspaceFromUrlTargetFolderName,
+    clearWorkspaceFromUrlDestinationPath,
+    canSubmitWorkspaceFromUrlPrompt,
+  } = useWorkspaceFromUrlPrompt({
+    onSubmit: async (url, destinationPath, targetFolderName) => {
+      await addWorkspaceFromGitUrl(url, destinationPath, targetFolderName);
+    },
+  });
+
   const showHome = !activeWorkspace;
   const {
     latestAgentRuns,
@@ -1476,6 +1497,7 @@ function MainApp() {
   const {
     handleAddWorkspace,
     handleAddWorkspacesFromPaths,
+    handleAddWorkspaceFromGitUrl: _handleAddWorkspaceFromGitUrl,
     handleAddAgent,
     handleAddWorktreeAgent,
     handleAddCloneAgent,
@@ -1672,6 +1694,9 @@ function MainApp() {
     baseWorkspaceRef,
     onAddWorkspace: () => {
       void handleAddWorkspace();
+    },
+    onAddWorkspaceFromUrl: () => {
+      // TODO: Implement URL workspace addition
     },
     onAddAgent: (workspace) => {
       void handleAddAgent(workspace);
@@ -2114,6 +2139,7 @@ const {
     dictationHint,
     onDismissDictationHint: clearDictationHint,
     composerContextActions,
+    composerFollowUpHintEnabled: appSettings.composerFollowUpHintEnabled,
     composerSendLabel,
     showComposer,
     plan: activePlan,
@@ -2302,6 +2328,19 @@ const {
         onClonePromptClearCopiesFolder={clearCloneCopiesFolder}
         onClonePromptCancel={cancelClonePrompt}
         onClonePromptConfirm={confirmClonePrompt}
+        workspaceFromUrlPrompt={workspaceFromUrlPrompt}
+        workspaceFromUrlCanSubmit={canSubmitWorkspaceFromUrlPrompt}
+        onWorkspaceFromUrlPromptUrlChange={updateWorkspaceFromUrlUrl}
+        onWorkspaceFromUrlPromptTargetFolderNameChange={updateWorkspaceFromUrlTargetFolderName}
+        onWorkspaceFromUrlPromptChooseDestinationPath={chooseWorkspaceFromUrlDestinationPath}
+        onWorkspaceFromUrlPromptClearDestinationPath={clearWorkspaceFromUrlDestinationPath}
+        onWorkspaceFromUrlPromptCancel={closeWorkspaceFromUrlPrompt}
+        onWorkspaceFromUrlPromptConfirm={submitWorkspaceFromUrlPrompt}
+        mobileRemoteWorkspacePathPrompt={mobileRemoteWorkspacePathPrompt}
+        onMobileRemoteWorkspacePathPromptChange={updateMobileRemoteWorkspacePathInput}
+        onMobileRemoteWorkspacePathPromptRecentPathSelect={appendMobileRemoteWorkspacePathFromRecent}
+        onMobileRemoteWorkspacePathPromptCancel={cancelMobileRemoteWorkspacePathPrompt}
+        onMobileRemoteWorkspacePathPromptConfirm={submitMobileRemoteWorkspacePathPrompt}
         branchSwitcher={branchSwitcher}
         branches={branches}
         workspaces={workspaces}
@@ -2335,9 +2374,6 @@ const {
           },
           onRunDoctor: doctor,
           onRunCodexUpdate: codexUpdate,
-          onUpdateWorkspaceCodexBin: async (id, codexBin) => {
-            await updateWorkspaceCodexBin(id, codexBin);
-          },
           onUpdateWorkspaceSettings: async (id, settings) => {
             await updateWorkspaceSettings(id, settings);
           },

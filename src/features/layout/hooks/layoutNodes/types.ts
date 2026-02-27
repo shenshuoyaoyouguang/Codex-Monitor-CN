@@ -373,6 +373,7 @@ export type LayoutNodesOptions = {
   isReviewing: boolean;
   isProcessing: boolean;
   steerEnabled: boolean;
+  followUpMessageBehavior?: "queue" | "steer";
   reviewPrompt: ReviewPromptState;
   onReviewPromptClose: () => void;
   onReviewPromptShowPreset: () => void;
@@ -446,6 +447,7 @@ export type LayoutNodesOptions = {
   dictationHint: string | null;
   onDismissDictationHint: () => void;
   composerContextActions: ComposerContextAction[];
+  composerFollowUpHintEnabled: boolean;
   showComposer: boolean;
   composerSendLabel?: string;
   plan: TurnPlan | null;

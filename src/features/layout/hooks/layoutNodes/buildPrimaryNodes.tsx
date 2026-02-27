@@ -119,7 +119,6 @@ export function buildPrimaryNodes(options: LayoutNodesOptions): PrimaryLayoutNod
   const composerNode = options.showComposer ? (
     <Composer
       onSend={options.onSend}
-      onQueue={options.onQueue}
       onStop={options.onStop}
       canStop={options.canStop}
       disabled={options.isReviewing}
@@ -130,7 +129,8 @@ export function buildPrimaryNodes(options: LayoutNodesOptions): PrimaryLayoutNod
         options.composerSendLabel ??
         (options.isProcessing && !options.steerEnabled ? "Queue" : "Send")
       }
-      steerEnabled={options.steerEnabled}
+      steerAvailable={options.steerEnabled}
+      followUpMessageBehavior={options.followUpMessageBehavior ?? "queue"}
       isProcessing={options.isProcessing}
       draftText={options.draftText}
       onDraftChange={options.onDraftChange}
@@ -197,6 +197,7 @@ export function buildPrimaryNodes(options: LayoutNodesOptions): PrimaryLayoutNod
       onReviewPromptConfirmCommit={options.onReviewPromptConfirmCommit}
       onReviewPromptUpdateCustomInstructions={options.onReviewPromptUpdateCustomInstructions}
       onReviewPromptConfirmCustom={options.onReviewPromptConfirmCustom}
+      composerFollowUpHintEnabled={options.composerFollowUpHintEnabled}
     />
   ) : null;
 

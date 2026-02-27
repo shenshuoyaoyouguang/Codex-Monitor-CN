@@ -133,7 +133,7 @@ export function WorkspaceHome({
   dictationState,
   dictationLevel,
   onToggleDictation,
-  onCancelDictation,
+  onCancelDictation: _onCancelDictation,
   onOpenDictationSettings,
   dictationError,
   onDismissDictationError,
@@ -376,7 +376,6 @@ export function WorkspaceHome({
             dictationLevel={dictationLevel}
             dictationEnabled={dictationEnabled}
             onToggleDictation={onToggleDictation}
-            onCancelDictation={onCancelDictation}
             onOpenDictationSettings={onOpenDictationSettings}
             dictationError={dictationError}
             onDismissDictationError={onDismissDictationError}

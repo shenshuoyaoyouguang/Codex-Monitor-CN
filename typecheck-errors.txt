@@ -1,0 +1,4 @@
+﻿
+> codex-monitor@0.7.60 typecheck
+> tsc --noEmit
+

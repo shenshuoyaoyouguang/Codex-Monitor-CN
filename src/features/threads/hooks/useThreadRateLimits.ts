@@ -52,12 +52,10 @@ export function useThreadRateLimits({
           (response?.rateLimits as Record<string, unknown> | undefined) ??
           (response?.rate_limits as Record<string, unknown> | undefined);
         if (rateLimits) {
-          const previousRateLimits =
-            getCurrentRateLimitsRef.current?.(targetId) ?? null;
           dispatch({
             type: "setRateLimits",
             workspaceId: targetId,
-            rateLimits: normalizeRateLimits(rateLimits, previousRateLimits),
+            rateLimits: normalizeRateLimits(rateLimits),
           });
         }
       } catch (error) {

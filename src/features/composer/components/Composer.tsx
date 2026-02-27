@@ -181,9 +181,9 @@ export const Composer = memo(function Composer({
   selectedEffort,
   onSelectEffort,
   reasoningSupported,
-  codexArgsOptions = [],
-  selectedCodexArgsOverride = null,
-  onSelectCodexArgsOverride,
+  codexArgsOptions: _codexArgsOptions = [],
+  selectedCodexArgsOverride: _selectedCodexArgsOverride = null,
+  onSelectCodexArgsOverride: _onSelectCodexArgsOverride,
   accessMode,
   onSelectAccessMode,
   skills,
@@ -192,7 +192,7 @@ export const Composer = memo(function Composer({
   files,
   contextUsage = null,
   queuedMessages = [],
-  queuePausedReason = null,
+  queuePausedReason: _queuePausedReason = null,
   onEditQueued,
   onDeleteQueued,
   sendLabel,
@@ -215,7 +215,7 @@ export const Composer = memo(function Composer({
   dictationState = "idle",
   dictationLevel = 0,
   onToggleDictation,
-  onCancelDictation,
+  onCancelDictation: _onCancelDictation,
   onOpenDictationSettings,
   dictationTranscript = null,
   onDictationTranscriptHandled,
@@ -643,7 +643,6 @@ export const Composer = memo(function Composer({
     <footer className={`composer${disabled ? " is-disabled" : ""}`}>
       <ComposerQueue
         queuedMessages={queuedMessages}
-        pausedReason={queuePausedReason}
         onEditQueued={onEditQueued}
         onDeleteQueued={onDeleteQueued}
       />
@@ -697,7 +696,6 @@ export const Composer = memo(function Composer({
         dictationState={dictationState}
         dictationLevel={dictationLevel}
         onToggleDictation={onToggleDictation}
-        onCancelDictation={onCancelDictation}
         onOpenDictationSettings={onOpenDictationSettings}
         dictationError={dictationError}
         onDismissDictationError={onDismissDictationError}
@@ -866,9 +864,6 @@ export const Composer = memo(function Composer({
         selectedEffort={selectedEffort}
         onSelectEffort={onSelectEffort}
         reasoningSupported={reasoningSupported}
-        codexArgsOptions={codexArgsOptions}
-        selectedCodexArgsOverride={selectedCodexArgsOverride}
-        onSelectCodexArgsOverride={onSelectCodexArgsOverride}
         accessMode={accessMode}
         onSelectAccessMode={onSelectAccessMode}
         contextUsage={contextUsage}

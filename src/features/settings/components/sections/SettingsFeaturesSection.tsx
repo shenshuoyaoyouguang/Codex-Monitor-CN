@@ -1,20 +1,34 @@
-import type { AppSettings } from "@/types";
+import type { AppSettings, CodexFeature } from "@/types";
 import { useTranslation } from "react-i18next";
 import { openInFileManagerLabel } from "@utils/platformPaths";
 
-type SettingsFeaturesSectionProps = {
+export type SettingsFeaturesSectionProps = {
   appSettings: AppSettings;
-  hasCodexHomeOverrides: boolean;
+  hasFeatureWorkspace: boolean;
   openConfigError: string | null;
+  featureError: string | null;
+  featuresLoading: boolean;
+  featureUpdatingKey: string | null;
+  stableFeatures: CodexFeature[];
+  experimentalFeatures: CodexFeature[];
+  hasDynamicFeatureRows: boolean;
   onOpenConfig: () => void;
+  onToggleCodexFeature: (feature: CodexFeature) => void;
   onUpdateAppSettings: (next: AppSettings) => Promise<void>;
 };
 
 export function SettingsFeaturesSection({
   appSettings,
-  hasCodexHomeOverrides,
+  hasFeatureWorkspace,
   openConfigError,
+  featureError: _featureError,
+  featuresLoading: _featuresLoading,
+  featureUpdatingKey: _featureUpdatingKey,
+  stableFeatures: _stableFeatures,
+  experimentalFeatures: _experimentalFeatures,
+  hasDynamicFeatureRows: _hasDynamicFeatureRows,
   onOpenConfig,
+  onToggleCodexFeature: _onToggleCodexFeature,
   onUpdateAppSettings,
 }: SettingsFeaturesSectionProps) {
   const { t } = useTranslation();
@@ -24,7 +38,7 @@ export function SettingsFeaturesSection({
       <div className="settings-section-subtitle">
         {t('settings.features.manage_features')}
       </div>
-      {hasCodexHomeOverrides && (
+      {hasFeatureWorkspace && (
         <div className="settings-help">
           {t('settings.features.features_stored')}
           <br />
@@ -146,14 +160,14 @@ export function SettingsFeaturesSection({
         </div>
         <button
           type="button"
-          className={`settings-toggle ${appSettings.experimentalCollabEnabled ? "on" : ""}`}
+          className={`settings-toggle ${appSettings.collaborationModesEnabled ? "on" : ""}`}
           onClick={() =>
             void onUpdateAppSettings({
               ...appSettings,
-              experimentalCollabEnabled: !appSettings.experimentalCollabEnabled,
+              collaborationModesEnabled: !appSettings.collaborationModesEnabled,
             })
           }
-          aria-pressed={appSettings.experimentalCollabEnabled}
+          aria-pressed={appSettings.collaborationModesEnabled}
         >
           <span className="settings-toggle-knob" />
         </button>

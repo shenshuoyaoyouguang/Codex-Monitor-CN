@@ -4,11 +4,7 @@ import type {
   WorkspaceHomeRunInstance,
 } from "../hooks/useWorkspaceHome";
 import { buildLabelCounts } from "./workspaceHomeHelpers";
-
-type ThreadStatus = {
-  isProcessing: boolean;
-  isReviewing: boolean;
-};
+import type { ThreadStatusById } from "../../../utils/threadStatus";
 
 type WorkspaceHomeHistoryProps = {
   runs: WorkspaceHomeRun[];
@@ -16,7 +12,7 @@ type WorkspaceHomeHistoryProps = {
   recentThreadsUpdatedAt: number | null;
   activeWorkspaceId: string | null;
   activeThreadId: string | null;
-  threadStatusById: Record<string, ThreadStatus>;
+  threadStatusById: ThreadStatusById;
   onSelectInstance: (workspaceId: string, threadId: string) => void;
 };
 
@@ -24,7 +20,7 @@ type WorkspaceHomeInstanceListProps = {
   instances: WorkspaceHomeRunInstance[];
   activeWorkspaceId: string | null;
   activeThreadId: string | null;
-  threadStatusById: Record<string, ThreadStatus>;
+  threadStatusById: ThreadStatusById;
   onSelectInstance: (workspaceId: string, threadId: string) => void;
 };
 

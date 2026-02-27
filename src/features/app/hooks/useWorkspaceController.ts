@@ -4,6 +4,7 @@ import type { AppSettings, WorkspaceInfo } from "../../../types";
 import type { DebugEntry } from "../../../types";
 import { useWorkspaceDialogs } from "./useWorkspaceDialogs";
 import { isMobilePlatform } from "../../../utils/platformPaths";
+import type { AddWorkspacesFromPathsResult } from "../../workspaces/hooks/useWorkspaceCrud";
 
 type WorkspaceControllerOptions = {
   appSettings: AppSettings;
@@ -48,7 +49,7 @@ export function useWorkspaceController({
     async (
       paths: string[],
       options?: { rememberMobileRemoteRecents?: boolean },
-    ) => {
+    ): Promise<AddWorkspacesFromPathsResult> => {
       const result = await addWorkspacesFromPathsCore(paths);
       await showAddWorkspacesResult(result);
       if (options?.rememberMobileRemoteRecents && result.added.length > 0) {
@@ -109,7 +110,7 @@ export function useWorkspaceController({
         await showWorktreeRemovalError(error);
       }
     },
-    [confirmWorktreeRemoval, removeWorktreeCore, showWorktreeRemovalError, workspaces],
+    [confirmWorktreeRemoval, removeWorktreeCore, showWorkspaceRemovalError, workspaces],
   );
 
   return {

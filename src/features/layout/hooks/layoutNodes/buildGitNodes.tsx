@@ -114,7 +114,6 @@ export function buildGitNodes(options: LayoutNodesOptions): GitLayoutNodes {
         onUnstageFile={options.onUnstageGitFile}
         onRevertFile={options.onRevertGitFile}
         onRevertAllChanges={options.onRevertAllGitChanges}
-        onReviewUncommittedChanges={options.onReviewUncommittedChanges}
         commitMessage={options.commitMessage}
         commitMessageLoading={options.commitMessageLoading}
         commitMessageError={options.commitMessageError}
@@ -163,9 +162,6 @@ export function buildGitNodes(options: LayoutNodesOptions): GitLayoutNodes {
       canRevert={options.diffSource === "local"}
       onRevertFile={options.onRevertGitFile}
       onActivePathChange={options.onDiffActivePathChange}
-      onInsertComposerText={
-        options.canInsertComposerText ? options.onInsertComposerText : undefined
-      }
     />
   );
 
