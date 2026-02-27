@@ -1,8 +1,14 @@
-import type { AppSettings } from "@/types";
+import type { AppSettings, ModelOption } from "@/types";
+import {
+  SettingsSection,
+  SettingsToggleRow,
+  SettingsToggleSwitch,
+} from "@/features/design-system/components/settings/SettingsPrimitives";
 
 type SettingsGitSectionProps = {
   appSettings: AppSettings;
   onUpdateAppSettings: (next: AppSettings) => Promise<void>;
+  models: ModelOption[];
   commitMessagePromptDraft: string;
   commitMessagePromptDirty: boolean;
   commitMessagePromptSaving: boolean;
@@ -14,6 +20,7 @@ type SettingsGitSectionProps = {
 export function SettingsGitSection({
   appSettings,
   onUpdateAppSettings,
+  models,
   commitMessagePromptDraft,
   commitMessagePromptDirty,
   commitMessagePromptSaving,
@@ -22,51 +29,38 @@ export function SettingsGitSection({
   onResetCommitMessagePrompt,
 }: SettingsGitSectionProps) {
   return (
-    <section className="settings-section">
-      <div className="settings-section-title">Git</div>
-      <div className="settings-section-subtitle">
-        Manage how diffs are loaded in the Git sidebar.
-      </div>
-      <div className="settings-toggle-row">
-        <div>
-          <div className="settings-toggle-title">Preload git diffs</div>
-          <div className="settings-toggle-subtitle">Make viewing git diff faster.</div>
-        </div>
-        <button
-          type="button"
-          className={`settings-toggle ${appSettings.preloadGitDiffs ? "on" : ""}`}
+    <SettingsSection
+      title="Git"
+      subtitle="Manage how diffs are loaded in the Git sidebar."
+    >
+      <SettingsToggleRow
+        title="Preload git diffs"
+        subtitle="Make viewing git diff faster."
+      >
+        <SettingsToggleSwitch
+          pressed={appSettings.preloadGitDiffs}
           onClick={() =>
             void onUpdateAppSettings({
               ...appSettings,
               preloadGitDiffs: !appSettings.preloadGitDiffs,
             })
           }
-          aria-pressed={appSettings.preloadGitDiffs}
-        >
-          <span className="settings-toggle-knob" />
-        </button>
-      </div>
-      <div className="settings-toggle-row">
-        <div>
-          <div className="settings-toggle-title">Ignore whitespace changes</div>
-          <div className="settings-toggle-subtitle">
-            Hides whitespace-only changes in local and commit diffs.
-          </div>
-        </div>
-        <button
-          type="button"
-          className={`settings-toggle ${appSettings.gitDiffIgnoreWhitespaceChanges ? "on" : ""}`}
+        />
+      </SettingsToggleRow>
+      <SettingsToggleRow
+        title="Ignore whitespace changes"
+        subtitle="Hides whitespace-only changes in local and commit diffs."
+      >
+        <SettingsToggleSwitch
+          pressed={appSettings.gitDiffIgnoreWhitespaceChanges}
           onClick={() =>
             void onUpdateAppSettings({
               ...appSettings,
               gitDiffIgnoreWhitespaceChanges: !appSettings.gitDiffIgnoreWhitespaceChanges,
             })
           }
-          aria-pressed={appSettings.gitDiffIgnoreWhitespaceChanges}
-        >
-          <span className="settings-toggle-knob" />
-        </button>
-      </div>
+        />
+      </SettingsToggleRow>
       <div className="settings-field">
         <div className="settings-field-label">Commit message prompt</div>
         <div className="settings-help">
@@ -103,6 +97,36 @@ export function SettingsGitSection({
           </button>
         </div>
       </div>
-    </section>
+      {models.length > 0 && (
+        <div className="settings-field">
+          <label className="settings-field-label" htmlFor="commit-message-model-select">
+            Commit message model
+          </label>
+          <div className="settings-help">
+            The model used when generating commit messages. Leave on default to use the
+            workspace model.
+          </div>
+          <select
+            id="commit-message-model-select"
+            className="settings-select"
+            value={appSettings.commitMessageModelId ?? ""}
+            onChange={(event) => {
+              const value = event.target.value || null;
+              void onUpdateAppSettings({
+                ...appSettings,
+                commitMessageModelId: value,
+              });
+            }}
+          >
+            <option value="">Default</option>
+            {models.map((model) => (
+              <option key={model.id} value={model.model}>
+                {model.displayName?.trim() || model.model}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+    </SettingsSection>
   );
 }

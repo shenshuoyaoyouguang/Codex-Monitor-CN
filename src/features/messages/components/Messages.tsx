@@ -22,10 +22,10 @@ import { useFileLinkOpener } from "../hooks/useFileLinkOpener";
 import {
   SCROLL_THRESHOLD_PX,
   buildToolGroups,
+  computePlanFollowupState,
   formatCount,
   parseReasoning,
   scrollKeyForItems,
-  toolStatusTone,
 } from "../utils/messageRenderUtils";
 import {
   DiffRow,
@@ -45,6 +45,8 @@ type MessagesProps = {
   isLoadingMessages?: boolean;
   processingStartedAt?: number | null;
   lastDurationMs?: number | null;
+  showPollingFetchStatus?: boolean;
+  pollingIntervalMs?: number;
   workspacePath?: string | null;
   openTargets: OpenAppTarget[];
   selectedOpenAppId: string;
@@ -58,7 +60,20 @@ type MessagesProps = {
   onPlanAccept?: () => void;
   onPlanSubmitChanges?: (changes: string) => void;
   onOpenThreadLink?: (threadId: string) => void;
+  onQuoteMessage?: (text: string) => void;
 };
+
+function toMarkdownQuote(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return "";
+  }
+  return trimmed
+    .split(/\r?\n/)
+    .map((line) => `> ${line}`)
+    .join("\n")
+    .concat("\n\n");
+}
 
 export const Messages = memo(function Messages({
   items,
@@ -68,6 +83,8 @@ export const Messages = memo(function Messages({
   isLoadingMessages = false,
   processingStartedAt = null,
   lastDurationMs = null,
+  showPollingFetchStatus = false,
+  pollingIntervalMs = 12000,
   workspacePath = null,
   openTargets,
   selectedOpenAppId,
@@ -78,6 +95,7 @@ export const Messages = memo(function Messages({
   onPlanAccept,
   onPlanSubmitChanges,
   onOpenThreadLink,
+  onQuoteMessage,
 }: MessagesProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -255,6 +273,20 @@ export const Messages = memo(function Messages({
     [],
   );
 
+  const handleQuoteMessage = useCallback(
+    (item: Extract<ConversationItem, { kind: "message" }>) => {
+      if (!onQuoteMessage) {
+        return;
+      }
+      const quoteText = toMarkdownQuote(item.text);
+      if (!quoteText) {
+        return;
+      }
+      onQuoteMessage(quoteText);
+    },
+    [onQuoteMessage],
+  );
+
   useLayoutEffect(() => {
     const container = containerRef.current;
     const shouldScroll =
@@ -288,51 +320,24 @@ export const Messages = memo(function Messages({
     useState<Record<string, string>>({});
 
   const planFollowup = useMemo(() => {
-    if (!threadId) {
-      return { shouldShow: false, planItemId: null as string | null };
-    }
     if (!onPlanAccept || !onPlanSubmitChanges) {
-      return { shouldShow: false, planItemId: null as string | null };
+      return { shouldShow: false, planItemId: null };
     }
-    if (hasVisibleUserInputRequest) {
-      return { shouldShow: false, planItemId: null as string | null };
-    }
-    let planIndex = -1;
-    let planItem: Extract<ConversationItem, { kind: "tool" }> | null = null;
-    for (let index = items.length - 1; index >= 0; index -= 1) {
-      const item = items[index];
-      if (item.kind === "tool" && item.toolType === "plan") {
-        planIndex = index;
-        planItem = item;
-        break;
+
+    const candidate = computePlanFollowupState({
+      threadId,
+      items,
+      isThinking,
+      hasVisibleUserInputRequest,
+    });
+
+    if (threadId && candidate.planItemId) {
+      if (dismissedPlanFollowupByThread[threadId] === candidate.planItemId) {
+        return { ...candidate, shouldShow: false };
       }
     }
-    if (!planItem) {
-      return { shouldShow: false, planItemId: null as string | null };
-    }
-    const planItemId = planItem.id;
-    if (dismissedPlanFollowupByThread[threadId] === planItemId) {
-      return { shouldShow: false, planItemId };
-    }
-    if (!(planItem.output ?? "").trim()) {
-      return { shouldShow: false, planItemId };
-    }
-    const planTone = toolStatusTone(planItem, false);
-    if (planTone === "failed") {
-      return { shouldShow: false, planItemId };
-    }
-    // Some backends stream plan output deltas without a final status update. As
-    // soon as the turn stops thinking, treat the latest plan output as ready.
-    if (isThinking && planTone !== "completed") {
-      return { shouldShow: false, planItemId };
-    }
-    for (let index = planIndex + 1; index < items.length; index += 1) {
-      const item = items[index];
-      if (item.kind === "message" && item.role === "user") {
-        return { shouldShow: false, planItemId };
-      }
-    }
-    return { shouldShow: true, planItemId };
+
+    return candidate;
   }, [
     dismissedPlanFollowupByThread,
     hasVisibleUserInputRequest,
@@ -376,6 +381,7 @@ export const Messages = memo(function Messages({
           item={item}
           isCopied={isCopied}
           onCopy={handleCopyMessage}
+          onQuote={onQuoteMessage ? handleQuoteMessage : undefined}
           codeBlockCopyUseModifier={codeBlockCopyUseModifier}
           showMessageFilePath={showMessageFilePath}
           workspacePath={workspacePath}
@@ -499,6 +505,8 @@ export const Messages = memo(function Messages({
         lastDurationMs={lastDurationMs}
         hasItems={items.length > 0}
         reasoningLabel={latestReasoningLabel}
+        showPollingFetchStatus={showPollingFetchStatus}
+        pollingIntervalMs={pollingIntervalMs}
       />
       {!items.length && !userInputNode && !isThinking && !isLoadingMessages && (
         <div className="empty messages-empty">

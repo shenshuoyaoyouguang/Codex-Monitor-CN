@@ -10,11 +10,8 @@ import GitBranch from "lucide-react/dist/esm/icons/git-branch";
 import ScrollText from "lucide-react/dist/esm/icons/scroll-text";
 import Search from "lucide-react/dist/esm/icons/search";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { PanelTabs, type PanelTabId } from "../../layout/components/PanelTabs";
-import {
-  PanelFrame,
-  PanelHeader,
-} from "../../design-system/components/panel/PanelPrimitives";
+import type { PanelTabId } from "../../layout/components/PanelTabs";
+import { PanelShell } from "../../layout/components/PanelShell";
 import { pushErrorToast } from "../../../services/toasts";
 import {
   fileManagerName,
@@ -33,7 +30,6 @@ import {
 import {
   SidebarError,
   type SidebarErrorAction,
-  WorktreeApplyIcon,
 } from "./GitDiffPanelShared";
 import {
   getFileName,
@@ -119,6 +115,7 @@ type GitDiffPanelProps = {
   onStageFile?: (path: string) => Promise<void> | void;
   onUnstageFile?: (path: string) => Promise<void> | void;
   onRevertFile?: (path: string) => Promise<void> | void;
+  onReviewUncommittedChanges?: () => void | Promise<void>;
   logEntries: GitLogEntry[];
   selectedCommitSha?: string | null;
   onSelectCommit?: (entry: GitLogEntry) => void;
@@ -204,6 +201,7 @@ export function GitDiffPanel({
   onStageFile,
   onUnstageFile,
   onRevertFile,
+  onReviewUncommittedChanges,
   onGitRootScanDepthChange,
   onScanGitRoots,
   onSelectGitRoot,
@@ -640,9 +638,11 @@ export function GitDiffPanel({
   const showSidebarError = Boolean(sidebarError);
 
   return (
-    <PanelFrame>
-      <PanelHeader className="git-panel-header">
-        <PanelTabs active={filePanelMode} onSelect={onFilePanelModeChange} />
+    <PanelShell
+      filePanelMode={filePanelMode}
+      onFilePanelModeChange={onFilePanelModeChange}
+      headerClassName="git-panel-header"
+      headerRight={
         <div className="git-panel-actions" role="group" aria-label="Git panel">
           <div className="git-panel-select">
             <span className="git-panel-select-icon" aria-hidden>
@@ -661,22 +661,9 @@ export function GitDiffPanel({
               <option value="prs">PRs</option>
             </select>
           </div>
-          {showApplyWorktree && (
-            <button
-              type="button"
-              className="diff-row-action diff-row-action--apply"
-              onClick={() => {
-                void onApplyWorktreeChanges?.();
-              }}
-              disabled={worktreeApplyLoading || worktreeApplySuccess}
-              data-tooltip={worktreeApplyTitle ?? "Apply changes to parent workspace"}
-              aria-label="Apply worktree changes"
-            >
-              <WorktreeApplyIcon success={worktreeApplySuccess} />
-            </button>
-          )}
         </div>
-      </PanelHeader>
+      }
+    >
 
       <GitPanelModeStatus
         mode={mode}
@@ -725,11 +712,16 @@ export function GitDiffPanel({
           gitRoot={gitRoot}
           onSelectGitRoot={onSelectGitRoot}
           showGenerateCommitMessage={showGenerateCommitMessage}
+          showApplyWorktree={showApplyWorktree}
           commitMessage={commitMessage}
           onCommitMessageChange={onCommitMessageChange}
           commitMessageLoading={commitMessageLoading}
           canGenerateCommitMessage={canGenerateCommitMessage}
           onGenerateCommitMessage={onGenerateCommitMessage}
+          worktreeApplyTitle={worktreeApplyTitle}
+          worktreeApplyLoading={worktreeApplyLoading}
+          worktreeApplySuccess={worktreeApplySuccess}
+          onApplyWorktreeChanges={onApplyWorktreeChanges}
           stagedFiles={stagedFiles}
           unstagedFiles={unstagedFiles}
           commitLoading={commitLoading}
@@ -747,6 +739,7 @@ export function GitDiffPanel({
           onUnstageFile={onUnstageFile}
           onDiscardFile={onRevertFile ? discardFile : undefined}
           onDiscardFiles={onRevertFile ? discardFiles : undefined}
+          onReviewUncommittedChanges={onReviewUncommittedChanges}
           selectedFiles={selectedFiles}
           selectedPath={selectedPath}
           onSelectFile={onSelectFile}
@@ -806,6 +799,6 @@ export function GitDiffPanel({
           }
         />
       )}
-    </PanelFrame>
+    </PanelShell>
   );
 }

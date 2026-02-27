@@ -6,6 +6,7 @@ import type {
   PullRequestReviewAction,
   PullRequestReviewIntent,
   PullRequestSelectionRange,
+  SendMessageResult,
   WorkspaceInfo,
 } from "@/types";
 import { pushErrorToast } from "@services/toasts";
@@ -20,6 +21,8 @@ const REVIEW_ACTIONS: PullRequestReviewAction[] = [
 
 type UsePullRequestReviewActionsOptions = {
   activeWorkspace: WorkspaceInfo | null;
+  activeThreadId: string | null;
+  reviewDeliveryMode: "inline" | "detached";
   pullRequest: GitHubPullRequest | null;
   pullRequestDiffs: GitHubPullRequestDiff[];
   pullRequestComments: GitHubPullRequestComment[];
@@ -33,7 +36,7 @@ type UsePullRequestReviewActionsOptions = {
     threadId: string,
     text: string,
     images?: string[],
-  ) => Promise<void>;
+  ) => Promise<void | SendMessageResult>;
 };
 
 type RunPullRequestReviewOptions = {
@@ -46,6 +49,8 @@ type RunPullRequestReviewOptions = {
 
 export function usePullRequestReviewActions({
   activeWorkspace,
+  activeThreadId,
+  reviewDeliveryMode,
   pullRequest,
   pullRequestDiffs,
   pullRequestComments,
@@ -79,9 +84,13 @@ export function usePullRequestReviewActions({
           await connectWorkspace(activeWorkspace);
         }
 
-        const reviewThreadId = await startThreadForWorkspace(activeWorkspace.id, {
-          activate: activateThread,
-        });
+        const reuseActiveThread =
+          reviewDeliveryMode === "inline" && Boolean(activeThreadId);
+        const reviewThreadId = reuseActiveThread
+          ? activeThreadId
+          : await startThreadForWorkspace(activeWorkspace.id, {
+            activate: activateThread,
+          });
         if (!reviewThreadId) {
           throw new Error("Failed to start a review thread.");
         }
@@ -112,10 +121,12 @@ export function usePullRequestReviewActions({
     },
     [
       activeWorkspace,
+      activeThreadId,
       connectWorkspace,
       pullRequest,
       pullRequestComments,
       pullRequestDiffs,
+      reviewDeliveryMode,
       sendUserMessageToThread,
       startThreadForWorkspace,
     ],

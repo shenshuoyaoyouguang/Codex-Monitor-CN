@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import type { Options as NotificationOptions } from "@tauri-apps/plugin-notification";
 import type {
   AppSettings,
@@ -8,11 +8,6 @@ import type {
   DictationModelStatus,
   DictationSessionState,
   LocalUsageSnapshot,
-  OrbitConnectTestResult,
-  OrbitDeviceCodeStart,
-  OrbitRunnerStatus,
-  OrbitSignInPollResult,
-  OrbitSignOutResult,
   TcpDaemonStatus,
   TailscaleDaemonCommandPreview,
   TailscaleStatus,
@@ -72,6 +67,27 @@ export async function pickImageFiles(): Promise<string[]> {
   return Array.isArray(selection) ? selection : [selection];
 }
 
+export async function exportMarkdownFile(
+  content: string,
+  defaultFileName = "plan.md",
+): Promise<string | null> {
+  const selection = await save({
+    title: "Export plan as Markdown",
+    defaultPath: defaultFileName,
+    filters: [
+      {
+        name: "Markdown",
+        extensions: ["md"],
+      },
+    ],
+  });
+  if (!selection) {
+    return null;
+  }
+  await invoke("write_text_file", { path: selection, content });
+  return selection;
+}
+
 export async function listWorkspaces(): Promise<WorkspaceInfo[]> {
   try {
     return await invoke<WorkspaceInfo[]>("list_workspaces");
@@ -99,6 +115,51 @@ export type TextFileResponse = {
 export type GlobalAgentsResponse = TextFileResponse;
 export type GlobalCodexConfigResponse = TextFileResponse;
 export type AgentMdResponse = TextFileResponse;
+export type AgentSummary = {
+  name: string;
+  description: string | null;
+  developerInstructions: string | null;
+  configFile: string;
+  resolvedPath: string;
+  managedByApp: boolean;
+  fileExists: boolean;
+};
+
+export type AgentsSettings = {
+  configPath: string;
+  multiAgentEnabled: boolean;
+  maxThreads: number;
+  maxDepth: number;
+  agents: AgentSummary[];
+};
+
+export type SetAgentsCoreInput = {
+  multiAgentEnabled: boolean;
+  maxThreads: number;
+  maxDepth: number;
+};
+
+export type CreateAgentInput = {
+  name: string;
+  description?: string | null;
+  developerInstructions?: string | null;
+  template?: "blank" | string | null;
+  model?: string | null;
+  reasoningEffort?: string | null;
+};
+
+export type UpdateAgentInput = {
+  originalName: string;
+  name: string;
+  description?: string | null;
+  developerInstructions?: string | null;
+  renameManagedFile?: boolean;
+};
+
+export type DeleteAgentInput = {
+  name: string;
+  deleteManagedFile?: boolean;
+};
 
 type FileScope = "workspace" | "global";
 type FileKind = "agents" | "config";
@@ -120,6 +181,10 @@ async function fileWrite(
   return invoke("file_write", { scope, kind, workspaceId, content });
 }
 
+export async function readImageAsDataUrl(path: string): Promise<string> {
+  return invoke<string>("read_image_as_data_url", { path });
+}
+
 export async function readGlobalAgentsMd(): Promise<GlobalAgentsResponse> {
   return fileRead("global", "agents");
 }
@@ -136,6 +201,39 @@ export async function writeGlobalCodexConfigToml(content: string): Promise<void>
   return fileWrite("global", "config", content);
 }
 
+export async function getAgentsSettings(): Promise<AgentsSettings> {
+  return invoke<AgentsSettings>("get_agents_settings");
+}
+
+export async function setAgentsCoreSettings(
+  input: SetAgentsCoreInput,
+): Promise<AgentsSettings> {
+  return invoke<AgentsSettings>("set_agents_core_settings", { input });
+}
+
+export async function createAgent(input: CreateAgentInput): Promise<AgentsSettings> {
+  return invoke<AgentsSettings>("create_agent", { input });
+}
+
+export async function updateAgent(input: UpdateAgentInput): Promise<AgentsSettings> {
+  return invoke<AgentsSettings>("update_agent", { input });
+}
+
+export async function deleteAgent(input: DeleteAgentInput): Promise<AgentsSettings> {
+  return invoke<AgentsSettings>("delete_agent", { input });
+}
+
+export async function readAgentConfigToml(agentName: string): Promise<string> {
+  return invoke<string>("read_agent_config_toml", { agentName });
+}
+
+export async function writeAgentConfigToml(
+  agentName: string,
+  content: string,
+): Promise<void> {
+  return invoke("write_agent_config_toml", { agentName, content });
+}
+
 export async function getConfigModel(workspaceId: string): Promise<string | null> {
   const response = await invoke<{ model?: string | null }>("get_config_model", {
     workspaceId,
@@ -148,11 +246,20 @@ export async function getConfigModel(workspaceId: string): Promise<string | null
   return trimmed.length > 0 ? trimmed : null;
 }
 
-export async function addWorkspace(
-  path: string,
-  codex_bin: string | null,
+export async function addWorkspace(path: string): Promise<WorkspaceInfo> {
+  return invoke<WorkspaceInfo>("add_workspace", { path });
+}
+
+export async function addWorkspaceFromGitUrl(
+  url: string,
+  destinationPath: string,
+  targetFolderName: string | null,
 ): Promise<WorkspaceInfo> {
-  return invoke<WorkspaceInfo>("add_workspace", { path, codex_bin });
+  return invoke<WorkspaceInfo>("add_workspace_from_git_url", {
+    url,
+    destinationPath,
+    targetFolderName,
+  });
 }
 
 export async function isWorkspacePathDir(path: string): Promise<boolean> {
@@ -200,13 +307,6 @@ export async function updateWorkspaceSettings(
   settings: WorkspaceSettings,
 ): Promise<WorkspaceInfo> {
   return invoke<WorkspaceInfo>("update_workspace_settings", { id, settings });
-}
-
-export async function updateWorkspaceCodexBin(
-  id: string,
-  codex_bin: string | null,
-): Promise<WorkspaceInfo> {
-  return invoke<WorkspaceInfo>("update_workspace_codex_bin", { id, codex_bin });
 }
 
 export async function removeWorkspace(id: string): Promise<void> {
@@ -260,6 +360,16 @@ export async function connectWorkspace(id: string): Promise<void> {
   return invoke("connect_workspace", { id });
 }
 
+export async function setWorkspaceRuntimeCodexArgs(
+  workspaceId: string,
+  codexArgs: string | null,
+): Promise<{ appliedCodexArgs: string | null; respawned: boolean }> {
+  return invoke("set_workspace_runtime_codex_args", {
+    workspaceId,
+    codexArgs,
+  });
+}
+
 export async function startThread(workspaceId: string) {
   return invoke<any>("start_thread", { workspaceId });
 }
@@ -270,6 +380,52 @@ export async function forkThread(workspaceId: string, threadId: string) {
 
 export async function compactThread(workspaceId: string, threadId: string) {
   return invoke<any>("compact_thread", { workspaceId, threadId });
+}
+
+function isInlineImageUrl(image: string) {
+  return (
+    image.startsWith("data:") ||
+    image.startsWith("http://") ||
+    image.startsWith("https://")
+  );
+}
+
+async function convertImagesToDataUrls(images: string[]): Promise<string[]> {
+  return Promise.all(
+    images.map(async (image) => {
+      if (isInlineImageUrl(image)) {
+        return image;
+      }
+      return readImageAsDataUrl(image);
+    }),
+  );
+}
+
+async function normalizeImagesForRpc(images?: string[]): Promise<string[] | null> {
+  if (images == null) {
+    return null;
+  }
+  if (images.length === 0) {
+    return [];
+  }
+  const hasPathImages = images.some((image) => !isInlineImageUrl(image));
+  if (!hasPathImages) {
+    return images;
+  }
+  let settings: AppSettings;
+  let mobileRuntime: boolean;
+  try {
+    [settings, mobileRuntime] = await Promise.all([getAppSettings(), isMobileRuntime()]);
+  } catch (error) {
+    if (isMissingTauriInvokeError(error)) {
+      return images;
+    }
+    throw error;
+  }
+  if (settings.backendMode !== "remote" && !mobileRuntime) {
+    return images;
+  }
+  return convertImagesToDataUrls(images);
 }
 
 export async function sendUserMessage(
@@ -285,6 +441,7 @@ export async function sendUserMessage(
     appMentions?: AppMention[];
   },
 ) {
+  const images = await normalizeImagesForRpc(options?.images);
   const payload: Record<string, unknown> = {
     workspaceId,
     threadId,
@@ -292,7 +449,7 @@ export async function sendUserMessage(
     model: options?.model ?? null,
     effort: options?.effort ?? null,
     accessMode: options?.accessMode ?? null,
-    images: options?.images ?? null,
+    images,
   };
   if (options?.collaborationMode) {
     payload.collaborationMode = options.collaborationMode;
@@ -319,12 +476,13 @@ export async function steerTurn(
   images?: string[],
   appMentions?: AppMention[],
 ) {
+  const normalizedImages = await normalizeImagesForRpc(images);
   const payload: Record<string, unknown> = {
     workspaceId,
     threadId,
     turnId,
     text,
-    images: images ?? null,
+    images: normalizedImages,
   };
   if (appMentions && appMentions.length > 0) {
     payload.appMentions = appMentions;
@@ -555,6 +713,21 @@ export async function getModelList(workspaceId: string) {
   return invoke<any>("model_list", { workspaceId });
 }
 
+export async function getExperimentalFeatureList(
+  workspaceId: string,
+  cursor?: string | null,
+  limit?: number | null,
+) {
+  return invoke<any>("experimental_feature_list", { workspaceId, cursor, limit });
+}
+
+export async function setCodexFeatureFlag(
+  featureKey: string,
+  enabled: boolean,
+): Promise<void> {
+  return invoke("set_codex_feature_flag", { featureKey, enabled });
+}
+
 export async function generateRunMetadata(workspaceId: string, prompt: string) {
   return invoke<{ title: string; worktreeName: string }>("generate_run_metadata", {
     workspaceId,
@@ -677,34 +850,6 @@ export async function isMobileRuntime(): Promise<boolean> {
 
 export async function updateAppSettings(settings: AppSettings): Promise<AppSettings> {
   return invoke<AppSettings>("update_app_settings", { settings });
-}
-
-export async function orbitConnectTest(): Promise<OrbitConnectTestResult> {
-  return invoke<OrbitConnectTestResult>("orbit_connect_test");
-}
-
-export async function orbitSignInStart(): Promise<OrbitDeviceCodeStart> {
-  return invoke<OrbitDeviceCodeStart>("orbit_sign_in_start");
-}
-
-export async function orbitSignInPoll(deviceCode: string): Promise<OrbitSignInPollResult> {
-  return invoke<OrbitSignInPollResult>("orbit_sign_in_poll", { deviceCode });
-}
-
-export async function orbitSignOut(): Promise<OrbitSignOutResult> {
-  return invoke<OrbitSignOutResult>("orbit_sign_out");
-}
-
-export async function orbitRunnerStart(): Promise<OrbitRunnerStatus> {
-  return invoke<OrbitRunnerStatus>("orbit_runner_start");
-}
-
-export async function orbitRunnerStop(): Promise<OrbitRunnerStatus> {
-  return invoke<OrbitRunnerStatus>("orbit_runner_stop");
-}
-
-export async function orbitRunnerStatus(): Promise<OrbitRunnerStatus> {
-  return invoke<OrbitRunnerStatus>("orbit_runner_status");
 }
 
 export async function tailscaleStatus(): Promise<TailscaleStatus> {
@@ -898,6 +1043,14 @@ export async function resumeThread(workspaceId: string, threadId: string) {
   return invoke<any>("resume_thread", { workspaceId, threadId });
 }
 
+export async function threadLiveSubscribe(workspaceId: string, threadId: string) {
+  return invoke<any>("thread_live_subscribe", { workspaceId, threadId });
+}
+
+export async function threadLiveUnsubscribe(workspaceId: string, threadId: string) {
+  return invoke<any>("thread_live_unsubscribe", { workspaceId, threadId });
+}
+
 export async function archiveThread(workspaceId: string, threadId: string) {
   return invoke<any>("archive_thread", { workspaceId, threadId });
 }
@@ -912,8 +1065,27 @@ export async function setThreadName(
 
 export async function generateCommitMessage(
   workspaceId: string,
+  commitMessageModelId: string | null,
 ): Promise<string> {
-  return invoke("generate_commit_message", { workspaceId });
+  return invoke("generate_commit_message", { workspaceId, commitMessageModelId });
+}
+
+export type GeneratedAgentConfiguration = {
+  description: string;
+  developerInstructions: string;
+};
+
+export async function generateAgentDescription(
+  workspaceId: string,
+  description: string,
+): Promise<GeneratedAgentConfiguration> {
+  return invoke("generate_agent_description", { workspaceId, description });
+}
+
+export type AppBuildType = "debug" | "release";
+
+export async function getAppBuildType(): Promise<AppBuildType> {
+  return invoke<AppBuildType>("app_build_type");
 }
 
 export async function sendNotification(

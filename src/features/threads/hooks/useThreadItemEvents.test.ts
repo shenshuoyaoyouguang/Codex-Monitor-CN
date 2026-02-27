@@ -84,7 +84,7 @@ describe("useThreadItemEvents", () => {
     });
     expect(markProcessing).toHaveBeenCalledWith("thread-1", true);
     expect(markReviewing).toHaveBeenCalledWith("thread-1", true);
-    expect(applyCollabThreadLinks).toHaveBeenCalledWith("thread-1", item);
+    expect(applyCollabThreadLinks).toHaveBeenCalledWith("ws-1", "thread-1", item);
     expect(dispatch).toHaveBeenCalledWith({
       type: "upsertItem",
       workspaceId: "ws-1",
@@ -159,6 +159,33 @@ describe("useThreadItemEvents", () => {
       expect.objectContaining({
         type: "contextCompaction",
         id: "compact-1",
+        status: "completed",
+      }),
+    );
+  });
+
+  it("adds lifecycle status for web search items", () => {
+    const { result } = makeOptions();
+    const item: ItemPayload = { type: "webSearch", id: "search-1", query: "codex monitor" };
+
+    act(() => {
+      result.current.onItemStarted("ws-1", "thread-1", item);
+    });
+    expect(buildConversationItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "webSearch",
+        id: "search-1",
+        status: "inProgress",
+      }),
+    );
+
+    act(() => {
+      result.current.onItemCompleted("ws-1", "thread-1", item);
+    });
+    expect(buildConversationItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "webSearch",
+        id: "search-1",
         status: "completed",
       }),
     );

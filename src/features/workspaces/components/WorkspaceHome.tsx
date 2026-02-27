@@ -33,11 +33,7 @@ import { WorkspaceHomeHistory } from "./WorkspaceHomeHistory";
 import { WorkspaceHomeGitInitBanner } from "./WorkspaceHomeGitInitBanner";
 import { buildIconPath } from "./workspaceHomeHelpers";
 import { useWorkspaceHomeSuggestionsStyle } from "../hooks/useWorkspaceHomeSuggestionsStyle";
-
-type ThreadStatus = {
-  isProcessing: boolean;
-  isReviewing: boolean;
-};
+import type { ThreadStatusById } from "../../../utils/threadStatus";
 
 type WorkspaceHomeProps = {
   workspace: WorkspaceInfo;
@@ -69,7 +65,7 @@ type WorkspaceHomeProps = {
   isSubmitting: boolean;
   activeWorkspaceId: string | null;
   activeThreadId: string | null;
-  threadStatusById: Record<string, ThreadStatus>;
+  threadStatusById: ThreadStatusById;
   onSelectInstance: (workspaceId: string, threadId: string) => void;
   skills: SkillOption[];
   appsEnabled: boolean;
@@ -80,6 +76,7 @@ type WorkspaceHomeProps = {
   dictationState: DictationSessionState;
   dictationLevel: number;
   onToggleDictation: () => void;
+  onCancelDictation?: () => void;
   onOpenDictationSettings: () => void;
   dictationError: string | null;
   onDismissDictationError: () => void;
@@ -142,6 +139,7 @@ export function WorkspaceHome({
   dictationState,
   dictationLevel,
   onToggleDictation,
+  onCancelDictation,
   onOpenDictationSettings,
   dictationError,
   onDismissDictationError,
@@ -390,6 +388,7 @@ export function WorkspaceHome({
             dictationLevel={dictationLevel}
             dictationEnabled={dictationEnabled}
             onToggleDictation={onToggleDictation}
+            onCancelDictation={onCancelDictation}
             onOpenDictationSettings={onOpenDictationSettings}
             dictationError={dictationError}
             onDismissDictationError={onDismissDictationError}

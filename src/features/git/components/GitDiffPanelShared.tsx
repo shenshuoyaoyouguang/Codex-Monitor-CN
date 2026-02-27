@@ -6,6 +6,7 @@ import Plus from "lucide-react/dist/esm/icons/plus";
 import RotateCcw from "lucide-react/dist/esm/icons/rotate-ccw";
 import Upload from "lucide-react/dist/esm/icons/upload";
 import X from "lucide-react/dist/esm/icons/x";
+import { MagicSparkleIcon } from "../../shared/components/MagicSparkleIcon";
 import { formatRelativeTime } from "../../../utils/time";
 import {
   getStatusClass,
@@ -263,6 +264,12 @@ type DiffSectionProps = {
   onUnstageFile?: (path: string) => Promise<void> | void;
   onDiscardFile?: (path: string) => Promise<void> | void;
   onDiscardFiles?: (paths: string[]) => Promise<void> | void;
+  onReviewUncommittedChanges?: () => Promise<void> | void;
+  showWorktreeApplyAction?: boolean;
+  worktreeApplyTitle?: string | null;
+  worktreeApplyLoading?: boolean;
+  worktreeApplySuccess?: boolean;
+  onApplyWorktreeChanges?: () => Promise<void> | void;
   onFileClick: (
     event: ReactMouseEvent<HTMLDivElement>,
     path: string,
@@ -287,6 +294,12 @@ export function DiffSection({
   onUnstageFile,
   onDiscardFile,
   onDiscardFiles,
+  onReviewUncommittedChanges,
+  showWorktreeApplyAction = false,
+  worktreeApplyTitle = null,
+  worktreeApplyLoading = false,
+  worktreeApplySuccess = false,
+  onApplyWorktreeChanges,
   onFileClick,
   onShowFileMenu,
 }: DiffSectionProps) {
@@ -297,7 +310,14 @@ export function DiffSection({
     filePaths.length > 0;
   const canUnstageAll = section === "staged" && Boolean(onUnstageFile) && filePaths.length > 0;
   const canDiscardAll = section === "unstaged" && Boolean(onDiscardFiles) && filePaths.length > 0;
-  const showSectionActions = canStageAll || canUnstageAll || canDiscardAll;
+  const canReviewUncommitted =
+    section === "unstaged" &&
+    Boolean(onReviewUncommittedChanges) &&
+    filePaths.length > 0;
+  const canApplyWorktree =
+    showWorktreeApplyAction && Boolean(onApplyWorktreeChanges) && filePaths.length > 0;
+  const showSectionActions =
+    canApplyWorktree || canStageAll || canUnstageAll || canDiscardAll || canReviewUncommitted;
 
   return (
     <div className="diff-section">
@@ -307,6 +327,33 @@ export function DiffSection({
         </span>
         {showSectionActions && (
           <div className="diff-section-actions" role="group" aria-label={`${title} actions`}>
+            {canApplyWorktree && (
+              <button
+                type="button"
+                className="diff-row-action diff-row-action--apply"
+                onClick={() => {
+                  void onApplyWorktreeChanges?.();
+                }}
+                disabled={worktreeApplyLoading || worktreeApplySuccess}
+                data-tooltip={worktreeApplyTitle ?? "Apply changes to parent workspace"}
+                aria-label="Apply worktree changes"
+              >
+                <WorktreeApplyIcon success={worktreeApplySuccess} />
+              </button>
+            )}
+            {canReviewUncommitted && (
+              <button
+                type="button"
+                className="diff-row-action diff-row-action--review"
+                onClick={() => {
+                  void onReviewUncommittedChanges?.();
+                }}
+                data-tooltip="Review Uncommitted Changes"
+                aria-label="Review uncommitted changes"
+              >
+                <MagicSparkleIcon size={12} />
+              </button>
+            )}
             {canStageAll && (
               <button
                 type="button"

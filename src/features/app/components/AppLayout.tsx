@@ -24,6 +24,7 @@ type AppLayoutProps = {
   homeNode: ReactNode;
   mainHeaderNode: ReactNode;
   desktopTopbarLeftNode: ReactNode;
+  topbarActionsNode?: ReactNode;
   tabletNavNode: ReactNode;
   tabBarNode: ReactNode;
   gitDiffPanelNode: ReactNode;
@@ -62,6 +63,7 @@ export const AppLayout = memo(function AppLayout({
   homeNode,
   mainHeaderNode,
   desktopTopbarLeftNode,
+  topbarActionsNode,
   tabletNavNode,
   tabBarNode,
   gitDiffPanelNode,
@@ -94,6 +96,7 @@ export const AppLayout = memo(function AppLayout({
         compactEmptyGitNode={compactEmptyGitNode}
         compactGitBackNode={compactGitBackNode}
         topbarLeftNode={mainHeaderNode}
+        topbarActionsNode={topbarActionsNode}
         messagesNode={messagesNode}
         composerNode={composerNode}
         gitDiffPanelNode={gitDiffPanelNode}
@@ -117,6 +120,7 @@ export const AppLayout = memo(function AppLayout({
         tabletTab={tabletTab}
         onSidebarResizeStart={onSidebarResizeStart}
         topbarLeftNode={mainHeaderNode}
+        topbarActionsNode={topbarActionsNode}
         messagesNode={messagesNode}
         composerNode={composerNode}
         gitDiffPanelNode={gitDiffPanelNode}
@@ -136,6 +140,7 @@ export const AppLayout = memo(function AppLayout({
       showHome={showHome}
       showWorkspace={activeWorkspace && !showHome}
       topbarLeftNode={desktopTopbarLeftNode}
+      topbarActionsNode={topbarActionsNode}
       centerMode={centerMode}
       preloadGitDiffs={preloadGitDiffs}
       splitChatDiffView={splitChatDiffView}

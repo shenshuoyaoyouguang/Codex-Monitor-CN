@@ -1,4 +1,4 @@
-# App-Server Events Reference (Codex `b5339a591d8d31e91d74b3092f2c261eae77740b`)
+# App-Server Events Reference (Codex `9501669a2485969a78b8bdea3da4b3b2a626e0d3`)
 
 This document helps agents quickly answer:
 - Which app-server events CodexMonitor supports right now.
@@ -12,6 +12,9 @@ When updating this document:
 3. Compare Codex client request methods vs CodexMonitor outgoing request methods.
 4. Compare Codex server request methods vs CodexMonitor inbound request handling.
 5. Update supported and missing lists below.
+
+Related project skill:
+- `.codex/skills/app-server-events-sync/SKILL.md`
 
 ## Where To Look In CodexMonitor
 
@@ -29,6 +32,7 @@ Thread/turn/item handlers:
 - `src/features/threads/hooks/useThreadItemEvents.ts`
 - `src/features/threads/hooks/useThreadApprovalEvents.ts`
 - `src/features/threads/hooks/useThreadUserInputEvents.ts`
+- `src/features/skills/hooks/useSkills.ts`
 
 State updates:
 - `src/features/threads/hooks/useThreadsReducer.ts`
@@ -59,7 +63,10 @@ routed in `useAppServerEvents.ts` or handled in feature-specific subscriptions.
 - `item/agentMessage/delta`
 - `turn/started`
 - `thread/started`
+- `thread/archived`
 - `thread/name/updated`
+- `thread/status/changed`
+- `thread/unarchived`
 - `codex/backgroundThread`
 - `error`
 - `turn/completed`
@@ -102,10 +109,12 @@ events are currently not routed:
 - `rawResponseItem/completed`
 - `item/mcpToolCall/progress`
 - `mcpServer/oauthLogin/completed`
+- `model/rerouted`
 - `thread/compacted` (deprecated; intentionally not routed)
 - `deprecationNotice`
 - `configWarning`
 - `windows/worldWritableWarning`
+- `windowsSandbox/setupCompleted`
 
 ## Supported Requests (CodexMonitor -> App-Server, v2)
 
@@ -119,10 +128,11 @@ These are v2 request methods CodexMonitor currently sends to Codex app-server:
 - `thread/compact/start`
 - `thread/name/set`
 - `turn/start`
-- `turn/steer` (best-effort; falls back to `turn/start` when unsupported)
+- `turn/steer` (used for explicit steer follow-ups while a turn is active)
 - `turn/interrupt`
 - `review/start`
 - `model/list`
+- `experimentalFeature/list`
 - `collaborationMode/list`
 - `mcpServerStatus/list`
 - `account/login/start`
@@ -141,10 +151,9 @@ Compared against Codex v2 request methods, CodexMonitor currently does not send:
 - `thread/backgroundTerminals/clean`
 - `thread/loaded/list`
 - `thread/read`
-- `skills/remote/read`
-- `skills/remote/write`
 - `skills/config/write`
-- `experimentalFeature/list`
+- `skills/remote/export`
+- `skills/remote/list`
 - `mock/experimentalMethod`
 - `mcpServer/oauth/login`
 - `config/mcpServer/reload`
@@ -155,6 +164,7 @@ Compared against Codex v2 request methods, CodexMonitor currently does not send:
 - `config/value/write`
 - `config/batchWrite`
 - `configRequirements/read`
+- `windowsSandbox/setupStart`
 
 ## Server Requests (App-Server -> CodexMonitor, v2)
 
@@ -246,6 +256,10 @@ Use this when the method list is unchanged but behavior looks off.
   - Stored in `useThreadsReducer.ts` (`turnDiffByThread`)
   - Exposed by `useThreads.ts` for UI consumers
 - Steering behavior while a turn is processing:
-  - CodexMonitor attempts `turn/steer` when steering is enabled and an active turn exists.
-  - If the server/daemon reports unknown `turn/steer`/`turn_steer`, CodexMonitor
-    degrades to `turn/start` and caches that workspace as steer-unsupported.
+  - CodexMonitor attempts `turn/steer` only when steer capability is enabled, the thread is processing, and an active turn id exists.
+  - If `turn/steer` fails, CodexMonitor does not fall back to `turn/start`; it clears stale processing/turn state when applicable, surfaces an error, and returns `steer_failed`.
+  - Local queue fallback on `steer_failed` is handled in the composer queued-send flow (`useQueuedSend`), not by all direct `sendUserMessageToThread` callers.
+- Feature toggles in Settings:
+  - `experimentalFeature/list` is an app-server request.
+  - Toggle writes use local/daemon command surfaces (`set_codex_feature_flag` and app settings update),
+    which write `config.toml`; they are not app-server `ClientRequest` methods.
