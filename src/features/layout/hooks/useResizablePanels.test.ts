@@ -71,7 +71,7 @@ describe("useResizablePanels", () => {
         clientX: 0,
         clientY: 0,
         preventDefault: vi.fn(),
-      } as React.MouseEvent);
+      } as unknown as React.MouseEvent);
     });
 
     act(() => {
