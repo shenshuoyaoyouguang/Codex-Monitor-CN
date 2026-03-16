@@ -96,6 +96,32 @@ jobs:
           mkdir -p "$HOME/.tauri"
           echo "$TAURI_SIGNING_PRIVATE_KEY_B64" | base64 --decode > "$HOME/.tauri/codexmonitor.key"
 
+      - name: Prepare unsigned Tauri config
+        if: ${{ inputs.sign_artifacts != true }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for relative_path in (
+              "src-tauri/tauri.conf.json",
+              "src-tauri/tauri.windows.conf.json",
+          ):
+              path = Path(relative_path)
+              if not path.exists():
+                  continue
+              data = json.loads(path.read_text())
+              bundle = data.setdefault("bundle", {})
+              bundle["createUpdaterArtifacts"] = False
+              plugins = data.get("plugins")
+              if isinstance(plugins, dict):
+                  plugins.pop("updater", None)
+                  if not plugins:
+                      data.pop("plugins", None)
+              path.write_text(json.dumps(data, indent=2) + "\n")
+          PY
+
       - name: Build app bundle
         run: |
           set -euo pipefail
@@ -229,6 +255,32 @@ jobs:
           mkdir -p "$HOME/.tauri"
           echo "$TAURI_SIGNING_PRIVATE_KEY_B64" | base64 --decode > "$HOME/.tauri/codexmonitor.key"
 
+      - name: Prepare unsigned Tauri config
+        if: ${{ inputs.sign_artifacts != true }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for relative_path in (
+              "src-tauri/tauri.conf.json",
+              "src-tauri/tauri.windows.conf.json",
+          ):
+              path = Path(relative_path)
+              if not path.exists():
+                  continue
+              data = json.loads(path.read_text())
+              bundle = data.setdefault("bundle", {})
+              bundle["createUpdaterArtifacts"] = False
+              plugins = data.get("plugins")
+              if isinstance(plugins, dict):
+                  plugins.pop("updater", None)
+                  if not plugins:
+                      data.pop("plugins", None)
+              path.write_text(json.dumps(data, indent=2) + "\n")
+          PY
+
       - name: build AppImage and RPM
         run: |
           set -euo pipefail
@@ -309,6 +361,33 @@ jobs:
           target = home / ".tauri"
           target.mkdir(parents=True, exist_ok=True)
           (target / "codexmonitor.key").write_bytes(raw)
+          PY
+
+      - name: Prepare unsigned Tauri config
+        if: ${{ inputs.sign_artifacts != true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for relative_path in (
+              "src-tauri/tauri.conf.json",
+              "src-tauri/tauri.windows.conf.json",
+          ):
+              path = Path(relative_path)
+              if not path.exists():
+                  continue
+              data = json.loads(path.read_text())
+              bundle = data.setdefault("bundle", {})
+              bundle["createUpdaterArtifacts"] = False
+              plugins = data.get("plugins")
+              if isinstance(plugins, dict):
+                  plugins.pop("updater", None)
+                  if not plugins:
+                      data.pop("plugins", None)
+              path.write_text(json.dumps(data, indent=2) + "\n")
           PY
 
       - name: build windows bundles
