@@ -105,6 +105,7 @@ const zh = {
     remaining: "剩余",
     used: "已用",
     resets: "重置",
+    resetsAt: "重置于{{relative}}",
     now: "刚刚",
     unknown: "未知",
     noAgents: "暂无代理",
@@ -603,7 +604,9 @@ const zh = {
   time: {
     now: "刚刚",
     secondsAgo: "{{count}}秒前",
+    secondsFromNow: "{{count}}秒后",
     minutesAgo: "{{count}}分钟前",
+    minutesFromNow: "{{count}}分钟后",
     hoursAgo: "{{count}}小时前",
     daysAgo: "{{count}}天前",
     in: "后",

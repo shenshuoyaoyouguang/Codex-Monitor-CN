@@ -134,6 +134,7 @@ function buildDefaultSettings(): AppSettings {
     lastConnectedAtMs: null,
   };
   return {
+    locale: "en",
     codexBin: null,
     codexArgs: null,
     backendMode: isMobile ? "remote" : "local",

@@ -1,3 +1,5 @@
+import type { SupportedLocale } from "@/i18n";
+
 export type WorkspaceSettings = {
   sidebarCollapsed: boolean;
   sortOrder?: number | null;
@@ -232,8 +234,6 @@ export type OpenAppTarget = {
   command?: string | null;
   args: string[];
 };
-
-export type SupportedLocale = "en" | "zh";
 
 export type AppSettings = {
   locale: SupportedLocale;

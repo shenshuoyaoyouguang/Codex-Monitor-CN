@@ -105,6 +105,7 @@ const en = {
     remaining: "Remaining",
     used: "Used",
     resets: "Resets",
+    resetsAt: "Resets {{relative}}",
     now: "now",
     unknown: "Unknown",
     noAgents: "No agents",
@@ -603,7 +604,9 @@ const en = {
   time: {
     now: "now",
     secondsAgo: "{{count}}s ago",
+    secondsFromNow: "in {{count}}s",
     minutesAgo: "{{count}}m ago",
+    minutesFromNow: "in {{count}}m",
     hoursAgo: "{{count}}h ago",
     daysAgo: "{{count}}d ago",
     in: "in",

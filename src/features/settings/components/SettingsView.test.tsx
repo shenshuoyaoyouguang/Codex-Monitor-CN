@@ -60,6 +60,7 @@ getAgentsSettingsMock.mockResolvedValue({
 });
 
 const baseSettings: AppSettings = {
+  locale: "en",
   codexBin: null,
   codexArgs: null,
   backendMode: "local",

@@ -19,8 +19,9 @@ function formatResetLabel(resetsAt?: number | null) {
     return null;
   }
   const resetMs = resetsAt > 1_000_000_000_000 ? resetsAt : resetsAt * 1000;
-  const relative = formatRelativeTime(resetMs, i18n.language).replace(/^in\s+/i, "");
-  return `${i18n.t("home.resets")} ${relative}`;
+  return i18n.t("home.resetsAt", {
+    relative: formatRelativeTime(resetMs, i18n.language),
+  });
 }
 
 function formatCreditsLabel(accountRateLimits: RateLimitSnapshot | null) {
