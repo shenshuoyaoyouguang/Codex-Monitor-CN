@@ -8,6 +8,11 @@ on:
         required: false
         default: false
         type: boolean
+      sign_artifacts:
+        description: "Generate updater signatures and latest.json (requires valid Tauri signing key secrets)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -85,6 +90,7 @@ jobs:
             --key "private_keys/AuthKey.p8"
 
       - name: Write Tauri signing key
+        if: ${{ inputs.sign_artifacts == true }}
         run: |
           set -euo pipefail
           mkdir -p "$HOME/.tauri"
@@ -93,8 +99,10 @@ jobs:
       - name: Build app bundle
         run: |
           set -euo pipefail
-          export TAURI_SIGNING_PRIVATE_KEY
-          TAURI_SIGNING_PRIVATE_KEY="$(cat "$HOME/.tauri/codexmonitor.key")"
+          if [ "${{ inputs.sign_artifacts }}" = "true" ]; then
+            export TAURI_SIGNING_PRIVATE_KEY
+            TAURI_SIGNING_PRIVATE_KEY="$(cat "$HOME/.tauri/codexmonitor.key")"
+          fi
           npm run tauri -- build --bundles app
 
       - name: Build daemon binaries
@@ -153,15 +161,16 @@ jobs:
             "src-tauri/target/release/bundle/macos/Codex Monitor.app.tar.gz" \
             -C src-tauri/target/release/bundle/macos "Codex Monitor.app"
 
-          npm run tauri signer sign -- \
-            -f "$HOME/.tauri/codexmonitor.key" \
-            -p "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" \
-            "src-tauri/target/release/bundle/macos/Codex Monitor.app.tar.gz"
-
           cp "src-tauri/target/release/bundle/macos/Codex Monitor.app.tar.gz" \
             release-artifacts/CodexMonitor.app.tar.gz
-          cp "src-tauri/target/release/bundle/macos/Codex Monitor.app.tar.gz.sig" \
-            release-artifacts/CodexMonitor.app.tar.gz.sig
+          if [ "${{ inputs.sign_artifacts }}" = "true" ]; then
+            npm run tauri signer sign -- \
+              -f "$HOME/.tauri/codexmonitor.key" \
+              -p "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" \
+              "src-tauri/target/release/bundle/macos/Codex Monitor.app.tar.gz"
+            cp "src-tauri/target/release/bundle/macos/Codex Monitor.app.tar.gz.sig" \
+              release-artifacts/CodexMonitor.app.tar.gz.sig
+          fi
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
@@ -214,6 +223,7 @@ jobs:
         run: npm ci
 
       - name: Write Tauri signing key
+        if: ${{ inputs.sign_artifacts == true }}
         run: |
           set -euo pipefail
           mkdir -p "$HOME/.tauri"
@@ -222,8 +232,10 @@ jobs:
       - name: build AppImage and RPM
         run: |
           set -euo pipefail
-          export TAURI_SIGNING_PRIVATE_KEY
-          TAURI_SIGNING_PRIVATE_KEY="$(cat "$HOME/.tauri/codexmonitor.key")"
+          if [ "${{ inputs.sign_artifacts }}" = "true" ]; then
+            export TAURI_SIGNING_PRIVATE_KEY
+            TAURI_SIGNING_PRIVATE_KEY="$(cat "$HOME/.tauri/codexmonitor.key")"
+          fi
           npm run tauri -- build --bundles appimage,rpm
 
       - name: Validate Linux bundle outputs
@@ -283,6 +295,7 @@ jobs:
         run: npm ci
 
       - name: Write Tauri signing key
+        if: ${{ inputs.sign_artifacts == true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -302,8 +315,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          export TAURI_SIGNING_PRIVATE_KEY
-          TAURI_SIGNING_PRIVATE_KEY="$(cat "$HOME/.tauri/codexmonitor.key")"
+          if [ "${{ inputs.sign_artifacts }}" = "true" ]; then
+            export TAURI_SIGNING_PRIVATE_KEY
+            TAURI_SIGNING_PRIVATE_KEY="$(cat "$HOME/.tauri/codexmonitor.key")"
+          fi
           npm run tauri:build:win
 
       - name: Upload Windows artifacts
@@ -384,6 +399,7 @@ jobs:
           done
 
       - name: Build latest.json
+        if: ${{ inputs.sign_artifacts == true }}
         run: |
           set -euo pipefail
           VERSION=$(python3 - <<'PY'
@@ -534,6 +550,7 @@ jobs:
           PY
 
       - name: Validate latest.json artifact references
+        if: ${{ inputs.sign_artifacts == true }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -581,6 +598,7 @@ jobs:
           mac_dmgs=(release-artifacts/CodexMonitor_*_aarch64.dmg)
           mac_archives=(release-artifacts/CodexMonitor.app.tar.gz)
           mac_signatures=(release-artifacts/CodexMonitor.app.tar.gz.sig)
+          latest_json=(release-artifacts/latest.json)
           appimages=(release-artifacts/**/*.AppImage*)
           mapfile -t rpms < <(find release-artifacts -type f -name '*.rpm' | sort)
           mapfile -t windows_exes < <(find release-artifacts -type f -name '*.exe*' | sort)
@@ -613,7 +631,7 @@ jobs:
             "${rpms[@]}" \
             "${windows_exes[@]}" \
             "${windows_msis[@]}" \
-            release-artifacts/latest.json
+            "${latest_json[@]}"
 
       - name: Bump version and open PR
         env:
