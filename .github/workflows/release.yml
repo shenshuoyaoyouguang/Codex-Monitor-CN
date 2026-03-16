@@ -2,6 +2,12 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      include_macos:
+        description: "Build signed macOS artifacts (requires Apple signing secrets)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -9,6 +15,7 @@ permissions:
 
 jobs:
   build_macos:
+    if: ${{ inputs.include_macos == true }}
     runs-on: macos-latest
     environment: release
     env:
@@ -310,6 +317,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     environment: release
+    if: ${{ always() && needs.build_windows.result == 'success' && needs.build_linux.result == 'success' && (needs.build_macos.result == 'success' || needs.build_macos.result == 'skipped') }}
     needs:
       - build_macos
       - build_linux
@@ -321,6 +329,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download macOS artifacts
+        if: ${{ needs.build_macos.result == 'success' }}
         uses: actions/download-artifact@v4
         with:
           name: macos-artifacts
@@ -386,7 +395,6 @@ jobs:
           PY
           )
 
-          SIGNATURE=$(cat release-artifacts/CodexMonitor.app.tar.gz.sig)
           LAST_TAG=$(git tag --sort=-version:refname \
             | grep -v "^v${VERSION}$" \
             | head -n 1 || true)
@@ -448,12 +456,15 @@ jobs:
           def release_url(filename):
             return f"https://github.com/{repository}/releases/download/v${VERSION}/{quote(filename)}"
 
-          platforms = {
-            "darwin-aarch64": {
-              "url": release_url("CodexMonitor.app.tar.gz"),
-              "signature": "${SIGNATURE}",
+          platforms = {}
+
+          mac_archive = artifacts_dir / "CodexMonitor.app.tar.gz"
+          mac_signature = artifacts_dir / "CodexMonitor.app.tar.gz.sig"
+          if mac_archive.exists() and mac_signature.exists():
+            platforms["darwin-aarch64"] = {
+              "url": release_url(mac_archive.name),
+              "signature": mac_signature.read_text().strip(),
             }
-          }
 
           appimages = list(artifacts_dir.rglob("*.AppImage.tar.gz"))
           if not appimages:
@@ -566,6 +577,10 @@ jobs:
           )
 
           shopt -s nullglob globstar
+          mac_zips=(release-artifacts/CodexMonitor.zip)
+          mac_dmgs=(release-artifacts/CodexMonitor_*_aarch64.dmg)
+          mac_archives=(release-artifacts/CodexMonitor.app.tar.gz)
+          mac_signatures=(release-artifacts/CodexMonitor.app.tar.gz.sig)
           appimages=(release-artifacts/**/*.AppImage*)
           mapfile -t rpms < <(find release-artifacts -type f -name '*.rpm' | sort)
           mapfile -t windows_exes < <(find release-artifacts -type f -name '*.exe*' | sort)
@@ -590,10 +605,10 @@ jobs:
             --title "v${VERSION}" \
             --notes-file release-artifacts/release-notes.md \
             --target "$GITHUB_SHA" \
-            release-artifacts/CodexMonitor.zip \
-            release-artifacts/CodexMonitor_*_aarch64.dmg \
-            release-artifacts/CodexMonitor.app.tar.gz \
-            release-artifacts/CodexMonitor.app.tar.gz.sig \
+            "${mac_zips[@]}" \
+            "${mac_dmgs[@]}" \
+            "${mac_archives[@]}" \
+            "${mac_signatures[@]}" \
             "${appimages[@]}" \
             "${rpms[@]}" \
             "${windows_exes[@]}" \
