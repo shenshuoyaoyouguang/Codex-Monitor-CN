@@ -35,14 +35,14 @@ function formatCreditsLabel(accountRateLimits: RateLimitSnapshot | null) {
   if (!balance) {
     return null;
   }
-  const intValue = Number.parseInt(balance, 10);
-  if (Number.isFinite(intValue) && intValue > 0) {
-    return `${i18n.t("home.availableBalance")}: ${intValue}`;
-  }
   const floatValue = Number.parseFloat(balance);
   if (Number.isFinite(floatValue) && floatValue > 0) {
-    const rounded = Math.round(floatValue);
-    return rounded > 0 ? `${i18n.t("home.availableBalance")}: ${rounded}` : null;
+    const normalizedValue = Number.isInteger(floatValue)
+      ? floatValue
+      : Math.round(floatValue);
+    return normalizedValue > 0
+      ? `${i18n.t("home.availableBalance")}: ${normalizedValue}`
+      : null;
   }
   return null;
 }

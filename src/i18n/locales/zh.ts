@@ -664,7 +664,7 @@ const zh = {
     reveal: "显示",
     revealInFolder: "在文件管理器中显示",
     updateUpstream: "更新上游分支",
-    updateUpstreamPrompt: "是否要将上游分支更新为 {{branch}}？",
+    updateUpstreamPrompt: "是否要将上游分支更新为 <strong>{{branch}}</strong>？",
     searchOrCreateBranch: "搜索或创建分支",
     searchBranches: "搜索分支",
     create: "创建",

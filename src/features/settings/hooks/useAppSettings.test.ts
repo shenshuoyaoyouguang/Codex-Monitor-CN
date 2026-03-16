@@ -23,6 +23,7 @@ const runCodexDoctorMock = vi.mocked(runCodexDoctor);
 describe("useAppSettings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.localStorage.clear();
   });
 
   afterEach(() => {
@@ -55,6 +56,35 @@ describe("useAppSettings", () => {
     expect(result.current.settings.personality).toBe("friendly");
     expect(result.current.settings.backendMode).toBe("remote");
     expect(result.current.settings.remoteBackendHost).toBe("example:1234");
+  });
+
+  it("fills in locale from persisted preferences when older settings omit it", async () => {
+    window.localStorage.setItem("app_locale", "zh");
+    getAppSettingsMock.mockResolvedValue(
+      ({
+        theme: "dark",
+      } as unknown) as AppSettings,
+    );
+
+    const { result } = renderHook(() => useAppSettings());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.settings.locale).toBe("zh");
+  });
+
+  it("normalizes invalid locales back to english", async () => {
+    getAppSettingsMock.mockResolvedValue(
+      ({
+        locale: "fr",
+      } as unknown) as AppSettings,
+    );
+
+    const { result } = renderHook(() => useAppSettings());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.settings.locale).toBe("en");
   });
 
   it("keeps defaults when getAppSettings fails", async () => {

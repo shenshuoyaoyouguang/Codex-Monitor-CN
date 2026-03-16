@@ -4,101 +4,70 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createRef } from "react";
 import { Sidebar } from "./Sidebar";
 
+const staticTranslations: Record<string, string> = {
+  "sidebar.addWorkspaces": "Add workspaces",
+  "sidebar.openHome": "Open home",
+  "sidebar.organizeAndSort": "Organize and sort threads",
+  "sidebar.organize": "Organize",
+  "sidebar.byProject": "By project",
+  "sidebar.byProjectActivity": "By project activity",
+  "sidebar.threadsOnly": "Thread list",
+  "sidebar.sortBy": "Sort by",
+  "sidebar.updated": "Updated",
+  "sidebar.created": "Created",
+  "sidebar.refreshThreads": "Refresh all workspace threads",
+  "sidebar.toggleSearch": "Toggle search",
+  "sidebar.closeSearch": "Close search",
+  "sidebar.searchThreads": "Search projects",
+  "home.resets": "Resets",
+  "home.availableBalance": "Available balance",
+  "home.unlimited": "Unlimited",
+  "home.newAgent": "New Agent",
+  "home.newWorktreeAgent": "New Worktree Agent",
+  "home.newCloneAgent": "New Clone Agent",
+  "settings.title": "Settings",
+  "nav.settings": "Settings",
+  "nav.projects": "Projects",
+  "time.now": "now",
+};
+
+function translateTestKey(key: string, options?: Record<string, unknown>) {
+  if (
+    (key === "time.daysAgo" ||
+      key === "time.hoursAgo" ||
+      key === "time.minutesAgo" ||
+      key === "time.secondsAgo") &&
+    options?.count !== undefined
+  ) {
+    const suffix =
+      key === "time.daysAgo"
+        ? " days ago"
+        : key === "time.hoursAgo"
+          ? "h ago"
+          : key === "time.minutesAgo"
+            ? "m ago"
+            : "s ago";
+    return `${options.count}${suffix}`;
+  }
+  return staticTranslations[key] ?? key;
+}
+
 // Mock i18n modules
 vi.mock("@/i18n", () => ({
   default: {
     language: "en",
     changeLanguage: vi.fn(),
-    t: (key: string, options?: Record<string, unknown>) => {
-      if (key === "home.resets") {
-        return "Resets";
-      }
-      if (key === "home.availableBalance") {
-        return "Available balance";
-      }
-      if (key === "home.unlimited") {
-        return "Unlimited";
-      }
-      if (key === "time.daysAgo" && options?.count !== undefined) {
-        return `${options.count} days ago`;
-      }
-      if (key === "time.hoursAgo" && options?.count !== undefined) {
-        return `${options.count}h ago`;
-      }
-      if (key === "time.minutesAgo" && options?.count !== undefined) {
-        return `${options.count}m ago`;
-      }
-      if (key === "time.secondsAgo" && options?.count !== undefined) {
-        return `${options.count}s ago`;
-      }
-      if (key === "time.now") {
-        return "now";
-      }
-      return key;
-    },
+    t: translateTestKey,
   },
 }));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string, options?: Record<string, unknown>) => {
-      // Sidebar translations
-      if (key === "sidebar.addWorkspaces") return "Add workspaces";
-      if (key === "sidebar.openHome") return "Open home";
-      if (key === "sidebar.organizeAndSort") return "Organize and sort threads";
-      if (key === "sidebar.organize") return "Organize";
-      if (key === "sidebar.byProject") return "By project";
-      if (key === "sidebar.byProjectActivity") return "By project activity";
-      if (key === "sidebar.threadsOnly") return "Thread list";
-      if (key === "sidebar.sortBy") return "Sort by";
-      if (key === "sidebar.updated") return "Updated";
-      if (key === "sidebar.created") return "Created";
-      if (key === "sidebar.refreshThreads") return "Refresh all workspace threads";
-      if (key === "sidebar.toggleSearch") return "Toggle search";
-      if (key === "sidebar.closeSearch") return "Close search";
-      if (key === "sidebar.searchThreads") return "Search threads";
-      // Home translations
-      if (key === "home.resets") return "Resets";
-      if (key === "home.availableBalance") return "Available balance";
-      if (key === "home.unlimited") return "Unlimited";
-      if (key === "home.newAgent") return "New Agent";
-      if (key === "home.newWorktreeAgent") return "New Worktree Agent";
-      if (key === "home.newCloneAgent") return "New Clone Agent";
-      // Settings translations
-      if (key === "settings.title") return "Settings";
-      // Nav translations
-      if (key === "nav.settings") return "Settings";
-      if (key === "nav.projects") return "Projects";
-      // Time translations
-      if (key === "time.daysAgo" && options?.count !== undefined) {
-        return `${options.count} days ago`;
-      }
-      if (key === "time.hoursAgo" && options?.count !== undefined) {
-        return `${options.count}h ago`;
-      }
-      if (key === "time.minutesAgo" && options?.count !== undefined) {
-        return `${options.count}m ago`;
-      }
-      if (key === "time.secondsAgo" && options?.count !== undefined) {
-        return `${options.count}s ago`;
-      }
-      if (key === "time.now") {
-        return "now";
-      }
-      return key;
-    },
+    t: translateTestKey,
     i18n: {
       language: "en",
       changeLanguage: vi.fn(),
-      t: (key: string, options?: Record<string, unknown>) => {
-        if (key === "home.resets") {
-          return "Resets";
-        }
-        if (key === "time.daysAgo" && options?.count !== undefined) {
-          return `${options.count} days ago`;
-        }
-        return key;
-      },
+      t: translateTestKey,
     },
   }),
   initReactI18next: {
@@ -255,6 +224,30 @@ describe("Sidebar", () => {
 
     const creditsLabel = screen.getByText(/^Available balance:/);
     expect(creditsLabel.textContent ?? "").toContain("120");
+  });
+
+  it("rounds decimal credit balances instead of truncating them", () => {
+    render(
+      <Sidebar
+        {...baseProps}
+        accountRateLimits={{
+          primary: {
+            usedPercent: 62,
+            windowDurationMins: 300,
+            resetsAt: Math.round(Date.now() / 1000) + 3600,
+          },
+          secondary: null,
+          credits: {
+            hasCredits: true,
+            unlimited: false,
+            balance: "1.9",
+          },
+          planType: "pro",
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Available balance: 2")).toBeTruthy();
   });
 
   it("renders threads-only mode as a global chronological list", () => {

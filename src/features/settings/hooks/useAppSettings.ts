@@ -16,6 +16,7 @@ import {
   OPEN_APP_STORAGE_KEY,
 } from "@app/constants";
 import { normalizeOpenAppTargets } from "@app/utils/openApp";
+import { getPersistedLocale, isValidLocale } from "@/i18n/config";
 import { getDefaultInterruptShortcut, isMacPlatform } from "@utils/shortcuts";
 import { isMobilePlatform } from "@utils/platformPaths";
 import { DEFAULT_COMMIT_MESSAGE_PROMPT } from "@utils/commitMessagePrompt";
@@ -134,6 +135,7 @@ function buildDefaultSettings(): AppSettings {
     lastConnectedAtMs: null,
   };
   return {
+    locale: getPersistedLocale(),
     codexBin: null,
     codexArgs: null,
     backendMode: isMobile ? "remote" : "local",
@@ -242,6 +244,7 @@ function normalizeAppSettings(settings: AppSettings): AppSettings {
   return {
     ...settings,
     ...remoteBackendSettings,
+    locale: isValidLocale(settings.locale) ? settings.locale : "en",
     codexBin: settings.codexBin?.trim() ? settings.codexBin.trim() : null,
     codexArgs: settings.codexArgs?.trim() ? settings.codexArgs.trim() : null,
     uiScale: clampUiScale(settings.uiScale),

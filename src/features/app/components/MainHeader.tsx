@@ -18,7 +18,7 @@ import { LaunchScriptButton } from "./LaunchScriptButton";
 import { LaunchScriptEntryButton } from "./LaunchScriptEntryButton";
 import type { WorkspaceLaunchScriptsState } from "../hooks/useWorkspaceLaunchScripts";
 import { useMenuController } from "../hooks/useMenuController";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 
 type MainHeaderProps = {
   workspace: WorkspaceInfo;
@@ -276,7 +276,11 @@ export function MainHeader({
                       {worktreeRename.upstream && (
                         <div className="worktree-info-upstream">
                           <span className="worktree-info-subtle">
-                            {t("mainHeader.updateUpstreamPrompt", { branch: worktreeRename.upstream.newBranch })}
+                            <Trans
+                              i18nKey="mainHeader.updateUpstreamPrompt"
+                              values={{ branch: worktreeRename.upstream.newBranch }}
+                              components={{ strong: <strong /> }}
+                            />
                           </span>
                           <button
                             type="button"

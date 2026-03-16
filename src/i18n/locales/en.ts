@@ -664,7 +664,8 @@ const en = {
     reveal: "Reveal",
     revealInFolder: "Reveal in file manager",
     updateUpstream: "Update upstream",
-    updateUpstreamPrompt: "Do you want to update the upstream branch to {{branch}}?",
+    updateUpstreamPrompt:
+      "Do you want to update the upstream branch to <strong>{{branch}}</strong>?",
     searchOrCreateBranch: "Search or create branch",
     searchBranches: "Search branches",
     create: "Create",

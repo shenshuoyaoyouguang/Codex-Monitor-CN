@@ -1120,6 +1120,7 @@ fn default_selected_open_app_id() -> String {
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
+            locale: default_locale(),
             codex_bin: None,
             codex_args: None,
             backend_mode: default_backend_mode(),
@@ -1223,6 +1224,7 @@ mod tests {
             settings.remote_backend_provider,
             RemoteBackendProvider::Tcp
         ));
+        assert_eq!(settings.locale, "en");
         assert_eq!(settings.remote_backend_host, "127.0.0.1:4732");
         assert!(settings.remote_backend_token.is_none());
         assert!(settings.remote_backends.is_empty());
