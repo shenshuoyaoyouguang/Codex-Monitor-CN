@@ -698,19 +698,22 @@ jobs:
             exit 1
           fi
 
+          release_files=()
+          release_files+=("${mac_zips[@]}")
+          release_files+=("${mac_dmgs[@]}")
+          release_files+=("${mac_archives[@]}")
+          release_files+=("${mac_signatures[@]}")
+          release_files+=("${appimages[@]}")
+          release_files+=("${rpms[@]}")
+          release_files+=("${windows_exes[@]}")
+          release_files+=("${windows_msis[@]}")
+          release_files+=("${latest_json[@]}")
+
           gh release create "v${VERSION}" \
             --title "v${VERSION}" \
             --notes-file release-artifacts/release-notes.md \
             --target "$GITHUB_SHA" \
-            "${mac_zips[@]}" \
-            "${mac_dmgs[@]}" \
-            "${mac_archives[@]}" \
-            "${mac_signatures[@]}" \
-            "${appimages[@]}" \
-            "${rpms[@]}" \
-            "${windows_exes[@]}" \
-            "${windows_msis[@]}" \
-            "${latest_json[@]}"
+            "${release_files[@]}"
 
       - name: Bump version and open PR
         env:
