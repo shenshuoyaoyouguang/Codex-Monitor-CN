@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import ChevronDown from "lucide-react/dist/esm/icons/chevron-down";
 import ChevronUp from "lucide-react/dist/esm/icons/chevron-up";
 import type {
@@ -98,6 +99,7 @@ export const Messages = memo(function Messages({
   onOpenThreadLink,
   onQuoteMessage,
 }: MessagesProps) {
+  const { t } = useTranslation();
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const autoScrollRef = useRef(true);
@@ -478,10 +480,10 @@ export const Messages = memo(function Messages({
           const { group } = entry;
           const isCollapsed = collapsedToolGroups.has(group.id);
           const summaryParts = [
-            formatCount(group.toolCount, "tool call", "tool calls"),
+            formatCount(group.toolCount, t("messages.toolCall_one"), t("messages.toolCall_many")),
           ];
           if (group.messageCount > 0) {
-            summaryParts.push(formatCount(group.messageCount, "message", "messages"));
+            summaryParts.push(formatCount(group.messageCount, t("messages.message_one"), t("messages.message_many")));
           }
           const summaryText = summaryParts.join(", ");
           const groupBodyId = `tool-group-${group.id}`;
@@ -498,7 +500,7 @@ export const Messages = memo(function Messages({
                   onClick={() => toggleToolGroup(group.id)}
                   aria-expanded={!isCollapsed}
                   aria-controls={groupBodyId}
-                  aria-label={isCollapsed ? "Expand tool calls" : "Collapse tool calls"}
+                  aria-label={isCollapsed ? t("messages.expandToolCalls") : t("messages.collapseToolCalls")}
                 >
                   <span className="tool-group-chevron" aria-hidden>
                     <ChevronIcon size={14} />
@@ -529,14 +531,14 @@ export const Messages = memo(function Messages({
       />
       {!items.length && !userInputNode && !isThinking && !isLoadingMessages && (
         <div className="empty messages-empty">
-          {threadId ? "Send a prompt to the agent." : "Send a prompt to start a new agent."}
+          {threadId ? t("messages.empty.prompt") : t("messages.empty.newAgent")}
         </div>
       )}
       {!items.length && !userInputNode && !isThinking && isLoadingMessages && (
         <div className="empty messages-empty">
           <div className="messages-loading-indicator" role="status" aria-live="polite">
             <span className="working-spinner" aria-hidden />
-            <span className="messages-loading-label">Loading…</span>
+            <span className="messages-loading-label">{t("messages.loading")}</span>
           </div>
         </div>
       )}

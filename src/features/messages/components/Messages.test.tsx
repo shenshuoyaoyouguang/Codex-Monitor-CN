@@ -5,6 +5,102 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import type { ConversationItem } from "../../../types";
 import { Messages } from "./Messages";
 
+// Mock i18n modules
+vi.mock("@/i18n", () => ({
+  default: {
+    language: "en",
+    changeLanguage: vi.fn(),
+    t: (key: string, options?: Record<string, unknown>) => {
+      if (key === "messages.openImage" && options?.index !== undefined) return `Open image ${options.index}`;
+      if (key === "messages.openImage") return "Open image";
+      if (key === "messages.closeImagePreview") return "Close image preview";
+      if (key === "messages.copyMessage") return "Copy message";
+      if (key === "messages.quoteMessage") return "Quote message";
+      if (key === "messages.expandToolCalls") return "Expand tool calls";
+      if (key === "messages.collapseToolCalls") return "Collapse tool calls";
+      if (key === "messages.loading") return "Loading…";
+      if (key === "messages.working") return "Working…";
+      if (key === "messages.toggleReasoningDetails") return "Toggle reasoning details";
+      if (key === "messages.reviewStarted") return "Review started";
+      if (key === "messages.reviewCompleted") return "Review completed";
+      if (key === "messages.review") return "Review";
+      if (key === "messages.answered") return "answered:";
+      if (key === "messages.inputRequested") return "Input requested";
+      if (key === "messages.noAnswerProvided") return "No answer provided.";
+      if (key === "messages.more" && options?.count !== undefined) return `+${options.count} more`;
+      if (key === "messages.toggleAnsweredInputDetails") return "Toggle answered input details";
+      if (key === "messages.toggleToolDetails") return "Toggle tool details";
+      if (key === "messages.fileEdited_one") return "file edited";
+      if (key === "messages.fileEdited_many") return "files edited";
+      if (key === "messages.changes") return "changes";
+      if (key === "messages.cwd") return "cwd:";
+      if (key === "messages.exporting") return "Exporting...";
+      if (key === "messages.exportMd") return "Export .md";
+      if (key === "messages.exploring") return "Exploring";
+      if (key === "messages.explored") return "Explored";
+      if (key === "messages.question") return "Question";
+      if (key === "messages.message_one") return "message";
+      if (key === "messages.message_many") return "messages";
+      if (key === "messages.toolCall_one") return "tool call";
+      if (key === "messages.toolCall_many") return "tool calls";
+      if (key === "messages.newMessageIn" && options?.seconds !== undefined) return `New message will be fetched in ${options.seconds} seconds`;
+      if (key === "messages.doneIn") return "Done in";
+      return key;
+    },
+  },
+}));
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string, options?: Record<string, unknown>) => {
+      if (key === "messages.openImage" && options?.index !== undefined) return `Open image ${options.index}`;
+      if (key === "messages.openImage") return "Open image";
+      if (key === "messages.closeImagePreview") return "Close image preview";
+      if (key === "messages.copyMessage") return "Copy message";
+      if (key === "messages.quoteMessage") return "Quote message";
+      if (key === "messages.expandToolCalls") return "Expand tool calls";
+      if (key === "messages.collapseToolCalls") return "Collapse tool calls";
+      if (key === "messages.loading") return "Loading…";
+      if (key === "messages.working") return "Working…";
+      if (key === "messages.toggleReasoningDetails") return "Toggle reasoning details";
+      if (key === "messages.reviewStarted") return "Review started";
+      if (key === "messages.reviewCompleted") return "Review completed";
+      if (key === "messages.review") return "Review";
+      if (key === "messages.answered") return "answered:";
+      if (key === "messages.inputRequested") return "Input requested";
+      if (key === "messages.noAnswerProvided") return "No answer provided.";
+      if (key === "messages.more" && options?.count !== undefined) return `+${options.count} more`;
+      if (key === "messages.toggleAnsweredInputDetails") return "Toggle answered input details";
+      if (key === "messages.toggleToolDetails") return "Toggle tool details";
+      if (key === "messages.fileEdited_one") return "file edited";
+      if (key === "messages.fileEdited_many") return "files edited";
+      if (key === "messages.changes") return "changes";
+      if (key === "messages.cwd") return "cwd:";
+      if (key === "messages.exporting") return "Exporting...";
+      if (key === "messages.exportMd") return "Export .md";
+      if (key === "messages.exploring") return "Exploring";
+      if (key === "messages.explored") return "Explored";
+      if (key === "messages.question") return "Question";
+      if (key === "messages.message_one") return "message";
+      if (key === "messages.message_many") return "messages";
+      if (key === "messages.toolCall_one") return "tool call";
+      if (key === "messages.toolCall_many") return "tool calls";
+      if (key === "messages.newMessageIn" && options?.seconds !== undefined) return `New message will be fetched in ${options.seconds} seconds`;
+      if (key === "messages.doneIn") return "Done in";
+      return key;
+    },
+    i18n: {
+      language: "en",
+      changeLanguage: vi.fn(),
+    },
+  }),
+  initReactI18next: {
+    type: "3rdParty",
+    init: vi.fn(),
+    use: () => ({ init: vi.fn() }),
+  },
+}));
+
 const useFileLinkOpenerMock = vi.fn(
   (_workspacePath: string | null, _openTargets: unknown[], _selectedOpenAppId: string) => ({
     openFileLink: openFileLinkMock,
@@ -84,7 +180,7 @@ describe("Messages", () => {
     if (grid && markdown) {
       expect(bubble?.firstChild).toBe(grid);
     }
-    const openButton = screen.getByRole("button", { name: "Open image 1" });
+    const openButton = screen.getByRole("button", { name: "Open image" });
     fireEvent.click(openButton);
     expect(screen.getByRole("dialog")).toBeTruthy();
   });

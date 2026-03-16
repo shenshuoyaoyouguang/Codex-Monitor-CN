@@ -2,6 +2,7 @@ import ChevronLeft from "lucide-react/dist/esm/icons/chevron-left";
 import ChevronRight from "lucide-react/dist/esm/icons/chevron-right";
 import RefreshCw from "lucide-react/dist/esm/icons/refresh-cw";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   AccountSnapshot,
   LocalUsageDay,
@@ -115,7 +116,7 @@ function formatDurationCompact(valueMs: number | null | undefined) {
   return `${seconds}s`;
 }
 
-function formatDayLabel(value: string | null | undefined) {
+function formatDayLabel(value: string | null | undefined, locale?: string) {
   if (!value) {
     return "--";
   }
@@ -127,21 +128,27 @@ function formatDayLabel(value: string | null | undefined) {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat(locale ?? "en", {
     month: "short",
     day: "numeric",
   }).format(date);
 }
 
-function formatWeekRange(days: LocalUsageDay[]) {
+function formatWeekRange(
+  days: LocalUsageDay[],
+  t: (key: string, options?: Record<string, unknown>) => string,
+  locale?: string,
+) {
   if (days.length === 0) {
-    return "No usage data";
+    return t("home.noUsageData");
   }
   const first = days[0];
   const last = days[days.length - 1];
-  const firstLabel = formatDayLabel(first?.day);
-  const lastLabel = formatDayLabel(last?.day);
-  return first?.day === last?.day ? firstLabel : `${firstLabel} to ${lastLabel}`;
+  const firstLabel = formatDayLabel(first?.day, locale);
+  const lastLabel = formatDayLabel(last?.day, locale);
+  return first?.day === last?.day
+    ? firstLabel
+    : `${firstLabel} ${t("home.to")} ${lastLabel}`;
 }
 
 function isUsageDayActive(day: LocalUsageDay) {
@@ -158,16 +165,6 @@ function formatPlanType(value: string | null | undefined) {
     .filter(Boolean)
     .map((part) => part[0]?.toUpperCase() + part.slice(1))
     .join(" ");
-}
-
-function formatAccountTypeLabel(value: AccountSnapshot["type"] | null | undefined) {
-  if (value === "chatgpt") {
-    return "ChatGPT account";
-  }
-  if (value === "apikey") {
-    return "API key";
-  }
-  return "Connected account";
 }
 
 function formatWindowDuration(valueMins: number | null | undefined) {
@@ -227,6 +224,7 @@ export function Home({
   accountInfo,
   onSelectThread,
 }: HomeProps) {
+  const { t, i18n } = useTranslation();
   const [chartWeekOffset, setChartWeekOffset] = useState(0);
 
   const usageTotals = localUsageSnapshot?.totals ?? null;
@@ -295,11 +293,11 @@ export function Home({
   );
   const canShowOlderWeek = chartWeekOffset < maxHistoricalWeekOffset;
   const canShowNewerWeek = chartWeekOffset > 0;
-  const chartRangeLabel = formatWeekRange(chartDays);
+  const chartRangeLabel = formatWeekRange(chartDays, t, i18n.language);
   const chartRangeAriaLabel =
     chartDays.length > 0
-      ? `Usage week ${chartDays[0]?.day} to ${chartDays[chartDays.length - 1]?.day}`
-      : "Usage week";
+      ? `${t("home.usageWeek")} ${chartDays[0]?.day} ${t("home.to")} ${chartDays[chartDays.length - 1]?.day}`
+      : t("home.usageWeek");
   let longestStreak = 0;
   let runningStreak = 0;
   for (const day of usageDays) {
@@ -312,121 +310,121 @@ export function Home({
   }
 
   const longestStreakCard: HomeStatCard = {
-    label: "Longest streak",
-    value: longestStreak > 0 ? formatDayCount(longestStreak) : "--",
+    label: t("home.longestStreak"),
+    value: longestStreak > 0 ? formatDayCount(longestStreak, t) : "--",
     caption:
       longestStreak > 0
-        ? "Across current usage range"
-        : "No active streak yet",
+        ? t("home.acrossUsageRange")
+        : t("home.noActiveStreak"),
     compact: true,
   };
   const activeDaysCard: HomeStatCard = {
-    label: "Active days",
+    label: t("home.activeDays"),
     value: last7Days.length > 0 ? `${last7ActiveDays} / ${last7Days.length}` : "--",
     caption:
       usageDays.length > 0
-        ? `${last30ActiveDays} / ${usageDays.length} in current range`
-        : "No activity yet",
+        ? `${last30ActiveDays} / ${usageDays.length} ${t("home.inCurrentRange")}`
+        : t("home.noActivityYet"),
     compact: true,
   };
   const usageCards: HomeStatCard[] =
     usageMetric === "tokens"
       ? [
           {
-            label: "Today",
+            label: t("home.today"),
             value: formatCompactNumber(latestUsageDay?.totalTokens ?? 0),
-            suffix: "tokens",
+            suffix: t("home.tokensUnit"),
             caption: latestUsageDay
-              ? `${formatDayLabel(latestUsageDay.day)} · ${formatCount(
+              ? `${formatDayLabel(latestUsageDay.day, i18n.language)} · ${formatCount(
                   latestUsageDay.inputTokens,
                 )} in / ${formatCount(latestUsageDay.outputTokens)} out`
-              : "Latest available day",
+              : t("home.latestDay"),
           },
           {
-            label: "Last 7 days",
+            label: t("home.last7Days"),
             value: formatCompactNumber(usageTotals?.last7DaysTokens ?? last7Tokens),
-            suffix: "tokens",
-            caption: `Avg ${formatCompactNumber(usageTotals?.averageDailyTokens)} / day`,
+            suffix: t("home.tokensUnit"),
+            caption: `${t("home.avgPerDay")} ${formatCompactNumber(usageTotals?.averageDailyTokens)}`,
           },
           {
-            label: "Last 30 days",
+            label: t("home.last30Days"),
             value: formatCompactNumber(usageTotals?.last30DaysTokens ?? last7Tokens),
-            suffix: "tokens",
-            caption: `Total ${formatCount(usageTotals?.last30DaysTokens ?? last7Tokens)}`,
+            suffix: t("home.tokensUnit"),
+            caption: `${t("home.last30Days")} ${formatCount(usageTotals?.last30DaysTokens ?? last7Tokens)}`,
           },
           {
-            label: "Cache hit rate",
+            label: t("home.cacheHitRate"),
             value: usageTotals
               ? `${usageTotals.cacheHitRatePercent.toFixed(1)}%`
               : "--",
-            caption: "Last 7 days",
+            caption: t("home.last7DaysCaption"),
           },
           {
-            label: "Cached tokens",
+            label: t("home.cachedTokens"),
             value: formatCompactNumber(last7Cached),
-            suffix: "saved",
+            suffix: t("home.saved"),
             caption:
               last7Input > 0
-                ? `${((last7Cached / last7Input) * 100).toFixed(1)}% of prompt tokens`
-                : "Last 7 days",
+                ? `${((last7Cached / last7Input) * 100).toFixed(1)}% ${t("home.ofPromptTokens")}`
+                : t("home.last7DaysCaption"),
           },
           {
-            label: "Avg / run",
+            label: t("home.avgPerRun"),
             value:
               averageTokensPerRun === null
                 ? "--"
                 : formatCompactNumber(averageTokensPerRun),
-            suffix: "tokens",
+            suffix: t("home.tokensUnit"),
             caption:
               last7AgentRuns > 0
-                ? `${formatCount(last7AgentRuns)} runs in last 7 days`
-                : "No runs yet",
+                ? `${formatCount(last7AgentRuns)} ${t("home.runsInLast7Days")}`
+                : t("home.noRunsYet"),
           },
           {
-            label: "Peak day",
-            value: formatDayLabel(usageTotals?.peakDay),
-            caption: `${formatCompactNumber(usageTotals?.peakDayTokens)} tokens`,
+            label: t("home.peakDay"),
+            value: formatDayLabel(usageTotals?.peakDay, i18n.language),
+            caption: `${formatCompactNumber(usageTotals?.peakDayTokens)} ${t("home.tokensUnit")}`,
           },
         ]
       : [
           {
-            label: "Last 7 days",
+            label: t("home.last7Days"),
             value: formatDurationCompact(last7AgentMs),
-            suffix: "agent time",
-            caption: `Avg ${formatDurationCompact(averageDailyAgentMs)} / day`,
+            suffix: t("home.agentTime"),
+            caption: `${t("home.avgPerDay")} ${formatDurationCompact(averageDailyAgentMs)}`,
           },
           {
-            label: "Last 30 days",
+            label: t("home.last30Days"),
             value: formatDurationCompact(last30AgentMs),
-            suffix: "agent time",
-            caption: `Total ${formatDuration(last30AgentMs)}`,
+            suffix: t("home.agentTime"),
+            caption: `${t("home.last30Days")} ${formatDuration(last30AgentMs)}`,
           },
           {
-            label: "Runs",
+            label: t("home.runs"),
             value: formatCount(last7AgentRuns),
-            suffix: "runs",
-            caption: `Last 30 days: ${formatCount(last30AgentRuns)} runs`,
+            suffix: t("home.runsUnit"),
+            caption: `${t("home.last30Days")}: ${formatCount(last30AgentRuns)} ${t("home.runsUnit")}`,
           },
           {
-            label: "Avg / run",
+            label: t("home.avgPerRun"),
             value: formatDurationCompact(averageRunDurationMs),
             caption:
               last7AgentRuns > 0
-                ? `Across ${formatCount(last7AgentRuns)} runs`
-                : "No runs yet",
+                ? `Across ${formatCount(last7AgentRuns)} ${t("home.runsUnit")}`
+                : t("home.noRunsYet"),
           },
           {
-            label: "Avg / active day",
+            label: t("home.avgPerActiveDay"),
             value: formatDurationCompact(averageActiveDayAgentMs),
             caption:
               last7ActiveDays > 0
-                ? `${formatCount(last7ActiveDays)} active days in last 7`
-                : "No active days yet",
+                ? `${formatCount(last7ActiveDays)} ${t("home.activeDaysInLast7")}`
+                : t("home.noActiveDaysYet"),
           },
           {
-            label: "Peak day",
-            value: formatDayLabel(peakAgentDayLabel),
-            caption: `${formatDurationCompact(peakAgentTimeMs)} agent time`,
+            label: t("home.peakDay"),
+            value: formatDayLabel(peakAgentDayLabel, i18n.language),
+            caption: `${formatDurationCompact(peakAgentTimeMs)} ${t("home.agentTime")}`,
           },
         ];
   const usageInsights = [longestStreakCard, activeDaysCard];
@@ -437,24 +435,24 @@ export function Home({
 
   if (usagePercentLabels.sessionPercent !== null) {
     accountCards.push({
-      label: usageShowRemaining ? "Session left" : "Session usage",
+      label: t(usageShowRemaining ? "home.sessionLeft" : "home.sessionUsage"),
       value: `${usagePercentLabels.sessionPercent}%`,
       caption: buildWindowCaption(
         usagePercentLabels.sessionResetLabel,
         accountRateLimits?.primary?.windowDurationMins,
-        "Current window",
+        t("home.currentWindow"),
       ),
     });
   }
 
   if (usagePercentLabels.showWeekly && usagePercentLabels.weeklyPercent !== null) {
     accountCards.push({
-      label: usageShowRemaining ? "Weekly left" : "Weekly usage",
+      label: t(usageShowRemaining ? "home.weeklyLeft" : "home.weeklyUsage"),
       value: `${usagePercentLabels.weeklyPercent}%`,
       caption: buildWindowCaption(
         usagePercentLabels.weeklyResetLabel,
         accountRateLimits?.secondary?.windowDurationMins,
-        "Longer window",
+        t("home.longerWindow"),
       ),
     });
   }
@@ -463,30 +461,36 @@ export function Home({
     accountCards.push(
       accountRateLimits.credits.unlimited
         ? {
-            label: "Credits",
-            value: "Unlimited",
-            caption: "Available balance",
+            label: t("home.credits"),
+            value: t("home.unlimited"),
+            caption: t("home.availableBalance"),
           }
         : {
-            label: "Credits",
+            label: t("home.credits"),
             value: creditsBalance ?? "--",
-            suffix: creditsBalance ? "credits" : null,
-            caption: "Available balance",
+            suffix: creditsBalance ? t("home.creditsUnit") : null,
+            caption: t("home.availableBalance"),
           },
     );
   }
 
   if (planLabel) {
     accountCards.push({
-      label: "Plan",
+      label: t("home.plan"),
       value: planLabel,
-      caption: formatAccountTypeLabel(accountInfo?.type),
+      caption: t(
+        accountInfo?.type === "chatgpt"
+          ? "home.chatGptAccount"
+          : accountInfo?.type === "apikey"
+            ? "home.apiKey"
+            : "home.connectedAccount"
+      ),
     });
   }
 
   const accountMeta = accountInfo?.email ?? null;
   const updatedLabel = localUsageSnapshot
-    ? `Updated ${formatRelativeTime(localUsageSnapshot.updatedAt, "en")}`
+    ? `${t("home.updated")} ${formatRelativeTime(localUsageSnapshot.updatedAt, i18n.language)}`
     : null;
   const showUsageSkeleton = isLoadingLocalUsage && !localUsageSnapshot;
   const showUsageEmpty = !isLoadingLocalUsage && !localUsageSnapshot;
@@ -494,14 +498,14 @@ export function Home({
   return (
     <div className="home">
       <div className="home-hero">
-        <div className="home-title">Codex Monitor</div>
+        <div className="home-title">{t("home.title")}</div>
         <div className="home-subtitle">
-          Orchestrate agents across your local projects.
+          {t("home.subtitle")}
         </div>
       </div>
       <div className="home-latest">
         <div className="home-latest-header">
-          <div className="home-latest-label">Latest agents</div>
+          <div className="home-latest-label">{t("home.latestAgents")}</div>
         </div>
         {latestAgentRuns.length > 0 ? (
           <div className="home-latest-grid">
@@ -520,20 +524,20 @@ export function Home({
                     )}
                   </div>
                   <div className="home-latest-time">
-                    {formatRelativeTime(run.timestamp)}
+                    {formatRelativeTime(run.timestamp, i18n.language)}
                   </div>
                 </div>
                 <div className="home-latest-message">
-                  {run.message.trim() || "Agent replied."}
+                  {run.message.trim() || t("home.agentReplied")}
                 </div>
                 {run.isProcessing && (
-                  <div className="home-latest-status">Running</div>
+                  <div className="home-latest-status">{t("home.running")}</div>
                 )}
               </button>
             ))}
           </div>
         ) : isLoadingLatestAgents ? (
-          <div className="home-latest-grid home-latest-grid-loading" aria-label="Loading agents">
+          <div className="home-latest-grid home-latest-grid-loading" aria-label={t("home.loadingAgents")}>
             {Array.from({ length: 3 }).map((_, index) => (
               <div className="home-latest-card home-latest-card-skeleton" key={index}>
                 <div className="home-latest-card-header">
@@ -547,9 +551,9 @@ export function Home({
           </div>
         ) : (
           <div className="home-latest-empty">
-            <div className="home-latest-empty-title">No agent activity yet</div>
+            <div className="home-latest-empty-title">{t("home.noAgentActivity")}</div>
             <div className="home-latest-empty-subtitle">
-              Start a thread to see the latest responses here.
+              {t("home.startThreadHint")}
             </div>
           </div>
         )}
@@ -563,7 +567,7 @@ export function Home({
           <span className="home-icon" aria-hidden>
             +
           </span>
-          Add Workspaces
+          {t("home.addWorkspaces")}
         </button>
         <button
           className="home-button secondary home-add-workspace-from-url-button"
@@ -573,12 +577,12 @@ export function Home({
           <span className="home-icon" aria-hidden>
             ⤓
           </span>
-          Add Workspace from URL
+          {t("home.addWorkspaceFromUrl")}
         </button>
       </div>
       <div className="home-usage">
         <div className="home-section-header">
-          <div className="home-section-title">Usage snapshot</div>
+          <div className="home-section-title">{t("home.usageSnapshot")}</div>
           <div className="home-section-meta-row">
             {updatedLabel && <div className="home-section-meta">{updatedLabel}</div>}
             <button
@@ -590,8 +594,8 @@ export function Home({
               }
               onClick={onRefreshLocalUsage}
               disabled={isLoadingLocalUsage}
-              aria-label="Refresh usage"
-              title="Refresh usage"
+              aria-label={t("home.refreshUsage")}
+              title={t("home.refreshUsage")}
             >
               <RefreshCw
                 className={
@@ -606,7 +610,7 @@ export function Home({
         </div>
         <div className="home-usage-controls">
           <div className="home-usage-control-group">
-            <span className="home-usage-control-label">Workspace</span>
+            <span className="home-usage-control-label">{t("home.workspace")}</span>
             <div className="home-usage-select-wrap">
               <select
                 className="home-usage-select"
@@ -616,7 +620,7 @@ export function Home({
                 }
                 disabled={usageWorkspaceOptions.length === 0}
               >
-                <option value="">All workspaces</option>
+                <option value="">{t("home.allWorkspaces")}</option>
                 {usageWorkspaceOptions.map((option) => (
                   <option key={option.id} value={option.id}>
                     {option.label}
@@ -626,8 +630,8 @@ export function Home({
             </div>
           </div>
           <div className="home-usage-control-group">
-            <span className="home-usage-control-label">View</span>
-            <div className="home-usage-toggle" role="group" aria-label="Usage view">
+            <span className="home-usage-control-label">{t("home.view")}</span>
+            <div className="home-usage-toggle" role="group" aria-label={t("home.usageSnapshot")}>
               <button
                 type="button"
                 className={
@@ -638,7 +642,7 @@ export function Home({
                 onClick={() => onUsageMetricChange("tokens")}
                 aria-pressed={usageMetric === "tokens"}
               >
-                Tokens
+                {t("home.tokens")}
               </button>
               <button
                 type="button"
@@ -650,7 +654,7 @@ export function Home({
                 onClick={() => onUsageMetricChange("time")}
                 aria-pressed={usageMetric === "time"}
               >
-                Time
+                {t("home.time")}
               </button>
             </div>
           </div>
@@ -671,9 +675,9 @@ export function Home({
           </div>
         ) : showUsageEmpty ? (
           <div className="home-usage-empty">
-            <div className="home-usage-empty-title">No usage data yet</div>
+            <div className="home-usage-empty-title">{t("home.noUsageData")}</div>
             <div className="home-usage-empty-subtitle">
-              Run a Codex session to start tracking local usage.
+              {t("home.runCodexHint")}
             </div>
             {localUsageError && (
               <div className="home-usage-error">{localUsageError}</div>
@@ -708,8 +712,8 @@ export function Home({
                       type="button"
                       className="home-usage-chart-button"
                       onClick={() => setChartWeekOffset((current) => current + 1)}
-                      aria-label="Show previous week"
-                      title="Show previous week"
+                      aria-label={t("home.showPreviousWeek")}
+                      title={t("home.showPreviousWeek")}
                     >
                       <ChevronLeft aria-hidden />
                     </button>
@@ -718,8 +722,8 @@ export function Home({
                     type="button"
                     className="home-usage-chart-button"
                     onClick={() => setChartWeekOffset((current) => Math.max(0, current - 1))}
-                    aria-label="Show next week"
-                    title="Show next week"
+                    aria-label={t("home.showNextWeek")}
+                    title={t("home.showNextWeek")}
                     disabled={!canShowNewerWeek}
                   >
                     <ChevronRight aria-hidden />
@@ -736,8 +740,8 @@ export function Home({
                   );
                   const tooltip =
                     usageMetric === "tokens"
-                      ? `${formatDayLabel(day.day)} · ${formatCount(day.totalTokens)} tokens`
-                      : `${formatDayLabel(day.day)} · ${formatDuration(day.agentTimeMs ?? 0)} agent time`;
+                      ? `${formatDayLabel(day.day, i18n.language)} · ${formatCount(day.totalTokens)} ${t("home.tokensUnit")}`
+                      : `${formatDayLabel(day.day, i18n.language)} · ${formatDuration(day.agentTimeMs ?? 0)} ${t("home.agentTime")}`;
                   return (
                     <div
                       className="home-usage-bar"
@@ -749,7 +753,7 @@ export function Home({
                         style={{ height: `${height}%` }}
                       />
                       <span className="home-usage-bar-label">
-                        {formatDayLabel(day.day)}
+                        {formatDayLabel(day.day, i18n.language)}
                       </span>
                     </div>
                   );
@@ -773,9 +777,9 @@ export function Home({
             </div>
             <div className="home-usage-models">
               <div className="home-usage-models-label">
-                Top models
+                {t("home.topModels")}
                 {usageMetric === "time" && (
-                  <span className="home-usage-models-hint">Tokens</span>
+                  <span className="home-usage-models-hint">{t("home.tokens")}</span>
                 )}
               </div>
               <div className="home-usage-models-list">
@@ -784,7 +788,7 @@ export function Home({
                     <span
                       className="home-usage-model-chip"
                       key={model.model}
-                      title={`${model.model}: ${formatCount(model.tokens)} tokens`}
+                      title={`${model.model}: ${formatCount(model.tokens)} ${t("home.tokensUnit")}`}
                     >
                       {model.model}
                       <span className="home-usage-model-share">
@@ -793,7 +797,7 @@ export function Home({
                     </span>
                   ))
                 ) : (
-                  <span className="home-usage-model-empty">No models yet</span>
+                  <span className="home-usage-model-empty">{t("home.noModelsYet")}</span>
                 )}
               </div>
               {localUsageError && (
@@ -805,7 +809,7 @@ export function Home({
         {accountCards.length > 0 && (
           <div className="home-account">
             <div className="home-section-header">
-              <div className="home-section-title">Account limits</div>
+              <div className="home-section-title">{t("home.accountLimits")}</div>
               {accountMeta && (
                 <div className="home-section-meta-row">
                   <div className="home-section-meta">{accountMeta}</div>
@@ -832,9 +836,15 @@ export function Home({
     </div>
   );
 }
-function formatDayCount(value: number | null | undefined) {
+function formatDayCount(
+  value: number | null | undefined,
+  t?: (key: string, options?: Record<string, unknown>) => string,
+) {
   if (value === null || value === undefined) {
     return "--";
   }
-  return `${value} day${value === 1 ? "" : "s"}`;
+  if (t) {
+    return t("time.days", { count: value });
+  }
+  return String(value);
 }
