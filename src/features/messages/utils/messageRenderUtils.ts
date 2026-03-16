@@ -144,10 +144,6 @@ export function toolNameFromTitle(title: string) {
   return segments.length ? segments[segments.length - 1] : "";
 }
 
-export function formatCount(value: number, singular: string, plural: string) {
-  return `${value} ${value === 1 ? singular : plural}`;
-}
-
 function sanitizeReasoningTitle(title: string) {
   return title
     .replace(/[`*_~]/g, "")

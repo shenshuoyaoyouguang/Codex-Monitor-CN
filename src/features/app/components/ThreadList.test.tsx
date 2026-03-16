@@ -4,11 +4,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ThreadSummary } from "../../../types";
 import { ThreadList } from "./ThreadList";
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+const i18nTranslations = vi.hoisted(() => ({}));
+
+vi.mock("react-i18next", async () => {
+  const { createReactI18nextMock } = await import("@/test/i18nMock");
+  return createReactI18nextMock(i18nTranslations);
+});
 
 const nestedThread: ThreadSummary = {
   id: "thread-2",

@@ -1,6 +1,8 @@
 /** @vitest-environment jsdom */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const i18nTranslations = vi.hoisted(() => ({}));
+
 const sentryInitMock = vi.fn();
 const sentryMetricsCountMock = vi.fn();
 const renderMock = vi.fn();
@@ -15,27 +17,15 @@ vi.mock("@sentry/react", () => ({
   },
 }));
 
-vi.mock("@/i18n", () => ({
-  default: {
-    language: "en",
-    changeLanguage: vi.fn(),
-  },
-}));
+vi.mock("@/i18n", async () => {
+  const { createI18nModuleMock } = await import("@/test/i18nMock");
+  return createI18nModuleMock(i18nTranslations);
+});
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-    i18n: {
-      language: "en",
-      changeLanguage: vi.fn(),
-    },
-  }),
-  initReactI18next: {
-    type: "3rdParty",
-    init: vi.fn(),
-    use: () => ({ init: vi.fn() }),
-  },
-}));
+vi.mock("react-i18next", async () => {
+  const { createReactI18nextMock } = await import("@/test/i18nMock");
+  return createReactI18nextMock(i18nTranslations);
+});
 
 vi.mock("react-dom/client", () => ({
   default: {

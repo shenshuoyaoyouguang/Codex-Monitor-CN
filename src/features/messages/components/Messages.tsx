@@ -24,7 +24,6 @@ import {
   SCROLL_THRESHOLD_PX,
   buildToolGroups,
   computePlanFollowupState,
-  formatCount,
   parseReasoning,
   scrollKeyForItems,
 } from "../utils/messageRenderUtils";
@@ -480,10 +479,10 @@ export const Messages = memo(function Messages({
           const { group } = entry;
           const isCollapsed = collapsedToolGroups.has(group.id);
           const summaryParts = [
-            formatCount(group.toolCount, t("messages.toolCall_one"), t("messages.toolCall_many")),
+            t("messages.toolCall", { count: group.toolCount }),
           ];
           if (group.messageCount > 0) {
-            summaryParts.push(formatCount(group.messageCount, t("messages.message_one"), t("messages.message_many")));
+            summaryParts.push(t("messages.message", { count: group.messageCount }));
           }
           const summaryText = summaryParts.join(", ");
           const groupBodyId = `tool-group-${group.id}`;

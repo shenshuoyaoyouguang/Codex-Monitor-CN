@@ -5,101 +5,51 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import type { ConversationItem } from "../../../types";
 import { Messages } from "./Messages";
 
-// Mock i18n modules
-vi.mock("@/i18n", () => ({
-  default: {
-    language: "en",
-    changeLanguage: vi.fn(),
-    t: (key: string, options?: Record<string, unknown>) => {
-      if (key === "messages.openImage" && options?.index !== undefined) return `Open image ${options.index}`;
-      if (key === "messages.openImage") return "Open image";
-      if (key === "messages.closeImagePreview") return "Close image preview";
-      if (key === "messages.copyMessage") return "Copy message";
-      if (key === "messages.quoteMessage") return "Quote message";
-      if (key === "messages.expandToolCalls") return "Expand tool calls";
-      if (key === "messages.collapseToolCalls") return "Collapse tool calls";
-      if (key === "messages.loading") return "Loading…";
-      if (key === "messages.working") return "Working…";
-      if (key === "messages.toggleReasoningDetails") return "Toggle reasoning details";
-      if (key === "messages.reviewStarted") return "Review started";
-      if (key === "messages.reviewCompleted") return "Review completed";
-      if (key === "messages.review") return "Review";
-      if (key === "messages.answered") return "answered:";
-      if (key === "messages.inputRequested") return "Input requested";
-      if (key === "messages.noAnswerProvided") return "No answer provided.";
-      if (key === "messages.more" && options?.count !== undefined) return `+${options.count} more`;
-      if (key === "messages.toggleAnsweredInputDetails") return "Toggle answered input details";
-      if (key === "messages.toggleToolDetails") return "Toggle tool details";
-      if (key === "messages.fileEdited_one") return "file edited";
-      if (key === "messages.fileEdited_many") return "files edited";
-      if (key === "messages.changes") return "changes";
-      if (key === "messages.cwd") return "cwd:";
-      if (key === "messages.exporting") return "Exporting...";
-      if (key === "messages.exportMd") return "Export .md";
-      if (key === "messages.exploring") return "Exploring";
-      if (key === "messages.explored") return "Explored";
-      if (key === "messages.question") return "Question";
-      if (key === "messages.message_one") return "message";
-      if (key === "messages.message_many") return "messages";
-      if (key === "messages.toolCall_one") return "tool call";
-      if (key === "messages.toolCall_many") return "tool calls";
-      if (key === "messages.newMessageIn" && options?.seconds !== undefined) return `New message will be fetched in ${options.seconds} seconds`;
-      if (key === "messages.doneIn") return "Done in";
-      return key;
-    },
-  },
+const i18nTranslations = vi.hoisted(() => ({
+  "messages.openImage": "Open image {{index}}",
+  "messages.closeImagePreview": "Close image preview",
+  "messages.copyMessage": "Copy message",
+  "messages.quoteMessage": "Quote message",
+  "messages.expandToolCalls": "Expand tool calls",
+  "messages.collapseToolCalls": "Collapse tool calls",
+  "messages.loading": "Loading…",
+  "messages.working": "Working…",
+  "messages.toggleReasoningDetails": "Toggle reasoning details",
+  "messages.reviewStarted": "Review started",
+  "messages.reviewCompleted": "Review completed",
+  "messages.review": "Review",
+  "messages.answered": "answered:",
+  "messages.inputRequested": "Input requested",
+  "messages.noAnswerProvided": "No answer provided.",
+  "messages.more": "+{{count}} more",
+  "messages.toggleAnsweredInputDetails": "Toggle answered input details",
+  "messages.toggleToolDetails": "Toggle tool details",
+  "messages.fileEdited_one": "file edited",
+  "messages.fileEdited_many": "files edited",
+  "messages.changes": "changes",
+  "messages.cwd": "cwd:",
+  "messages.exporting": "Exporting...",
+  "messages.exportMd": "Export .md",
+  "messages.exploring": "Exploring",
+  "messages.explored": "Explored",
+  "messages.question": "Question",
+  "messages.message_one": "{{count}} message",
+  "messages.message_other": "{{count}} messages",
+  "messages.toolCall_one": "{{count}} tool call",
+  "messages.toolCall_other": "{{count}} tool calls",
+  "messages.newMessageIn": "New message will be fetched in {{seconds}} seconds",
+  "messages.doneIn": "Done in",
 }));
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string, options?: Record<string, unknown>) => {
-      if (key === "messages.openImage" && options?.index !== undefined) return `Open image ${options.index}`;
-      if (key === "messages.openImage") return "Open image";
-      if (key === "messages.closeImagePreview") return "Close image preview";
-      if (key === "messages.copyMessage") return "Copy message";
-      if (key === "messages.quoteMessage") return "Quote message";
-      if (key === "messages.expandToolCalls") return "Expand tool calls";
-      if (key === "messages.collapseToolCalls") return "Collapse tool calls";
-      if (key === "messages.loading") return "Loading…";
-      if (key === "messages.working") return "Working…";
-      if (key === "messages.toggleReasoningDetails") return "Toggle reasoning details";
-      if (key === "messages.reviewStarted") return "Review started";
-      if (key === "messages.reviewCompleted") return "Review completed";
-      if (key === "messages.review") return "Review";
-      if (key === "messages.answered") return "answered:";
-      if (key === "messages.inputRequested") return "Input requested";
-      if (key === "messages.noAnswerProvided") return "No answer provided.";
-      if (key === "messages.more" && options?.count !== undefined) return `+${options.count} more`;
-      if (key === "messages.toggleAnsweredInputDetails") return "Toggle answered input details";
-      if (key === "messages.toggleToolDetails") return "Toggle tool details";
-      if (key === "messages.fileEdited_one") return "file edited";
-      if (key === "messages.fileEdited_many") return "files edited";
-      if (key === "messages.changes") return "changes";
-      if (key === "messages.cwd") return "cwd:";
-      if (key === "messages.exporting") return "Exporting...";
-      if (key === "messages.exportMd") return "Export .md";
-      if (key === "messages.exploring") return "Exploring";
-      if (key === "messages.explored") return "Explored";
-      if (key === "messages.question") return "Question";
-      if (key === "messages.message_one") return "message";
-      if (key === "messages.message_many") return "messages";
-      if (key === "messages.toolCall_one") return "tool call";
-      if (key === "messages.toolCall_many") return "tool calls";
-      if (key === "messages.newMessageIn" && options?.seconds !== undefined) return `New message will be fetched in ${options.seconds} seconds`;
-      if (key === "messages.doneIn") return "Done in";
-      return key;
-    },
-    i18n: {
-      language: "en",
-      changeLanguage: vi.fn(),
-    },
-  }),
-  initReactI18next: {
-    type: "3rdParty",
-    init: vi.fn(),
-    use: () => ({ init: vi.fn() }),
-  },
-}));
+vi.mock("@/i18n", async () => {
+  const { createI18nModuleMock } = await import("@/test/i18nMock");
+  return createI18nModuleMock(i18nTranslations);
+});
+
+vi.mock("react-i18next", async () => {
+  const { createReactI18nextMock } = await import("@/test/i18nMock");
+  return createReactI18nextMock(i18nTranslations);
+});
 
 const useFileLinkOpenerMock = vi.fn(
   (_workspacePath: string | null, _openTargets: unknown[], _selectedOpenAppId: string) => ({
@@ -180,9 +130,38 @@ describe("Messages", () => {
     if (grid && markdown) {
       expect(bubble?.firstChild).toBe(grid);
     }
-    const openButton = screen.getByRole("button", { name: "Open image" });
+    const openButton = screen.getByRole("button", { name: "Open image 1" });
     fireEvent.click(openButton);
     expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+
+  it("uses distinct image button labels when a message contains multiple images", () => {
+    const items: ConversationItem[] = [
+      {
+        id: "msg-images",
+        kind: "message",
+        role: "assistant",
+        text: "Two screenshots",
+        images: [
+          "data:image/png;base64,AAA",
+          "data:image/png;base64,BBB",
+        ],
+      },
+    ];
+
+    render(
+      <Messages
+        items={items}
+        threadId="thread-1"
+        workspaceId="ws-1"
+        isThinking={false}
+        openTargets={[]}
+        selectedOpenAppId=""
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Open image 1" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Open image 2" })).toBeTruthy();
   });
 
   it("preserves newlines when images are attached", () => {

@@ -1,5 +1,21 @@
 import i18n from "@/i18n";
 
+const SHORT_RANGES = [
+  { thresholdSeconds: 60 * 60, seconds: 60, key: "time.minutesShort" },
+  { thresholdSeconds: 60 * 60 * 24, seconds: 60 * 60, key: "time.hoursShort" },
+  { thresholdSeconds: 60 * 60 * 24 * 7, seconds: 60 * 60 * 24, key: "time.daysShort" },
+  { thresholdSeconds: 60 * 60 * 24 * 30, seconds: 60 * 60 * 24 * 7, key: "time.weeksShort" },
+  { thresholdSeconds: 60 * 60 * 24 * 365, seconds: 60 * 60 * 24 * 30, key: "time.monthsShort" },
+  { thresholdSeconds: Number.POSITIVE_INFINITY, seconds: 60 * 60 * 24 * 365, key: "time.yearsShort" },
+] as const;
+
+function resolveLocale(locale?: string | string[]) {
+  if (Array.isArray(locale)) {
+    return locale[0];
+  }
+  return locale;
+}
+
 export function formatRelativeTime(timestamp: number, locale?: string | string[]) {
   const now = Date.now();
   const diffSeconds = Math.round((timestamp - now) / 1000);
@@ -45,44 +61,11 @@ export function formatRelativeTimeShort(timestamp: number, locale?: string | str
   if (absSeconds < 60) {
     return i18n.t("time.now");
   }
-  if (absSeconds < 60 * 60) {
-    const value = Math.max(1, Math.round(absSeconds / 60));
-    // Use Intl.RelativeTimeFormat for short format with locale
-    try {
-      const formatter = new Intl.RelativeTimeFormat(locale ?? i18n.language, {
-        numeric: "auto",
-        style: "narrow",
-      });
-      return formatter.format(-value, "minute");
-    } catch {
-      // Fallback to simple format
-      return i18n.t("time.minutesAgo", { count: value });
-    }
+  const range = SHORT_RANGES.find((entry) => absSeconds < entry.thresholdSeconds);
+  if (!range) {
+    return i18n.t("time.now");
   }
-  if (absSeconds < 60 * 60 * 24) {
-    const value = Math.max(1, Math.round(absSeconds / (60 * 60)));
-    try {
-      const formatter = new Intl.RelativeTimeFormat(locale ?? i18n.language, {
-        numeric: "auto",
-        style: "narrow",
-      });
-      return formatter.format(-value, "hour");
-    } catch {
-      return i18n.t("time.hoursAgo", { count: value });
-    }
-  }
-  if (absSeconds < 60 * 60 * 24 * 7) {
-    const value = Math.max(1, Math.round(absSeconds / (60 * 60 * 24)));
-    try {
-      const formatter = new Intl.RelativeTimeFormat(locale ?? i18n.language, {
-        numeric: "auto",
-        style: "narrow",
-      });
-      return formatter.format(-value, "day");
-    } catch {
-      return i18n.t("time.daysAgo", { count: value });
-    }
-  }
-  // For longer periods, use standard format
-  return formatRelativeTime(timestamp, locale ?? i18n.language);
+  const resolvedLocale = resolveLocale(locale) ?? i18n.language;
+  const value = Math.max(1, Math.round(absSeconds / range.seconds));
+  return i18n.t(range.key, { count: value, lng: resolvedLocale });
 }

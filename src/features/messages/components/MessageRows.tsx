@@ -119,7 +119,7 @@ const MessageImageGrid = memo(function MessageImageGrid({
           type="button"
           className="message-image-thumb"
           onClick={() => onOpen(index)}
-          aria-label={t("messages.openImage")}
+          aria-label={t("messages.openImage", { index: index + 1 })}
         >
           <img src={image.src} alt={image.label} loading="lazy" />
         </button>

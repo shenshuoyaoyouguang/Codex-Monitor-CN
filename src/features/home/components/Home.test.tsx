@@ -3,175 +3,89 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Home } from "./Home";
 
-// Mock i18n modules
-vi.mock("@/i18n", () => ({
-  default: {
-    language: "en",
-    changeLanguage: vi.fn(),
-    t: (key: string, options?: Record<string, unknown>) => {
-      if (key === "home.resets") {
-        return "Resets";
-      }
-      if (key === "home.availableBalance") {
-        return "Available balance";
-      }
-      if (key === "home.unlimited") {
-        return "Unlimited";
-      }
-      if (key === "time.now") {
-        return "now";
-      }
-      if (key === "time.in") {
-        return "in";
-      }
-      if (key === "time.seconds" && options?.count !== undefined) {
-        return `${options.count} seconds`;
-      }
-      if (key === "time.minutes" && options?.count !== undefined) {
-        return `${options.count} minutes`;
-      }
-      if (key === "time.hours" && options?.count !== undefined) {
-        return `${options.count} hours`;
-      }
-      if (key === "time.days" && options?.count !== undefined) {
-        return `${options.count} days`;
-      }
-      if (key === "time.daysAgo" && options?.count !== undefined) {
-        return `${options.count} days`;
-      }
-      if (key === "time.hoursAgo" && options?.count !== undefined) {
-        return `${options.count}h ago`;
-      }
-      if (key === "time.minutesAgo" && options?.count !== undefined) {
-        return `${options.count}m ago`;
-      }
-      if (key === "time.secondsAgo" && options?.count !== undefined) {
-        return `${options.count}s ago`;
-      }
-      return key;
-    },
-  },
+const homeTranslations = vi.hoisted(() => ({
+  "home.title": "Codex Monitor",
+  "home.subtitle": "Orchestrate agents across your local projects.",
+  "home.latestAgents": "Latest agents",
+  "home.running": "Running",
+  "home.noAgentActivity": "No agent activity yet",
+  "home.startThreadHint": "Start a thread to see the latest responses here.",
+  "home.today": "Today",
+  "home.last7Days": "Last 7 days",
+  "home.last30Days": "Last 30 days",
+  "home.cacheHitRate": "Cache hit rate",
+  "home.cachedTokens": "Cached tokens",
+  "home.peakDay": "Peak day",
+  "home.avgPerRun": "Avg / run",
+  "home.avgPerActiveDay": "Avg / active day",
+  "home.longestStreak": "Longest streak",
+  "home.activeDays": "Active days",
+  "home.agentTime": "agent time",
+  "home.runs": "Runs",
+  "home.accountLimits": "Account limits",
+  "home.unlimited": "Unlimited",
+  "home.noUsageData": "No usage data yet",
+  "home.to": "to",
+  "home.usageWeek": "Usage week",
+  "home.showPreviousWeek": "Show previous week",
+  "home.showNextWeek": "Show next week",
+  "home.tokensUnit": "tokens",
+  "home.addWorkspaces": "Add Workspaces",
+  "home.addWorkspaceFromUrl": "Add Workspace from URL",
+  "home.usageSnapshot": "Usage Snapshot",
+  "home.updated": "Updated",
+  "home.refreshUsage": "Refresh Usage",
+  "home.workspace": "Workspace",
+  "home.allWorkspaces": "All Workspaces",
+  "home.view": "View",
+  "home.tokens": "Tokens",
+  "home.time": "Time",
+  "home.noActiveStreak": "No active streak",
+  "home.noActivityYet": "No activity yet",
+  "home.currentWindow": "Current window",
+  "home.longerWindow": "Longer window",
+  "home.credits": "Credits",
+  "home.availableBalance": "Available balance",
+  "home.plan": "Plan",
+  "home.sessionUsage": "Session usage",
+  "home.sessionLeft": "Session left",
+  "home.weeklyUsage": "Weekly usage",
+  "home.weeklyLeft": "Weekly left",
+  "home.runsUnit": "runs",
+  "home.inCurrentRange": "in current range",
+  "home.acrossUsageRange": "across usage range",
+  "home.saved": "saved",
+  "home.ofPromptTokens": "of prompt tokens",
+  "home.latestDay": "Latest day",
+  "home.avgPerDay": "Avg / day",
+  "home.last7DaysCaption": "Last 7 days",
+  "home.runsInLast7Days": "runs in last 7 days",
+  "home.noRunsYet": "No runs yet",
+  "home.noActiveDaysYet": "No active days yet",
+  "home.activeDaysInLast7": "active days in last 7",
+  "home.topModels": "Top Models",
+  "home.noModelsYet": "No models yet",
+  "home.resets": "Resets",
+  "time.now": "now",
+  "time.in": "in",
+  "time.seconds": "{{count}} seconds",
+  "time.minutes": "{{count}} minutes",
+  "time.hours": "{{count}} hours",
+  "time.days": "{{count}} days",
+  "time.daysAgo": "{{count}} days",
+  "time.hoursAgo": "{{count}}h ago",
+  "time.minutesAgo": "{{count}}m ago",
+  "time.secondsAgo": "{{count}}s ago",
 }));
 
-vi.mock("react-i18next", () => {
-  const homeTranslations: Record<string, string> = {
-    "home.title": "Codex Monitor",
-    "home.subtitle": "Orchestrate agents across your local projects.",
-    "home.latestAgents": "Latest agents",
-    "home.running": "Running",
-    "home.noAgentActivity": "No agent activity yet",
-    "home.startThreadHint": "Start a thread to see the latest responses here.",
-    "home.today": "Today",
-    "home.last7Days": "Last 7 days",
-    "home.last30Days": "Last 30 days",
-    "home.cacheHitRate": "Cache hit rate",
-    "home.cachedTokens": "Cached tokens",
-    "home.peakDay": "Peak day",
-    "home.avgPerRun": "Avg / run",
-    "home.avgPerActiveDay": "Avg / active day",
-    "home.longestStreak": "Longest streak",
-    "home.activeDays": "Active days",
-    "home.agentTime": "agent time",
-    "home.runs": "Runs",
-    "home.accountLimits": "Account limits",
-    "home.unlimited": "Unlimited",
-    "home.noUsageData": "No usage data yet",
-    "home.to": "to",
-    "home.usageWeek": "Usage week",
-    "home.showPreviousWeek": "Show previous week",
-    "home.showNextWeek": "Show next week",
-    "home.tokensUnit": "tokens",
-    "home.addWorkspaces": "Add Workspaces",
-    "home.addWorkspaceFromUrl": "Add Workspace from URL",
-    "home.usageSnapshot": "Usage Snapshot",
-    "home.updated": "Updated",
-    "home.refreshUsage": "Refresh Usage",
-    "home.workspace": "Workspace",
-    "home.allWorkspaces": "All Workspaces",
-    "home.view": "View",
-    "home.tokens": "Tokens",
-    "home.time": "Time",
-    "home.noActiveStreak": "No active streak",
-    "home.noActivityYet": "No activity yet",
-    "home.currentWindow": "Current window",
-    "home.longerWindow": "Longer window",
-    "home.credits": "Credits",
-    "home.availableBalance": "Available balance",
-    "home.plan": "Plan",
-    "home.sessionUsage": "Session usage",
-    "home.sessionLeft": "Session left",
-    "home.weeklyUsage": "Weekly usage",
-    "home.weeklyLeft": "Weekly left",
-    "home.runsUnit": "runs",
-    "home.inCurrentRange": "in current range",
-    "home.acrossUsageRange": "across usage range",
-    "home.saved": "saved",
-    "home.ofPromptTokens": "of prompt tokens",
-    "home.latestDay": "Latest day",
-    "home.avgPerDay": "Avg / day",
-    "home.last7DaysCaption": "Last 7 days",
-    "home.runsInLast7Days": "runs in last 7 days",
-    "home.noRunsYet": "No runs yet",
-    "home.noActiveDaysYet": "No active days yet",
-    "home.activeDaysInLast7": "active days in last 7",
-    "home.topModels": "Top Models",
-    "home.noModelsYet": "No models yet",
-  };
-  return {
-    useTranslation: () => ({
-      t: (key: string, options?: Record<string, unknown>) => {
-        if (key === "time.daysAgo" && options?.count !== undefined) {
-          return `${options.count} days`;
-        }
-        if (key === "time.hoursAgo" && options?.count !== undefined) {
-          return `${options.count}h ago`;
-        }
-        if (key === "time.minutesAgo" && options?.count !== undefined) {
-          return `${options.count}m ago`;
-        }
-        if (key === "time.secondsAgo" && options?.count !== undefined) {
-          return `${options.count}s ago`;
-        }
-        if (key === "time.now") {
-          return "now";
-        }
-        if (key === "time.days" && options?.count !== undefined) {
-          return `${options.count} days`;
-        }
-        if (key === "home.usageWeek") {
-          return "Usage week";
-        }
-        if (key in homeTranslations) {
-          return homeTranslations[key];
-        }
-        return key;
-      },
-      i18n: {
-        language: "en",
-        changeLanguage: vi.fn(),
-        t: (key: string, options?: Record<string, unknown>) => {
-          if (key === "home.resets") {
-            return "Resets";
-          }
-          if (key === "home.usageWeek") {
-            return "Usage week";
-          }
-          if (key === "time.daysAgo" && options?.count !== undefined) {
-            return `${options.count} days`;
-          }
-          if (key in homeTranslations) {
-            return homeTranslations[key];
-          }
-          return key;
-        },
-      },
-    }),
-    initReactI18next: {
-      type: "3rdParty",
-      init: vi.fn(),
-      use: () => ({ init: vi.fn() }),
-    },
-  };
+vi.mock("@/i18n", async () => {
+  const { createI18nModuleMock } = await import("@/test/i18nMock");
+  return createI18nModuleMock(homeTranslations);
+});
+
+vi.mock("react-i18next", async () => {
+  const { createReactI18nextMock } = await import("@/test/i18nMock");
+  return createReactI18nextMock(homeTranslations);
 });
 
 afterEach(() => {
