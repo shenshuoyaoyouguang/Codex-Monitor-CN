@@ -477,8 +477,7 @@ jobs:
             rpm -qp --requires "$rpm_file"
           done
 
-      - name: Build latest.json
-        if: ${{ inputs.sign_artifacts == true }}
+      - name: Build release notes
         run: |
           set -euo pipefail
           VERSION=$(python3 - <<'PY'
@@ -536,6 +535,19 @@ jobs:
 
           Path("release-artifacts/release-notes.md").write_text(notes + "\n")
           PY
+
+      - name: Build latest.json
+        if: ${{ inputs.sign_artifacts == true }}
+        run: |
+          set -euo pipefail
+          VERSION=$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("src-tauri/tauri.conf.json").read_text())
+          print(data["version"])
+          PY
+          )
 
           python3 - <<PY
           import json
