@@ -436,15 +436,17 @@ jobs:
 
           python3 - <<PY
           import json
+          import os
           from datetime import datetime, timezone
           from pathlib import Path
           from urllib.parse import quote
 
           notes = Path("release-artifacts/release-notes.md").read_text().strip()
           artifacts_dir = Path("release-artifacts")
+          repository = os.environ["GITHUB_REPOSITORY"]
 
           def release_url(filename):
-            return f"https://github.com/Dimillian/CodexMonitor/releases/download/v${VERSION}/{quote(filename)}"
+            return f"https://github.com/{repository}/releases/download/v${VERSION}/{quote(filename)}"
 
           platforms = {
             "darwin-aarch64": {
