@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import { BrainCog, SlidersHorizontal, Zap } from "lucide-react";
 import type { AccessMode, ServiceTier, ThreadTokenUsage } from "../../../types";
 import type { CodexArgsOption } from "../../threads/utils/codexArgsProfiles";
@@ -44,6 +45,7 @@ export function ComposerMetaBar({
   onSelectCodexArgsOverride,
   contextUsage = null,
 }: ComposerMetaBarProps) {
+  const { t } = useTranslation();
   const contextWindow = contextUsage?.modelContextWindow ?? null;
   const lastTokens = contextUsage?.last.totalTokens ?? 0;
   const totalTokens = contextUsage?.total.totalTokens ?? 0;
@@ -73,7 +75,7 @@ export function ComposerMetaBar({
         {collaborationModes.length > 0 && (
           canUsePlanToggle ? (
             <div className="composer-select-wrap composer-plan-toggle-wrap">
-              <label className="composer-plan-toggle" aria-label="Plan mode">
+              <label className="composer-plan-toggle" aria-label={t("composer.planMode")}>
                 <input
                   className="composer-plan-toggle-input"
                   type="checkbox"
@@ -99,7 +101,7 @@ export function ComposerMetaBar({
                   </svg>
                 </span>
                 <span className="composer-plan-toggle-label">
-                  {planMode?.label || "Plan"}
+                  {planMode?.label || t("composer.plan")}
                 </span>
               </label>
             </div>
@@ -118,7 +120,7 @@ export function ComposerMetaBar({
             </span>
               <select
                 className="composer-select composer-select--model composer-select--collab"
-                aria-label="Collaboration mode"
+                aria-label={t("composer.collaborationMode")}
                 value={selectedCollaborationModeId ?? ""}
                 onChange={(event) =>
                   onSelectCollaborationMode(event.target.value || null)
@@ -167,12 +169,12 @@ export function ComposerMetaBar({
           </span>
           <select
             className="composer-select composer-select--model"
-            aria-label="Model"
+            aria-label={t("composer.model")}
             value={selectedModelId ?? ""}
             onChange={(event) => onSelectModel(event.target.value)}
             disabled={disabled}
           >
-            {models.length === 0 && <option value="">No models</option>}
+            {models.length === 0 && <option value="">{t("composer.noModels")}</option>}
             {models.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.displayName || model.model}
@@ -183,8 +185,8 @@ export function ComposerMetaBar({
             <span
               className="composer-fast-indicator"
               role="status"
-              aria-label="Fast mode enabled"
-              title="Fast mode enabled"
+              aria-label={t("composer.fastModeEnabled")}
+              title={t("composer.fastModeEnabled")}
             >
               <Zap size={12} strokeWidth={1.8} />
             </span>
@@ -196,12 +198,12 @@ export function ComposerMetaBar({
           </span>
           <select
             className="composer-select composer-select--effort"
-            aria-label="Thinking mode"
+            aria-label={t("composer.thinkingMode")}
             value={selectedEffort ?? ""}
             onChange={(event) => onSelectEffort(event.target.value)}
             disabled={disabled || !reasoningSupported}
           >
-            {reasoningOptions.length === 0 && <option value="">Default</option>}
+            {reasoningOptions.length === 0 && <option value="">{t("composer.default")}</option>}
             {reasoningOptions.map((effort) => (
               <option key={effort} value={effort}>
                 {effort}
@@ -216,7 +218,7 @@ export function ComposerMetaBar({
             </span>
             <select
               className="composer-select composer-select--approval"
-              aria-label="Codex args profile"
+              aria-label={t("composer.codexArgsProfile")}
               disabled={disabled}
               value={selectedCodexArgsOverride ?? ""}
               onChange={(event) =>
@@ -251,16 +253,16 @@ export function ComposerMetaBar({
           </span>
           <select
             className="composer-select composer-select--approval"
-            aria-label="Agent access"
+            aria-label={t("composer.agentAccess")}
             disabled={disabled}
             value={accessMode}
             onChange={(event) =>
               onSelectAccessMode(event.target.value as AccessMode)
             }
           >
-            <option value="read-only">Read only</option>
-            <option value="current">On-Request</option>
-            <option value="full-access">Full access</option>
+            <option value="read-only">{t("composer.agentAccessReadOnly")}</option>
+            <option value="current">{t("composer.agentAccessOnRequest")}</option>
+            <option value="full-access">{t("composer.agentAccessFullAccess")}</option>
           </select>
         </div>
       </div>
@@ -269,13 +271,13 @@ export function ComposerMetaBar({
           className="composer-context-ring"
           data-tooltip={
             contextFreePercent === null
-              ? "Context free --"
-              : `Context free ${Math.round(contextFreePercent)}%`
+              ? t("composer.contextFree")
+              : `${t("composer.contextFree")} ${Math.round(contextFreePercent)}%`
           }
           aria-label={
             contextFreePercent === null
-              ? "Context free --"
-              : `Context free ${Math.round(contextFreePercent)}%`
+              ? t("composer.contextFree")
+              : `${t("composer.contextFree")} ${Math.round(contextFreePercent)}%`
           }
           style={
             {

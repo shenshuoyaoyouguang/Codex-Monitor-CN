@@ -11,6 +11,57 @@ import type {
   FollowUpMessageBehavior,
 } from "../../../types";
 
+// Mock i18n modules
+vi.mock("@/i18n", () => ({
+  default: {
+    language: "en",
+    changeLanguage: vi.fn(),
+  },
+}));
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      if (key === "composer.fastModeEnabled") return "Fast mode enabled";
+      if (key === "composer.send") return "Send";
+      if (key === "composer.stop") return "Stop";
+      if (key === "composer.addImage") return "Add image";
+      if (key === "composer.moreActions") return "More actions";
+      if (key === "composer.expandInput") return "Expand input";
+      if (key === "composer.collapseInput") return "Collapse input";
+      if (key === "composer.openDictationSettings") return "Open dictation settings";
+      if (key === "composer.cancelTranscription") return "Cancel transcription";
+      if (key === "composer.stopDictation") return "Stop dictation";
+      if (key === "composer.startDictation") return "Start dictation";
+      if (key === "composer.dictationDisabled") return "Dictation disabled. Open settings";
+      if (key === "composer.dismiss") return "Dismiss";
+      if (key === "composer.planMode") return "Plan mode";
+      if (key === "composer.plan") return "Plan";
+      if (key === "composer.collaborationMode") return "Collaboration mode";
+      if (key === "composer.model") return "Model";
+      if (key === "composer.noModels") return "No models";
+      if (key === "composer.thinkingMode") return "Thinking mode";
+      if (key === "composer.default") return "Default";
+      if (key === "composer.codexArgsProfile") return "Codex args profile";
+      if (key === "composer.agentAccess") return "Agent access";
+      if (key === "composer.agentAccessReadOnly") return "Read only";
+      if (key === "composer.agentAccessOnRequest") return "On-Request";
+      if (key === "composer.agentAccessFullAccess") return "Full access";
+      if (key === "composer.contextFree") return "Context free";
+      return key;
+    },
+    i18n: {
+      language: "en",
+      changeLanguage: vi.fn(),
+    },
+  }),
+  initReactI18next: {
+    type: "3rdParty",
+    init: vi.fn(),
+    use: () => ({ init: vi.fn() }),
+  },
+}));
+
 vi.mock("../../../services/dragDrop", () => ({
   subscribeWindowDragDrop: vi.fn(() => () => {}),
 }));

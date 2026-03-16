@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { AppSettings } from "@/types";
+import type { AppSettings, SupportedLocale } from "@/types";
 import { getAppSettings, runCodexDoctor, updateAppSettings } from "@services/tauri";
+import i18n from "@/i18n";
 import { clampUiScale, UI_SCALE_DEFAULT } from "@utils/uiScale";
 import { CHAT_SCROLLBACK_DEFAULT, normalizeChatHistoryScrollbackItems } from "@utils/chatScrollback";
 import {
@@ -20,6 +21,7 @@ import { getDefaultInterruptShortcut, isMacPlatform } from "@utils/shortcuts";
 import { isMobilePlatform } from "@utils/platformPaths";
 import { DEFAULT_COMMIT_MESSAGE_PROMPT } from "@utils/commitMessagePrompt";
 
+const allowedLocales: Set<SupportedLocale> = new Set(["en", "zh"]);
 const allowedThemes = new Set(["system", "light", "dark", "dim"]);
 const allowedPersonality = new Set(["friendly", "pragmatic"]);
 const allowedFollowUpMessageBehavior = new Set(["queue", "steer"]);
@@ -134,6 +136,7 @@ function buildDefaultSettings(): AppSettings {
     lastConnectedAtMs: null,
   };
   return {
+    locale: "en",
     codexBin: null,
     codexArgs: null,
     backendMode: isMobile ? "remote" : "local",
@@ -239,9 +242,13 @@ function normalizeAppSettings(settings: AppSettings): AppSettings {
   const chatHistoryScrollbackItems = normalizeChatHistoryScrollbackItems(
     settings.chatHistoryScrollbackItems,
   );
+  const locale: SupportedLocale = allowedLocales.has(settings.locale)
+    ? settings.locale
+    : "en";
   return {
     ...settings,
     ...remoteBackendSettings,
+    locale,
     codexBin: settings.codexBin?.trim() ? settings.codexBin.trim() : null,
     codexArgs: settings.codexArgs?.trim() ? settings.codexArgs.trim() : null,
     uiScale: clampUiScale(settings.uiScale),
@@ -289,12 +296,15 @@ export function useAppSettings() {
       try {
         const response = await getAppSettings();
         if (active) {
-          setSettings(
-            normalizeAppSettings({
-              ...defaultSettings,
-              ...response,
-            }),
-          );
+          const normalized = normalizeAppSettings({
+            ...defaultSettings,
+            ...response,
+          });
+          setSettings(normalized);
+          // Sync i18n language with stored locale
+          if (normalized.locale && i18n.language !== normalized.locale) {
+            i18n.changeLanguage(normalized.locale);
+          }
         }
       } catch {
         // Defaults stay in place if loading settings fails.
@@ -311,6 +321,10 @@ export function useAppSettings() {
 
   const saveSettings = useCallback(async (next: AppSettings) => {
     const normalized = normalizeAppSettings(next);
+    // Sync i18n language if locale changed
+    if (normalized.locale && i18n.language !== normalized.locale) {
+      i18n.changeLanguage(normalized.locale);
+    }
     const saved = await updateAppSettings(normalized);
     setSettings(
       normalizeAppSettings({

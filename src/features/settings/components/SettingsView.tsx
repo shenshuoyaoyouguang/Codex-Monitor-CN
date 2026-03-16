@@ -9,13 +9,13 @@ import type {
   WorkspaceGroup,
   WorkspaceInfo,
 } from "@/types";
+import { useTranslation } from "react-i18next";
 import { useSettingsViewCloseShortcuts } from "@settings/hooks/useSettingsViewCloseShortcuts";
 import { useSettingsViewNavigation } from "@settings/hooks/useSettingsViewNavigation";
 import { useSettingsViewOrchestration } from "@settings/hooks/useSettingsViewOrchestration";
 import { ModalShell } from "@/features/design-system/components/modal/ModalShell";
 import { SettingsNav } from "./SettingsNav";
 import type { CodexSection } from "./settingsTypes";
-import { SETTINGS_SECTION_LABELS } from "./settingsViewConstants";
 import { SettingsSectionContainers } from "./sections/SettingsSectionContainers";
 
 export type SettingsViewProps = {
@@ -97,6 +97,7 @@ export function SettingsView({
   onRemoveDictationModel,
   initialSection,
 }: SettingsViewProps) {
+  const { t } = useTranslation();
   const {
     activeSection,
     showMobileDetail,
@@ -137,7 +138,23 @@ export function SettingsView({
 
   useSettingsViewCloseShortcuts(onClose);
 
-  const activeSectionLabel = SETTINGS_SECTION_LABELS[activeSection];
+  const sectionKeyMap: Record<CodexSection, string> = {
+    projects: "settings.nav.projects",
+    environments: "settings.nav.environments",
+    display: "settings.nav.display",
+    composer: "settings.nav.composer",
+    dictation: "settings.nav.dictation",
+    shortcuts: "settings.nav.shortcuts",
+    "open-apps": "settings.nav.openApps",
+    git: "settings.nav.git",
+    server: "settings.nav.server",
+    agents: "settings.nav.agents",
+    codex: "settings.nav.codex",
+    features: "settings.nav.features",
+    about: "settings.nav.about",
+  };
+
+  const activeSectionLabel = t(sectionKeyMap[activeSection]);
   const settingsBodyClassName = `settings-body${
     useMobileMasterDetail ? " settings-body-mobile-master-detail" : ""
   }${useMobileMasterDetail && showMobileDetail ? " is-detail-visible" : ""}`;
@@ -151,13 +168,13 @@ export function SettingsView({
     >
       <div className="settings-titlebar">
         <div className="settings-title" id="settings-modal-title">
-          Settings
+          {t("settings.title")}
         </div>
         <button
           type="button"
           className="ghost icon-button settings-close"
           onClick={onClose}
-          aria-label="Close settings"
+          aria-label={t("settings.closeSettings")}
         >
           <X aria-hidden />
         </button>
@@ -180,10 +197,10 @@ export function SettingsView({
                   type="button"
                   className="settings-mobile-back"
                   onClick={() => setShowMobileDetail(false)}
-                  aria-label="Back to settings sections"
+                  aria-label={t("settings.backToSections")}
                 >
                   <ChevronLeft aria-hidden />
-                  Sections
+                  {t("settings.sections")}
                 </button>
                 <div className="settings-mobile-detail-title">{activeSectionLabel}</div>
               </div>
