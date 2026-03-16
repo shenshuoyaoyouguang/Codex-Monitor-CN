@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import GitBranch from "lucide-react/dist/esm/icons/git-branch";
 import MessagesSquare from "lucide-react/dist/esm/icons/messages-square";
 import TerminalSquare from "lucide-react/dist/esm/icons/terminal-square";
+import { useTranslation } from "react-i18next";
 
 type TabletNavTab = "codex" | "git" | "log";
 
@@ -10,15 +11,17 @@ type TabletNavProps = {
   onSelect: (tab: TabletNavTab) => void;
 };
 
-const tabs: { id: TabletNavTab; label: string; icon: ReactNode }[] = [
-  { id: "codex", label: "Codex", icon: <MessagesSquare className="tablet-nav-icon" /> },
-  { id: "git", label: "Git", icon: <GitBranch className="tablet-nav-icon" /> },
-  { id: "log", label: "Log", icon: <TerminalSquare className="tablet-nav-icon" /> },
-];
-
 export function TabletNav({ activeTab, onSelect }: TabletNavProps) {
+  const { t } = useTranslation();
+
+  const tabs: { id: TabletNavTab; label: string; icon: ReactNode }[] = [
+    { id: "codex", label: t("nav.codex"), icon: <MessagesSquare className="tablet-nav-icon" /> },
+    { id: "git", label: t("nav.git"), icon: <GitBranch className="tablet-nav-icon" /> },
+    { id: "log", label: t("nav.log"), icon: <TerminalSquare className="tablet-nav-icon" /> },
+  ];
+
   return (
-    <nav className="tablet-nav" aria-label="Workspace">
+    <nav className="tablet-nav" aria-label={t("aria.workspaceNav")}>
       <div className="tablet-nav-group">
         {tabs.map((tab) => (
           <button

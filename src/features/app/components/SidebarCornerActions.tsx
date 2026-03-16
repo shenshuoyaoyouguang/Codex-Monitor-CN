@@ -3,6 +3,7 @@ import Settings from "lucide-react/dist/esm/icons/settings";
 import User from "lucide-react/dist/esm/icons/user";
 import X from "lucide-react/dist/esm/icons/x";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   MenuTrigger,
   PopoverSurface,
@@ -36,6 +37,7 @@ export function SidebarCornerActions({
   onSwitchAccount,
   onCancelSwitchAccount,
 }: SidebarCornerActionsProps) {
+  const { t } = useTranslation();
   const accountMenu = useMenuController();
   const {
     isOpen: accountMenuOpen,
@@ -59,16 +61,16 @@ export function SidebarCornerActions({
             popupRole="dialog"
             className="ghost sidebar-corner-button ds-tooltip-trigger"
             onClick={toggleAccountMenu}
-            aria-label="Account"
-            title="Account"
-            data-tooltip="Account"
+            aria-label={t("sidebar.account")}
+            title={t("sidebar.account")}
+            data-tooltip={t("sidebar.account")}
             data-tooltip-align="start"
           >
             <User size={14} aria-hidden />
           </MenuTrigger>
           {accountMenuOpen && (
             <PopoverSurface className="sidebar-account-popover" role="dialog">
-              <div className="sidebar-account-title">Account</div>
+              <div className="sidebar-account-title">{t("sidebar.account")}</div>
               <div className="sidebar-account-value">{accountLabel}</div>
               <div className="sidebar-account-actions-row">
                 <button
@@ -91,8 +93,8 @@ export function SidebarCornerActions({
                     className="secondary sidebar-account-cancel"
                     onClick={onCancelSwitchAccount}
                     disabled={accountCancelDisabled}
-                    aria-label="Cancel account switch"
-                    title="Cancel"
+                    aria-label={t("sidebar.cancelAccountSwitch")}
+                    title={t("settings.cancel")}
                   >
                     <X size={12} aria-hidden />
                   </button>
@@ -106,9 +108,9 @@ export function SidebarCornerActions({
         className="ghost sidebar-corner-button ds-tooltip-trigger"
         type="button"
         onClick={onOpenSettings}
-        aria-label="Open settings"
-        title="Settings"
-        data-tooltip="Settings"
+        aria-label={t("sidebar.openSettings")}
+        title={t("nav.settings")}
+        data-tooltip={t("nav.settings")}
         data-tooltip-align="start"
       >
         <Settings size={14} aria-hidden />
@@ -118,9 +120,9 @@ export function SidebarCornerActions({
           className="ghost sidebar-corner-button ds-tooltip-trigger"
           type="button"
           onClick={onOpenDebug}
-          aria-label="Open debug log"
-          title="Debug log"
-          data-tooltip="Debug log"
+          aria-label={t("sidebar.openDebugLog")}
+          title={t("nav.debug")}
+          data-tooltip={t("nav.debug")}
           data-tooltip-align="start"
         >
           <ScrollText size={14} aria-hidden />
