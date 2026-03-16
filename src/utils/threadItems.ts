@@ -11,9 +11,8 @@ export type PrepareThreadItemsOptions = {
 
 const DEFAULT_MAX_ITEMS_PER_THREAD = CHAT_SCROLLBACK_DEFAULT;
 const MAX_ITEM_TEXT = 20000;
-const MAX_LARGE_TOOL_TEXT = 200000;
 const TOOL_OUTPUT_RECENT_ITEMS = 40;
-const LARGE_TOOL_TYPES = new Set(["fileChange", "commandExecution"]);
+const NO_TRUNCATE_TOOL_TYPES = new Set(["fileChange", "commandExecution"]);
 const READ_COMMANDS = new Set(["cat", "sed", "head", "tail", "less", "more", "nl"]);
 const LIST_COMMANDS = new Set(["ls", "tree", "find", "fd"]);
 const SEARCH_COMMANDS = new Set(["rg", "grep", "ripgrep", "findstr"]);
@@ -58,13 +57,6 @@ function truncateText(text: string, maxLength = MAX_ITEM_TEXT) {
   }
   const sliceLength = Math.max(0, maxLength - 3);
   return `${text.slice(0, sliceLength)}...`;
-}
-
-function truncateToolText(toolType: string, text: string) {
-  const maxLength = LARGE_TOOL_TYPES.has(toolType)
-    ? MAX_LARGE_TOOL_TEXT
-    : MAX_ITEM_TEXT;
-  return truncateText(text, maxLength);
 }
 
 function normalizeStringList(value: unknown) {
@@ -302,19 +294,23 @@ export function normalizeItem(item: ConversationItem): ConversationItem {
     return { ...item, diff: truncateText(item.diff) };
   }
   if (item.kind === "tool") {
+    const isNoTruncateTool = NO_TRUNCATE_TOOL_TYPES.has(item.toolType);
     return {
       ...item,
       title: truncateText(item.title, 200),
       detail: truncateText(item.detail, 2000),
-      output: item.output
-        ? truncateToolText(item.toolType, item.output)
-        : item.output,
+      output: isNoTruncateTool
+        ? item.output
+        : item.output
+          ? truncateText(item.output)
+          : item.output,
       changes: item.changes
         ? item.changes.map((change) => ({
             ...change,
-            diff: change.diff
-              ? truncateToolText(item.toolType, change.diff)
-              : change.diff,
+            diff:
+              isNoTruncateTool || !change.diff
+                ? change.diff
+                : truncateText(change.diff),
           }))
         : item.changes,
     };
@@ -461,7 +457,7 @@ function parseSearch(tokens: string[]): ExploreEntry | null {
   const rawPath = positional.length > 1 ? positional[1] : "";
   const path =
     commandName === "rg" ? rawPath : rawPath && isPathLike(rawPath) ? rawPath : "";
-  const label = path ? `${query} in ${path}` : query;
+  const label = path ? `${query} 在 ${path}` : query;
   return { kind: "search", label };
 }
 
@@ -576,7 +572,7 @@ function summarizeCommandExecution(item: Extract<ConversationItem, { kind: "tool
   if (isFailedStatus(item.status)) {
     return null;
   }
-  const rawCommand = item.title.replace(/^Command:\s*/i, "").trim();
+  const rawCommand = item.title.replace(/^(?:Command|命令)[:：]\s*/i, "").trim();
   const cleaned = cleanCommandText(rawCommand);
   if (!cleaned) {
     return null;
@@ -873,7 +869,7 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: "plan",
-      title: "Plan",
+      title: "计划",
       detail: asString(item.status ?? ""),
       status: asString(item.status ?? ""),
       output: asString(item.text ?? ""),
@@ -888,7 +884,7 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: type,
-      title: command ? `Command: ${command}` : "Command",
+      title: command ? `命令：${command}` : "命令",
       detail: asString(item.cwd ?? ""),
       status: asString(item.status ?? ""),
       output: asString(item.aggregatedOutput ?? ""),
@@ -934,8 +930,8 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: type,
-      title: "File changes",
-      detail: paths || "Pending changes",
+      title: "文件变更",
+      detail: paths || "待处理变更",
       status: asString(item.status ?? ""),
       output: diffOutput,
       changes: normalizedChanges,
@@ -1010,7 +1006,7 @@ export function buildConversationItem(
     );
     const prompt = asString(item.prompt ?? "");
     const agentsState = formatCollabAgentStatuses(collabStatuses);
-    const detailParts = [sender ? `From ${formatCollabAgentLabel(sender)}` : ""]
+    const detailParts = [sender ? `来自 ${formatCollabAgentLabel(sender)}` : ""]
       .concat(
         receiverAgents.length > 0
           ? `→ ${receiverAgents.map((entry) => formatCollabAgentLabel(entry)).join(", ")}`
@@ -1023,7 +1019,7 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: "collabToolCall",
-      title: tool ? `Collab: ${tool}` : "Collab tool call",
+      title: tool ? `协作：${tool}` : "协作工具调用",
       detail: detailParts.join(" "),
       status,
       output: outputParts.join("\n\n"),
@@ -1039,7 +1035,7 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: type,
-      title: "Web search",
+      title: "网页搜索",
       detail: asString(item.query ?? ""),
       status: status || "completed",
       output: "",
@@ -1050,7 +1046,7 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: type,
-      title: "Image view",
+      title: "图片查看",
       detail: asString(item.path ?? ""),
       status: "",
       output: "",
@@ -1062,8 +1058,8 @@ export function buildConversationItem(
       id,
       kind: "tool",
       toolType: type,
-      title: "Context compaction",
-      detail: "Compacting conversation context to fit token limits.",
+      title: "上下文压缩",
+      detail: "正在压缩对话上下文以适配 token 限制。",
       status: status || "completed",
       output: "",
     };

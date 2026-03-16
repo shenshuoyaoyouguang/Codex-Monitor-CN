@@ -7,64 +7,62 @@ type GitRemoteState = {
   error: string | null;
 };
 
+type GitRemoteResult = GitRemoteState & {
+  refresh: () => void;
+};
+
 const emptyState: GitRemoteState = {
   remote: null,
   error: null,
 };
 
-export function useGitRemote(activeWorkspace: WorkspaceInfo | null) {
+export function useGitRemote(activeWorkspace: WorkspaceInfo | null): GitRemoteResult {
   const [state, setState] = useState<GitRemoteState>(emptyState);
-  const requestIdRef = useRef(0);
   const workspaceIdRef = useRef<string | null>(activeWorkspace?.id ?? null);
-  const workspaceId = activeWorkspace?.id ?? null;
+  const isActiveRef = useRef(true);
+
+  const fetchRemote = useCallback(async (workspaceId: string) => {
+    try {
+      const remote = await getGitRemote(workspaceId);
+      if (!isActiveRef.current) {
+        return;
+      }
+      setState({ remote, error: null });
+    } catch (error) {
+      if (!isActiveRef.current) {
+        return;
+      }
+      setState({
+        remote: null,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }, []);
 
   const refresh = useCallback(() => {
-    if (!workspaceId) {
+    const workspaceId = activeWorkspace?.id;
+    if (workspaceId) {
       setState(emptyState);
-      return;
+      void fetchRemote(workspaceId);
     }
-
-    const requestId = requestIdRef.current + 1;
-    requestIdRef.current = requestId;
-
-    return getGitRemote(workspaceId)
-      .then((remote) => {
-        if (
-          requestIdRef.current !== requestId ||
-          workspaceIdRef.current !== workspaceId
-        ) {
-          return;
-        }
-        setState({ remote, error: null });
-      })
-      .catch((error) => {
-        if (
-          requestIdRef.current !== requestId ||
-          workspaceIdRef.current !== workspaceId
-        ) {
-          return;
-        }
-        setState({
-          remote: null,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      });
-  }, [workspaceId]);
+  }, [activeWorkspace?.id, fetchRemote]);
 
   useEffect(() => {
-    if (workspaceIdRef.current !== workspaceId) {
-      workspaceIdRef.current = workspaceId;
-      requestIdRef.current += 1;
-      setState(emptyState);
-    }
-
+    isActiveRef.current = true;
+    const workspaceId = activeWorkspace?.id ?? null;
     if (!workspaceId) {
       setState(emptyState);
       return;
     }
-
-    refresh()?.catch(() => {});
-  }, [refresh, workspaceId]);
+    if (workspaceIdRef.current !== workspaceId) {
+      workspaceIdRef.current = workspaceId;
+      setState(emptyState);
+    }
+    void fetchRemote(workspaceId);
+    return () => {
+      isActiveRef.current = false;
+    };
+  }, [activeWorkspace?.id, fetchRemote]);
 
   return { ...state, refresh };
 }

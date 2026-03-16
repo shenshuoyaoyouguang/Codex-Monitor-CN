@@ -29,8 +29,8 @@ describe("threadItems", () => {
     }
   });
 
-  it("truncates extremely large tool output for fileChange and commandExecution", () => {
-    const output = "x".repeat(250000);
+  it("preserves tool output for fileChange and commandExecution", () => {
+    const output = "x".repeat(21000);
     const item: ConversationItem = {
       id: "tool-1",
       kind: "tool",
@@ -42,9 +42,7 @@ describe("threadItems", () => {
     const normalized = normalizeItem(item);
     expect(normalized.kind).toBe("tool");
     if (normalized.kind === "tool") {
-      expect(normalized.output).not.toBe(output);
-      expect(normalized.output?.endsWith("...")).toBe(true);
-      expect((normalized.output ?? "").length).toBeLessThan(output.length);
+      expect(normalized.output).toBe(output);
     }
   });
 
@@ -302,7 +300,7 @@ describe("threadItems", () => {
     if (prepared[0].kind === "explore") {
       expect(prepared[0].entries).toHaveLength(1);
       expect(prepared[0].entries[0].kind).toBe("search");
-      expect(prepared[0].entries[0].label).toBe("myQuery in src");
+      expect(prepared[0].entries[0].label).toBe("myQuery 在 src");
     }
   });
 
@@ -325,7 +323,7 @@ describe("threadItems", () => {
     if (prepared[0].kind === "explore") {
       expect(prepared[0].entries).toHaveLength(1);
       expect(prepared[0].entries[0].kind).toBe("search");
-      expect(prepared[0].entries[0].label).toBe("RouterDestination in src");
+      expect(prepared[0].entries[0].label).toBe("RouterDestination 在 src");
     }
   });
 
@@ -398,7 +396,7 @@ describe("threadItems", () => {
     if (prepared[0].kind === "explore") {
       expect(prepared[0].entries).toHaveLength(1);
       expect(prepared[0].entries[0].kind).toBe("search");
-      expect(prepared[0].entries[0].label).toBe("foo | bar in src");
+      expect(prepared[0].entries[0].label).toBe("foo | bar 在 src");
     }
   });
 
@@ -451,7 +449,7 @@ describe("threadItems", () => {
     });
     expect(item).not.toBeNull();
     if (item && item.kind === "tool") {
-      expect(item.title).toBe("File changes");
+      expect(item.title).toBe("文件变更");
       expect(item.detail).toBe("A foo.txt");
       expect(item.output).toContain("diff --git a/foo.txt b/foo.txt");
       expect(item.changes?.[0]?.path).toBe("foo.txt");
@@ -812,8 +810,8 @@ describe("threadItems", () => {
     });
     expect(item).not.toBeNull();
     if (item && item.kind === "tool") {
-      expect(item.title).toBe("Collab: handoff");
-      expect(item.detail).toContain("From thread-a");
+      expect(item.title).toBe("协作：handoff");
+      expect(item.detail).toContain("来自 thread-a");
       expect(item.detail).toContain("thread-b");
       expect(item.detail).toContain("thread-c");
       expect(item.output).toBe("Coordinate work\n\nagent-1: running");
@@ -882,7 +880,7 @@ describe("threadItems", () => {
     expect(item).not.toBeNull();
     if (item && item.kind === "tool") {
       expect(item.toolType).toBe("contextCompaction");
-      expect(item.title).toBe("Context compaction");
+      expect(item.title).toBe("上下文压缩");
       expect(item.status).toBe("inProgress");
     }
   });
@@ -895,7 +893,7 @@ describe("threadItems", () => {
     expect(item).not.toBeNull();
     if (item && item.kind === "tool") {
       expect(item.toolType).toBe("contextCompaction");
-      expect(item.title).toBe("Context compaction");
+      expect(item.title).toBe("上下文压缩");
       expect(item.status).toBe("completed");
     }
   });

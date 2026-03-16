@@ -24,11 +24,11 @@ import {
 } from "./GitDiffPanelShared";
 import {
   DEPTH_OPTIONS,
-  isGitRootNotFound,
   isMissingRepo,
   normalizeRootPath,
   splitPath,
 } from "./GitDiffPanel.utils";
+import { isGitRootNotFound } from "../utils/repoErrors";
 
 type GitMode = GitPanelMode;
 

@@ -6,7 +6,6 @@ import {
   exportMarkdownFile,
   addWorkspace,
   compactThread,
-  createGitHubRepo,
   fetchGit,
   forkThread,
   getAppsList,
@@ -163,20 +162,6 @@ describe("tauri invoke wrappers", () => {
 
     expect(invokeMock).toHaveBeenCalledWith("get_git_status", {
       workspaceId: "ws-1",
-    });
-  });
-
-  it("maps args for createGitHubRepo", async () => {
-    const invokeMock = vi.mocked(invoke);
-    invokeMock.mockResolvedValueOnce({ status: "ok", repo: "me/repo" });
-
-    await createGitHubRepo("ws-77", "me/repo", "private", "main");
-
-    expect(invokeMock).toHaveBeenCalledWith("create_github_repo", {
-      workspaceId: "ws-77",
-      repo: "me/repo",
-      visibility: "private",
-      branch: "main",
     });
   });
 

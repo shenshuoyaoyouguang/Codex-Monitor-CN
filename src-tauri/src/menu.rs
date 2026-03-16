@@ -9,20 +9,28 @@ use tauri::{Manager, Runtime};
 
 pub struct MenuItemRegistry<R: Runtime> {
     items: Mutex<HashMap<String, MenuItem<R>>>,
+    submenus: Mutex<HashMap<String, Submenu<R>>>,
 }
 
 impl<R: Runtime> Default for MenuItemRegistry<R> {
     fn default() -> Self {
         Self {
             items: Mutex::new(HashMap::new()),
+            submenus: Mutex::new(HashMap::new()),
         }
     }
 }
 
 impl<R: Runtime> MenuItemRegistry<R> {
-    fn register(&self, id: &str, item: &MenuItem<R>) {
+    fn register_item(&self, id: &str, item: &MenuItem<R>) {
         if let Ok(mut items) = self.items.lock() {
             items.insert(id.to_string(), item.clone());
+        }
+    }
+
+    fn register_submenu(&self, id: &str, submenu: &Submenu<R>) {
+        if let Ok(mut submenus) = self.submenus.lock() {
+            submenus.insert(id.to_string(), submenu.clone());
         }
     }
 
@@ -38,12 +46,34 @@ impl<R: Runtime> MenuItemRegistry<R> {
             Ok(false)
         }
     }
+
+    fn set_text(&self, id: &str, text: &str) -> tauri::Result<bool> {
+        if let Ok(items) = self.items.lock() {
+            if let Some(item) = items.get(id) {
+                item.set_text(text)?;
+                return Ok(true);
+            }
+        }
+        if let Ok(submenus) = self.submenus.lock() {
+            if let Some(submenu) = submenus.get(id) {
+                submenu.set_text(text)?;
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
 }
 
 #[derive(Debug, Deserialize)]
 pub struct MenuAcceleratorUpdate {
     pub id: String,
     pub accelerator: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MenuTextUpdate {
+    pub id: String,
+    pub text: String,
 }
 
 #[tauri::command]
@@ -59,12 +89,26 @@ pub fn menu_set_accelerators<R: Runtime>(
     }
     Ok(())
 }
+#[tauri::command]
+pub fn update_menu_texts<R: Runtime>(
+    app: tauri::AppHandle<R>,
+    texts: HashMap<String, String>,
+) -> Result<(), String> {
+    let registry = app.state::<MenuItemRegistry<R>>();
+    for (id, text) in texts {
+        registry
+            .set_text(&id, &text)
+            .map_err(|error| error.to_string())?;
+    }
+    Ok(())
+}
 
 pub(crate) fn build_menu<R: tauri::Runtime>(
     handle: &tauri::AppHandle<R>,
 ) -> tauri::Result<Menu<R>> {
     let registry = handle.state::<MenuItemRegistry<R>>();
     let app_name = handle.package_info().name.clone();
+
     let about_item =
         MenuItemBuilder::with_id("about", format!("About {app_name}")).build(handle)?;
     let check_updates_item =
@@ -72,6 +116,11 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
     let settings_item = MenuItemBuilder::with_id("file_open_settings", "Settings...")
         .accelerator("CmdOrCtrl+,")
         .build(handle)?;
+
+    registry.register_item("about", &about_item);
+    registry.register_item("check_for_updates", &check_updates_item);
+    registry.register_item("settings", &settings_item);
+
     let app_menu = Submenu::with_items(
         handle,
         app_name.clone(),
@@ -89,6 +138,7 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
             &PredefinedMenuItem::quit(handle, None)?,
         ],
     )?;
+    registry.register_submenu("app_name", &app_menu);
 
     let new_agent_item = MenuItemBuilder::with_id("file_new_agent", "New Agent").build(handle)?;
     let new_worktree_agent_item =
@@ -101,15 +151,18 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
         MenuItemBuilder::with_id("file_add_workspace_from_url", "Add Workspace from URL...")
             .build(handle)?;
 
-    registry.register("file_new_agent", &new_agent_item);
-    registry.register("file_new_worktree_agent", &new_worktree_agent_item);
-    registry.register("file_new_clone_agent", &new_clone_agent_item);
+    registry.register_item("new_agent", &new_agent_item);
+    registry.register_item("new_worktree_agent", &new_worktree_agent_item);
+    registry.register_item("new_clone_agent", &new_clone_agent_item);
+    registry.register_item("add_workspaces", &add_workspace_item);
 
     #[cfg(target_os = "linux")]
     let file_menu = {
         let close_window_item =
             MenuItemBuilder::with_id("file_close_window", "Close Window").build(handle)?;
         let quit_item = MenuItemBuilder::with_id("file_quit", "Quit").build(handle)?;
+        registry.register_item("close_window", &close_window_item);
+        registry.register_item("quit", &quit_item);
         Submenu::with_items(
             handle,
             "File",
@@ -145,6 +198,7 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
             &PredefinedMenuItem::quit(handle, None)?,
         ],
     )?;
+    registry.register_submenu("file", &file_menu);
 
     let edit_menu = Submenu::with_items(
         handle,
@@ -160,6 +214,7 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
             &PredefinedMenuItem::select_all(handle, None)?,
         ],
     )?;
+    registry.register_submenu("edit", &edit_menu);
 
     let cycle_model_item = MenuItemBuilder::with_id("composer_cycle_model", "Cycle Model")
         .accelerator("CmdOrCtrl+Shift+M")
@@ -175,10 +230,10 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
         MenuItemBuilder::with_id("composer_cycle_collaboration", "Cycle Collaboration Mode")
             .accelerator("Shift+Tab")
             .build(handle)?;
-    registry.register("composer_cycle_model", &cycle_model_item);
-    registry.register("composer_cycle_access", &cycle_access_item);
-    registry.register("composer_cycle_reasoning", &cycle_reasoning_item);
-    registry.register("composer_cycle_collaboration", &cycle_collaboration_item);
+    registry.register_item("cycle_model", &cycle_model_item);
+    registry.register_item("cycle_access_mode", &cycle_access_item);
+    registry.register_item("cycle_reasoning_mode", &cycle_reasoning_item);
+    registry.register_item("cycle_collaboration_mode", &cycle_collaboration_item);
 
     let composer_menu = Submenu::with_items(
         handle,
@@ -191,6 +246,7 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
             &cycle_collaboration_item,
         ],
     )?;
+    registry.register_submenu("composer", &composer_menu);
 
     let toggle_projects_sidebar_item =
         MenuItemBuilder::with_id("view_toggle_projects_sidebar", "Toggle Projects Sidebar")
@@ -212,22 +268,20 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
         MenuItemBuilder::with_id("view_next_workspace", "Next Workspace").build(handle)?;
     let prev_workspace_item =
         MenuItemBuilder::with_id("view_prev_workspace", "Previous Workspace").build(handle)?;
-    registry.register(
-        "view_toggle_projects_sidebar",
-        &toggle_projects_sidebar_item,
-    );
-    registry.register("view_toggle_git_sidebar", &toggle_git_sidebar_item);
-    registry.register("view_toggle_debug_panel", &toggle_debug_panel_item);
-    registry.register("view_toggle_terminal", &toggle_terminal_item);
-    registry.register("view_next_agent", &next_agent_item);
-    registry.register("view_prev_agent", &prev_agent_item);
-    registry.register("view_next_workspace", &next_workspace_item);
-    registry.register("view_prev_workspace", &prev_workspace_item);
+    registry.register_item("toggle_projects_sidebar", &toggle_projects_sidebar_item);
+    registry.register_item("toggle_git_sidebar", &toggle_git_sidebar_item);
+    registry.register_item("toggle_debug_panel", &toggle_debug_panel_item);
+    registry.register_item("toggle_terminal", &toggle_terminal_item);
+    registry.register_item("next_agent", &next_agent_item);
+    registry.register_item("previous_agent", &prev_agent_item);
+    registry.register_item("next_workspace", &next_workspace_item);
+    registry.register_item("previous_workspace", &prev_workspace_item);
 
     #[cfg(target_os = "linux")]
     let view_menu = {
         let fullscreen_item =
             MenuItemBuilder::with_id("view_fullscreen", "Toggle Full Screen").build(handle)?;
+        registry.register_item("toggle_full_screen", &fullscreen_item);
         Submenu::with_items(
             handle,
             "View",
@@ -268,6 +322,7 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
             &PredefinedMenuItem::fullscreen(handle, None)?,
         ],
     )?;
+    registry.register_submenu("view", &view_menu);
 
     #[cfg(target_os = "linux")]
     let window_menu = {
@@ -276,6 +331,9 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
         let maximize_item =
             MenuItemBuilder::with_id("window_maximize", "Maximize").build(handle)?;
         let close_item = MenuItemBuilder::with_id("window_close", "Close Window").build(handle)?;
+        registry.register_item("minimize", &minimize_item);
+        registry.register_item("maximize", &maximize_item);
+        registry.register_item("close_window", &close_item);
         Submenu::with_items(
             handle,
             "Window",
@@ -300,6 +358,7 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
             &PredefinedMenuItem::close_window(handle, None)?,
         ],
     )?;
+    registry.register_submenu("window", &window_menu);
 
     #[cfg(target_os = "linux")]
     let help_menu = {
@@ -309,6 +368,7 @@ pub(crate) fn build_menu<R: tauri::Runtime>(
     };
     #[cfg(not(target_os = "linux"))]
     let help_menu = Submenu::with_items(handle, "Help", true, &[])?;
+    registry.register_submenu("help", &help_menu);
 
     Menu::with_items(
         handle,

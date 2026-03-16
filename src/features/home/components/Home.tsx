@@ -2,6 +2,7 @@ import ChevronLeft from "lucide-react/dist/esm/icons/chevron-left";
 import ChevronRight from "lucide-react/dist/esm/icons/chevron-right";
 import RefreshCw from "lucide-react/dist/esm/icons/refresh-cw";
 import { useEffect, useState } from "react";
+import i18next from "../../../i18n/config";
 import type {
   AccountSnapshot,
   LocalUsageDay,
@@ -127,7 +128,8 @@ function formatDayLabel(value: string | null | undefined) {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return new Intl.DateTimeFormat(undefined, {
+  const locale = i18next.resolvedLanguage || i18next.language || "en";
+  return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
   }).format(date);

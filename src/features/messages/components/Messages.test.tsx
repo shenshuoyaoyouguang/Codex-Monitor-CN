@@ -1586,7 +1586,7 @@ describe("Messages", () => {
       />,
     );
 
-    expect(screen.getByText("Input requested")).toBeTruthy();
+    expect(screen.getByText("Requires input")).toBeTruthy();
     expect(screen.queryByText("Plan ready")).toBeNull();
   });
 

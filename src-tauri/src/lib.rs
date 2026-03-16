@@ -191,6 +191,7 @@ pub fn run() {
             menu::menu_set_accelerators,
             tray::set_tray_recent_threads,
             tray::set_tray_session_usage,
+            menu::update_menu_texts,
             codex::codex_doctor,
             codex::codex_update,
             workspaces::list_workspaces,

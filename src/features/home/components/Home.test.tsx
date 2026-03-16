@@ -8,7 +8,7 @@ afterEach(() => {
 });
 
 const baseProps = {
-  onOpenSettings: vi.fn(),
+  onOpenProject: vi.fn(),
   onAddWorkspace: vi.fn(),
   onAddWorkspaceFromUrl: vi.fn(),
   latestAgentRuns: [],
@@ -104,7 +104,7 @@ describe("Home", () => {
     );
 
     expect(screen.getAllByText("agent time").length).toBeGreaterThan(0);
-    expect(screen.getByText("Runs")).toBeTruthy();
+    expect(screen.getAllByText("Runs").length).toBeGreaterThan(0);
     expect(screen.getByText("Peak day")).toBeTruthy();
     expect(screen.getByText("Avg / run")).toBeTruthy();
     expect(screen.getByText("Avg / active day")).toBeTruthy();

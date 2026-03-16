@@ -6,6 +6,7 @@ import {
   ToastTitle,
   ToastViewport,
 } from "../../design-system/components/toast/ToastPrimitives";
+import { useTranslation } from "react-i18next";
 
 type ErrorToastsProps = {
   toasts: ErrorToast[];
@@ -13,6 +14,8 @@ type ErrorToastsProps = {
 };
 
 export function ErrorToasts({ toasts, onDismiss }: ErrorToastsProps) {
+  const { t } = useTranslation();
+
   if (!toasts.length) {
     return null;
   }
@@ -27,8 +30,8 @@ export function ErrorToasts({ toasts, onDismiss }: ErrorToastsProps) {
               type="button"
               className="ghost error-toast-dismiss"
               onClick={() => onDismiss(toast.id)}
-              aria-label="Dismiss error"
-              title="Dismiss"
+              aria-label={t("git_diff.close_error")}
+              title={t("common.close")}
             >
               ×
             </button>

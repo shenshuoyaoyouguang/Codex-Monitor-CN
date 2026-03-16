@@ -76,7 +76,7 @@ export const AppLayout = memo(function AppLayout({
   compactEmptyGitNode,
   compactGitBackNode,
   onSidebarResizeStart,
-  onChatDiffSplitPositionResizeStart,
+  onChatDiffSplitPositionResizeStart: _onChatDiffSplitPositionResizeStart,
   onRightPanelResizeStart,
   onPlanPanelResizeStart,
 }: AppLayoutProps) {
@@ -153,7 +153,6 @@ export const AppLayout = memo(function AppLayout({
       debugPanelNode={debugPanelNode}
       hasActivePlan={hasActivePlan}
       onSidebarResizeStart={onSidebarResizeStart}
-      onChatDiffSplitPositionResizeStart={onChatDiffSplitPositionResizeStart}
       onRightPanelResizeStart={onRightPanelResizeStart}
       onPlanPanelResizeStart={onPlanPanelResizeStart}
     />

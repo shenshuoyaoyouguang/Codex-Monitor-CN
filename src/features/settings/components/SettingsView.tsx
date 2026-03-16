@@ -1,5 +1,6 @@
 import ChevronLeft from "lucide-react/dist/esm/icons/chevron-left";
 import X from "lucide-react/dist/esm/icons/x";
+import { useTranslation } from "react-i18next";
 import type {
   AppSettings,
   CodexDoctorResult,
@@ -97,6 +98,7 @@ export function SettingsView({
   onRemoveDictationModel,
   initialSection,
 }: SettingsViewProps) {
+  const { t } = useTranslation();
   const {
     activeSection,
     showMobileDetail,
@@ -151,13 +153,13 @@ export function SettingsView({
     >
       <div className="settings-titlebar">
         <div className="settings-title" id="settings-modal-title">
-          Settings
+          {t("settings_view.settings")}
         </div>
         <button
           type="button"
           className="ghost icon-button settings-close"
           onClick={onClose}
-          aria-label="Close settings"
+          aria-label={t("settings_view.close_settings")}
         >
           <X aria-hidden />
         </button>
@@ -180,10 +182,10 @@ export function SettingsView({
                   type="button"
                   className="settings-mobile-back"
                   onClick={() => setShowMobileDetail(false)}
-                  aria-label="Back to settings sections"
+                  aria-label={t("settings_view.back_to_sections")}
                 >
                   <ChevronLeft aria-hidden />
-                  Sections
+                  {t("settings_view.sections")}
                 </button>
                 <div className="settings-mobile-detail-title">{activeSectionLabel}</div>
               </div>

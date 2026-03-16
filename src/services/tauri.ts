@@ -555,43 +555,6 @@ export async function getGitStatus(workspace_id: string): Promise<{
   return invoke("get_git_status", { workspaceId: workspace_id });
 }
 
-export type InitGitRepoResponse =
-  | { status: "initialized"; commitError?: string }
-  | { status: "already_initialized" }
-  | { status: "needs_confirmation"; entryCount: number };
-
-export async function initGitRepo(
-  workspaceId: string,
-  branch: string,
-  force = false,
-): Promise<InitGitRepoResponse> {
-  return invoke<InitGitRepoResponse>("init_git_repo", { workspaceId, branch, force });
-}
-
-export type CreateGitHubRepoResponse =
-  | { status: "ok"; repo: string; remoteUrl?: string | null }
-  | {
-      status: "partial";
-      repo: string;
-      remoteUrl?: string | null;
-      pushError?: string | null;
-      defaultBranchError?: string | null;
-    };
-
-export async function createGitHubRepo(
-  workspaceId: string,
-  repo: string,
-  visibility: "private" | "public",
-  branch?: string | null,
-): Promise<CreateGitHubRepoResponse> {
-  return invoke<CreateGitHubRepoResponse>("create_github_repo", {
-    workspaceId,
-    repo,
-    visibility,
-    branch,
-  });
-}
-
 export async function listGitRoots(
   workspace_id: string,
   depth: number,
@@ -641,6 +604,40 @@ export async function revertGitFile(workspaceId: string, path: string) {
 
 export async function revertGitAll(workspaceId: string) {
   return invoke("revert_git_all", { workspaceId });
+}
+
+export type InitGitRepoResult =
+  | { status: "initialized" }
+  | { status: "initialized"; commitError: string }
+  | { status: "already_initialized" }
+  | { status: "needs_confirmation"; entryCount: number };
+
+export async function initGitRepo(
+  workspaceId: string,
+  branch: string,
+  force?: boolean,
+): Promise<InitGitRepoResult> {
+  return invoke("init_git_repo", { workspaceId, branch, force });
+}
+
+export type CreateGitHubRepoResult =
+  | { ok: true; url: string }
+  | { ok: false; error: string };
+
+export async function createGitHubRepo(
+  workspaceId: string,
+  repo: string,
+  visibility: "private" | "public",
+  branch?: string,
+): Promise<CreateGitHubRepoResult> {
+  const result = await invoke<{ ok: boolean; url?: string; error?: string }>(
+    "create_github_repo",
+    { workspaceId, repo, visibility, branch },
+  );
+  if (result.ok && result.url) {
+    return { ok: true, url: result.url };
+  }
+  return { ok: false, error: result.error ?? "Unknown error" };
 }
 
 export async function commitGit(
@@ -1178,4 +1175,14 @@ export async function sendNotification(
   }
 
   await attemptFallback();
+}
+
+// 更新菜单语言文本
+export async function updateMenuTexts(texts: Record<string, string>): Promise<void> {
+  try {
+    await invoke('update_menu_texts', { texts });
+  } catch (error) {
+    console.warn('Failed to update menu texts:', error);
+    throw error;
+  }
 }

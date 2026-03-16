@@ -4,105 +4,71 @@ import { describe, expect, it, vi } from "vitest";
 import { useSyncSelectedDiffPath } from "./useSyncSelectedDiffPath";
 
 describe("useSyncSelectedDiffPath", () => {
-  it("selects the first per-file edit when no edit is selected", () => {
+  it("selects the first pull request diff when no diff is selected", () => {
     const setSelectedDiffPath = vi.fn();
 
     renderHook(() =>
       useSyncSelectedDiffPath({
-        diffSource: "perFile",
+        diffSource: "pr",
         centerMode: "diff",
-        gitPullRequestDiffs: [],
-        gitCommitDiffs: [],
-        perFileDiffGroups: [
+        gitPullRequestDiffs: [
           {
             path: "src/main.ts",
-            edits: [
-              {
-                id: "src/main.ts@@item-change-1@@change-0",
-                path: "src/main.ts",
-                label: "Edit 1",
-                status: "M",
-                diff: "diff-a",
-                sourceItemId: "change-1",
-                additions: 1,
-                deletions: 0,
-              },
-            ],
+            status: "modified",
+            diff: "@@ -1 +1 @@",
           },
         ],
+        gitCommitDiffs: [],
+        perFileDiffGroups: [],
         selectedDiffPath: null,
         setSelectedDiffPath,
       }),
     );
 
-    expect(setSelectedDiffPath).toHaveBeenCalledWith(
-      "src/main.ts@@item-change-1@@change-0",
-    );
+    expect(setSelectedDiffPath).toHaveBeenCalledWith("src/main.ts");
   });
 
-  it("re-selects the first per-file edit when current selection is stale", () => {
+  it("re-selects the first commit diff when current selection is stale", () => {
     const setSelectedDiffPath = vi.fn();
 
     renderHook(() =>
       useSyncSelectedDiffPath({
-        diffSource: "perFile",
+        diffSource: "commit",
         centerMode: "diff",
         gitPullRequestDiffs: [],
-        gitCommitDiffs: [],
-        perFileDiffGroups: [
+        gitCommitDiffs: [
           {
             path: "src/main.ts",
-            edits: [
-              {
-                id: "src/main.ts@@item-change-2@@change-0",
-                path: "src/main.ts",
-                label: "Edit 1",
-                status: "M",
-                diff: "diff-a",
-                sourceItemId: "change-2",
-                additions: 1,
-                deletions: 0,
-              },
-            ],
+            status: "modified",
+            diff: "@@ -1 +1 @@",
           },
         ],
-        selectedDiffPath: "src/main.ts@@item-change-1@@change-0",
+        perFileDiffGroups: [],
+        selectedDiffPath: "src/old.ts",
         setSelectedDiffPath,
       }),
     );
 
-    expect(setSelectedDiffPath).toHaveBeenCalledWith(
-      "src/main.ts@@item-change-2@@change-0",
-    );
+    expect(setSelectedDiffPath).toHaveBeenCalledWith("src/main.ts");
   });
 
-  it("keeps current per-file selection when it is still valid", () => {
+  it("keeps current commit selection when it is still valid", () => {
     const setSelectedDiffPath = vi.fn();
 
     renderHook(() =>
       useSyncSelectedDiffPath({
-        diffSource: "perFile",
+        diffSource: "commit",
         centerMode: "diff",
         gitPullRequestDiffs: [],
-        gitCommitDiffs: [],
-        perFileDiffGroups: [
+        gitCommitDiffs: [
           {
             path: "src/main.ts",
-            edits: [
-              {
-                id: "src/main.ts@@item-change-1@@change-0",
-                path: "src/main.ts",
-                label: "Edit 1",
-                status: "M",
-                diff: "diff-a",
-                sourceItemId: "change-1",
-                additions: 1,
-                deletions: 0,
-              },
-            ],
+            status: "modified",
+            diff: "@@ -1 +1 @@",
           },
         ],
-        selectedDiffPath: "src/main.ts@@item-change-1@@change-0",
+        perFileDiffGroups: [],
+        selectedDiffPath: "src/main.ts",
         setSelectedDiffPath,
       }),
     );

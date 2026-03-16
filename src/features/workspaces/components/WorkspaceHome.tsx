@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import type {
   AppOption,
@@ -30,16 +31,12 @@ import { isComposingEvent } from "../../../utils/keys";
 import { FileEditorCard } from "../../shared/components/FileEditorCard";
 import { WorkspaceHomeRunControls } from "./WorkspaceHomeRunControls";
 import { WorkspaceHomeHistory } from "./WorkspaceHomeHistory";
-import { WorkspaceHomeGitInitBanner } from "./WorkspaceHomeGitInitBanner";
 import { buildIconPath } from "./workspaceHomeHelpers";
 import { useWorkspaceHomeSuggestionsStyle } from "../hooks/useWorkspaceHomeSuggestionsStyle";
 import type { ThreadStatusById } from "../../../utils/threadStatus";
 
 type WorkspaceHomeProps = {
   workspace: WorkspaceInfo;
-  showGitInitBanner: boolean;
-  initGitRepoLoading: boolean;
-  onInitGitRepo: () => void | Promise<void>;
   runs: WorkspaceHomeRun[];
   recentThreadInstances: WorkspaceHomeRunInstance[];
   recentThreadsUpdatedAt: number | null;
@@ -96,13 +93,13 @@ type WorkspaceHomeProps = {
   onAgentMdChange: (value: string) => void;
   onAgentMdRefresh: () => void;
   onAgentMdSave: () => void;
+  showGitInitBanner?: boolean;
+  initGitRepoLoading?: boolean;
+  onInitGitRepo?: () => void | Promise<void>;
 };
 
 export function WorkspaceHome({
   workspace,
-  showGitInitBanner,
-  initGitRepoLoading,
-  onInitGitRepo,
   runs,
   recentThreadInstances,
   recentThreadsUpdatedAt,
@@ -160,6 +157,7 @@ export function WorkspaceHome({
   onAgentMdRefresh,
   onAgentMdSave,
 }: WorkspaceHomeProps) {
+  const { t } = useTranslation();
   const [showIcon, setShowIcon] = useState(true);
   const [selectionStart, setSelectionStart] = useState<number | null>(null);
   const iconPath = useMemo(() => buildIconPath(workspace.path), [workspace.path]);
@@ -329,12 +327,12 @@ export function WorkspaceHome({
   };
 
   const agentMdStatus = agentMdLoading
-    ? "Loading…"
+    ? t("common.loading")
     : agentMdSaving
-      ? "Saving…"
+      ? t("common.saving")
       : agentMdExists
         ? ""
-        : "Not found";
+        : t("errors.not_found");
   const agentMdMetaParts: string[] = [];
   if (agentMdStatus) {
     agentMdMetaParts.push(agentMdStatus);
@@ -343,7 +341,7 @@ export function WorkspaceHome({
     agentMdMetaParts.push("Truncated");
   }
   const agentMdMeta = agentMdMetaParts.join(" · ");
-  const agentMdSaveLabel = agentMdExists ? "Save" : "Create";
+  const agentMdSaveLabel = agentMdExists ? t("common.save") : t("common.create");
   const agentMdSaveDisabled = agentMdLoading || agentMdSaving || !agentMdDirty;
   const agentMdRefreshDisabled = agentMdLoading || agentMdSaving;
 
@@ -363,13 +361,6 @@ export function WorkspaceHome({
           <div className="workspace-home-path">{workspace.path}</div>
         </div>
       </div>
-
-      {showGitInitBanner && (
-        <WorkspaceHomeGitInitBanner
-          isLoading={initGitRepoLoading}
-          onInitGitRepo={onInitGitRepo}
-        />
-      )}
 
       <div className="workspace-home-composer">
         <div className="composer">

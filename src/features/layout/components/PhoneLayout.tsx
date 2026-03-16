@@ -71,7 +71,13 @@ export function PhoneLayout({
       {activeTab === "git" && (
         <div className="compact-panel">
           {!activeWorkspace && compactEmptyGitNode}
-          {activeWorkspace && (
+          {activeWorkspace && showGitDetail && (
+            <>
+              {compactGitBackNode}
+              <div className="compact-git-viewer">{gitDiffViewerNode}</div>
+            </>
+          )}
+          {activeWorkspace && !showGitDetail && (
             <>
               <MainTopbar
                 leftNode={topbarLeftNode}
@@ -79,13 +85,9 @@ export function PhoneLayout({
                 className="compact-topbar"
               />
               {compactGitBackNode}
-              {showGitDetail ? (
-                <div className="compact-git-viewer">{gitDiffViewerNode}</div>
-              ) : (
-                <div className="compact-git">
-                  <div className="compact-git-list">{gitDiffPanelNode}</div>
-                </div>
-              )}
+              <div className="compact-git">
+                <div className="compact-git-list">{gitDiffPanelNode}</div>
+              </div>
             </>
           )}
         </div>

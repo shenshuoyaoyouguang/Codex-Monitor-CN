@@ -198,7 +198,7 @@ export const Composer = memo(function Composer({
   queuePausedReason = null,
   onEditQueued,
   onDeleteQueued,
-  sendLabel = "Send",
+  sendLabel,
   draftText = "",
   onDraftChange,
   historyKey = null,
@@ -277,7 +277,7 @@ export const Composer = memo(function Composer({
     ? effectiveFollowUpBehavior === "steer"
       ? "Steer"
       : "Queue"
-    : sendLabel;
+    : sendLabel ?? "Send";
   const {
     expandFenceOnSpace,
     expandFenceOnEnter,
