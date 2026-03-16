@@ -4,6 +4,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ThreadSummary } from "../../../types";
 import { ThreadList } from "./ThreadList";
 
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 const nestedThread: ThreadSummary = {
   id: "thread-2",
   name: "Nested Agent",
@@ -88,7 +94,7 @@ describe("ThreadList", () => {
       />,
     );
 
-    const moreButton = screen.getByRole("button", { name: "More..." });
+    const moreButton = screen.getByRole("button", { name: "sidebar.showMore" });
     fireEvent.click(moreButton);
     expect(onToggleExpanded).toHaveBeenCalledWith("ws-1");
   });
@@ -103,7 +109,7 @@ describe("ThreadList", () => {
       />,
     );
 
-    const loadButton = screen.getByRole("button", { name: "Load older..." });
+    const loadButton = screen.getByRole("button", { name: "sidebar.loadOlder" });
     fireEvent.click(loadButton);
     expect(onLoadOlderThreads).toHaveBeenCalledWith("ws-1");
   });

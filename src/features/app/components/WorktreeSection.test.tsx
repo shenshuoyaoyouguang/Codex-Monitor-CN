@@ -50,10 +50,10 @@ describe("WorktreeSection", () => {
     );
 
     expect(
-      screen.queryByRole("button", { name: "Search older..." }),
+      screen.queryByRole("button", { name: "sidebar.searchOlder" }),
     ).toBeNull();
     expect(
-      screen.queryByRole("button", { name: "Load older..." }),
+      screen.queryByRole("button", { name: "sidebar.loadOlder" }),
     ).toBeNull();
   });
 });
